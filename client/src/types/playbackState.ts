@@ -1,0 +1,1 @@
+export type IPlayBackState = "playing" | "paused"
