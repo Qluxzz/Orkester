@@ -1,8 +1,8 @@
 import styled from "styled-components"
-import { IPlayBackState } from "./types/playbackState"
+import IPlaybackState from "./types/playbackState"
 
 type IButton = {
-    playbackState: IPlayBackState
+    playbackState: IPlaybackState
 }
 
 const Button = styled.button<IButton>`
@@ -19,7 +19,7 @@ const Button = styled.button<IButton>`
 `
 
 type IPlaybackButton = {
-    playbackState: IPlayBackState,
+    playbackState: IPlaybackState,
     togglePlayback: () => void
 }
 

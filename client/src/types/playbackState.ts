@@ -1,1 +1,3 @@
-export type IPlayBackState = "playing" | "paused"
+type IPlaybackState = "playing" | "paused"
+
+export default IPlaybackState

@@ -1,51 +1,32 @@
 import React, { useEffect, useRef, useState } from "react";
-import PlaybackButton from "./PlaybackButton";
-import { IPlayBackState } from "./types/playbackState";
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link,
+  useParams
+} from "react-router-dom"
+
+import Player from "./Player";
 
 
 function App() {
-  const [playbackState, setPlaybackState] = useState<IPlayBackState>("paused")
-  const audio = new Audio("http://localhost:3000/stream")
-
-  useEffect(() => {
-    async function togglePlayback() {
-      switch (playbackState) {
-        case "paused":
-          if (!audio.paused)
-            audio.pause()
-          break
-        case "playing":
-          await audio.play()
-          break
-      }
-    }
-
-    togglePlayback()
-  }, [playbackState])
-
-  function togglePlayback() {
-    setPlaybackState(
-      currentState => {
-        switch (currentState) {
-          case "playing":
-            return "paused"
-          case "paused":
-            return "playing"
-        }
-      }
-    )
-  }
-
-  return (
-    <div className="App">
-      <PlaybackButton
-        playbackState={playbackState}
-        togglePlayback={togglePlayback}
-      />
-    </div>
-  );
+  return <BrowserRouter>
+    <Switch>
+      <Route path="/stream/:id" children={<PlayerWrapper />} />
+      <Route path="/">
+        <div>Welcome home!</div>
+      </Route>
+    </Switch>
+  
+  </BrowserRouter>
 }
 
 
+function PlayerWrapper() {
+  const { id } = useParams<{ id: string }>()
+
+  return <Player id={parseInt(id)} />
+}
 
 export default App;
