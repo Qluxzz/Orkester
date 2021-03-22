@@ -1,3 +1,5 @@
+package main
+
 type Track struct {
 	Id      int
 	Name    string
