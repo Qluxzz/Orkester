@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
@@ -25,83 +23,6 @@ func createSchemas(db *sqlx.DB) {
 	}
 }
 
-type AddTrackRequest struct {
-	Path string `db:"path"`
-}
-
-func indexFolder(path string) []AddTrackRequest {
-	path, err := filepath.EvalSymlinks(path)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	tracks := []AddTrackRequest{}
-
-	filepath.Walk(path, func(path string, fileInfo os.FileInfo, err error) error {
-		filename := strings.ToLower(fileInfo.Name())
-		ext := filepath.Ext(filename)
-
-		if isMusicFile(ext) {
-			tracks = append(
-				tracks,
-				AddTrackRequest{
-					Path: path,
-				},
-			)
-
-			return nil
-		}
-
-		if isCoverImage(filename) {
-			return nil
-		}
-
-		return nil
-	})
-
-	return tracks
-}
-
-func isMusicFile(extension string) bool {
-	validFileExtensions := []string{".ogg", ".flac", ".mp3"}
-
-	for _, validExtension := range validFileExtensions {
-		if extension == validExtension {
-			return true
-		}
-	}
-
-	return false
-}
-
-func isCoverImage(filename string) bool {
-	hasValidFileName := func() bool {
-		validFilenames := []string{"cover", "folder"}
-
-		for _, validFilename := range validFilenames {
-			if strings.HasPrefix(filename, validFilename) {
-				return true
-			}
-		}
-
-		return false
-	}()
-
-	hasValidExtension := func() bool {
-		validFileExtensions := []string{".jpg", ".jpeg", ".png"}
-
-		for _, validFileExtension := range validFileExtensions {
-			if strings.HasSuffix(filename, validFileExtension) {
-				return true
-			}
-		}
-
-		return false
-	}()
-
-	return hasValidFileName && hasValidExtension
-}
-
 type DBTrack struct {
 	Id   int    `db:"id"`
 	Path string `db:"path"`
@@ -110,15 +31,11 @@ type DBTrack struct {
 func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 	log.Printf("Tracks found: %d", len(tracks))
 
+	tx := db.MustBegin()
 	for _, track := range tracks {
-		res := db.MustExec("INSERT INTO track (path) VALUES (?)", track.Path)
-		last, err := res.LastInsertId()
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		log.Print(last)
+		tx.MustExec("INSERT INTO track (path) VALUES(?)", track.Path)
 	}
+	tx.Commit()
 }
 
 func main() {
@@ -131,7 +48,7 @@ func main() {
 
 	createSchemas(db)
 
-	tracks := indexFolder("./content")
+	tracks := IndexFolder("./content")
 	addTracks(tracks, db)
 
 	app := fiber.New()
