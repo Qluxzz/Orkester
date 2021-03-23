@@ -86,8 +86,6 @@ func IndexFolder(path string) []AddTrackRequest {
 							track.Date = value
 						case "length":
 							track.Length = value
-						default:
-							continue
 						}
 					}
 				case meta.TypePicture:
@@ -104,6 +102,7 @@ func IndexFolder(path string) []AddTrackRequest {
 							Data:     data.Data,
 						}
 					}
+				}
 			}
 
 			tracks = append(
