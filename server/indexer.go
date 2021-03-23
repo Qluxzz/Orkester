@@ -5,10 +5,21 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/mewkiz/flac"
+	"github.com/mewkiz/flac/meta"
 )
 
 type AddTrackRequest struct {
-	Path string `db:"path"`
+	Path        string `db:"path"`
+	Title       string `db:"title"`
+	Artist      string `db:"artist"`
+	Album       string `db:"album"`
+	AlbumArtist string `db:"albumartist"`
+	TrackNumber string `db:"tracknumber"`
+	Genre       string `db:"genre"`
+	Length      string `db:"length"`
+	Date        string `db:"date"`
 }
 
 func IndexFolder(path string) []AddTrackRequest {
@@ -24,50 +35,60 @@ func IndexFolder(path string) []AddTrackRequest {
 		ext := filepath.Ext(filename)
 
 		if isMusicFile(ext) {
-			// f, err := os.Open(path)
-			// if err != nil {
-			// 	return nil
-			// }
+			f, err := flac.ParseFile(path)
+			if err != nil {
+				return nil
+			}
+			defer f.Close()
 
-			// for {
-			// 	block, err := meta.New(f)
+			track := AddTrackRequest{
+				Path: path,
+			}
 
-			// 	if err != nil {
-			// 		break
-			// 	}
+			for _, block := range f.Blocks {
+				switch block.Type {
+				case meta.TypeVorbisComment:
+					data, valid := block.Body.(*meta.VorbisComment)
+					if !valid {
+						log.Fatalln("Block said it was TypeVorbisComment but could not be cast to it!")
+					}
 
-			// 	switch block.Type {
-			// 	case meta.TypeVorbisComment:
-			// 		err := block.Parse()
-			// 		if err != nil {
-			// 			log.Print(err)
-			// 			break
-			// 		}
+					for _, tag := range data.Tags {
+						tagType := tag[0]
+						value := strings.TrimSpace(tag[1])
 
-			// 		data, valid := block.Body.(meta.VorbisComment)
-			// 		if !valid {
-			// 			log.Fatalln("Block said it was TypeVorbisComment but could not be cast to it!")
-			// 		}
-
-			// 		for _, tag := range data.Tags {
-			// 			log.Print(tag)
-			// 		}
-			// 	case meta.TypeCueSheet:
-			// 	case meta.TypePicture:
-			// 	default:
-			// 		block.Skip()
-			// 	}
-
-			// 	if block.IsLast {
-			// 		break
-			// 	}
-			// }
+						switch tagType {
+						case "title":
+							track.Title = value
+						case "artist":
+							track.Artist = value
+						case "album":
+							track.Album = value
+							break
+						case "albumartist":
+							track.AlbumArtist = value
+						case "tracknumber":
+							track.TrackNumber = value
+						case "genre":
+							track.Genre = value
+						case "date":
+							track.Date = value
+						case "length":
+							track.Length = value
+						default:
+							continue
+						}
+					}
+				case meta.TypeCueSheet:
+				case meta.TypePicture:
+				default:
+					block.Skip()
+				}
+			}
 
 			tracks = append(
 				tracks,
-				AddTrackRequest{
-					Path: path,
-				},
+				track,
 			)
 
 			return nil

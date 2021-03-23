@@ -14,7 +14,10 @@ import (
 func createSchemas(db *sqlx.DB) {
 	trackSchema := `CREATE TABLE IF NOT EXISTS track(
 		id INTEGER PRIMARY KEY,
-		path TEXT NOT NULL
+		title TEXT NOT NULL,
+		tracknumber TEXT NOT NULL,
+		path TEXT NOT NULL,
+		date TEXT NOT NULL
 	);`
 
 	_, err := db.Exec(trackSchema)
@@ -24,16 +27,39 @@ func createSchemas(db *sqlx.DB) {
 }
 
 type DBTrack struct {
-	Id   int    `db:"id"`
-	Path string `db:"path"`
+	Id          int    `db:"id"`
+	Title       string `db:"title"`
+	TrackNumber string `db:"tracknumber"`
+	Path        string `db:"path"`
+	Date        string `db:"date"`
 }
 
 func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 	log.Printf("Tracks found: %d", len(tracks))
 
+	insertTrackStmt := `
+		INSERT INTO track (
+			title,
+			tracknumber,
+			path,
+			date
+		) VALUES(
+			?,
+			?,
+			?,
+			?
+		)
+	`
+
 	tx := db.MustBegin()
 	for _, track := range tracks {
-		tx.MustExec("INSERT INTO track (path) VALUES(?)", track.Path)
+		tx.MustExec(
+			insertTrackStmt,
+			track.Title,
+			track.TrackNumber,
+			track.Path,
+			track.Date,
+		)
 	}
 	tx.Commit()
 }
