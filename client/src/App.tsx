@@ -1,25 +1,32 @@
-import React, { useEffect, useRef, useState } from "react";
 import {
   BrowserRouter,
   Switch,
   Route,
-  Link,
   useParams
 } from "react-router-dom"
 
 import Player from "./Player";
 
+import styled from "styled-components"
+
+const AppStyle = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
+
 
 function App() {
-  return <BrowserRouter>
-    <Switch>
-      <Route path="/stream/:id" children={<PlayerWrapper />} />
-      <Route path="/">
-        <div>Welcome home!</div>
-      </Route>
-    </Switch>
-  
-  </BrowserRouter>
+  return <AppStyle>
+    <BrowserRouter>
+      <Switch>
+        <Route path="/track/:id" children={<PlayerWrapper />} />
+        <Route path="/">
+          <div>Welcome home!</div>
+        </Route>
+      </Switch>
+    </BrowserRouter>
+  </AppStyle>
 }
 
 
