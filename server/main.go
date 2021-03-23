@@ -225,7 +225,10 @@ func main() {
 
 		image := TrackImage{}
 
-		db.Get(&image, "SELECT image, imagemimetype FROM albums WHERE id = (SELECT albumid FROM tracks WHERE id = ?)", id)
+		err = db.Get(&image, "SELECT image, imagemimetype FROM albums WHERE id = (SELECT albumid FROM tracks WHERE id = ?)", id)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
 
 		c.Response().Header.Add("Content-Type", image.MimeType)
 		return c.Send(image.Image)
@@ -239,7 +242,7 @@ func main() {
 
 		dbTrack := DBTrack{}
 
-		db.Get(&dbTrack, `
+		err = db.Get(&dbTrack, `
 			SELECT
 				t.id,
 				t.title,
@@ -255,6 +258,9 @@ func main() {
 				ON albums.id = t.albumid
 			WHERE t.id = ?
 		`, id)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
 
 		track := dbTrack.ToDomain()
 
