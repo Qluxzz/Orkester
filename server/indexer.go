@@ -97,7 +97,9 @@ func IndexFolder(path string) []AddTrackRequest {
 						log.Fatalln("Block said it was TypePicture but could not be cast to it!")
 					}
 
-					if data.Type == 3 {
+					coverFront := uint32(3)
+
+					if data.Type == coverFront {
 						track.Album.Image = Image{
 							MimeType: data.MIME,
 							Data:     data.Data,
