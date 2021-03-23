@@ -99,15 +99,15 @@ func main() {
 			return c.Status(500).SendString(err.Error())
 		}
 
-		track := DBTrack{}
-		err = db.Get(&track, "SELECT * FROM track WHERE id=:id", id)
+		var path string
+		err = db.Get(&path, "SELECT path FROM track WHERE id=:id", id)
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
 
 		c.Response().Header.Add("content-type", "audio/flac")
 
-		stream, err := os.Open(track.Path)
+		stream, err := os.Open(path)
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
