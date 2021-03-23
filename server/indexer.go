@@ -10,16 +10,26 @@ import (
 	"github.com/mewkiz/flac/meta"
 )
 
+type Image struct {
+	Data     []byte
+	MimeType string
+}
+
+type Album struct {
+	Name  string
+	Image Image
+}
+
 type AddTrackRequest struct {
-	Path        string `db:"path"`
-	Title       string `db:"title"`
-	Artist      string `db:"artist"`
-	Album       string `db:"album"`
-	AlbumArtist string `db:"albumartist"`
-	TrackNumber string `db:"tracknumber"`
-	Genre       string `db:"genre"`
-	Length      string `db:"length"`
-	Date        string `db:"date"`
+	Path        string
+	Title       string
+	Artist      string
+	Album       Album
+	AlbumArtist string
+	TrackNumber string
+	Genre       string
+	Length      string
+	Date        string
 }
 
 func IndexFolder(path string) []AddTrackRequest {
@@ -63,7 +73,9 @@ func IndexFolder(path string) []AddTrackRequest {
 						case "artist":
 							track.Artist = value
 						case "album":
-							track.Album = value
+							track.Album = Album{
+								Name: value,
+							}
 						case "albumartist":
 							track.AlbumArtist = value
 						case "tracknumber":
@@ -80,6 +92,18 @@ func IndexFolder(path string) []AddTrackRequest {
 					}
 				case meta.TypeCueSheet:
 				case meta.TypePicture:
+					data, valid := block.Body.(*meta.Picture)
+					if !valid {
+						log.Fatalln("Block said it was TypePicture but could not be cast to it!")
+					}
+
+					if data.Type == 3 {
+						track.Album.Image = Image{
+							MimeType: data.MIME,
+							Data:     data.Data,
+						}
+					}
+
 				default:
 					block.Skip()
 				}
