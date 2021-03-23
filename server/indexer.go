@@ -54,7 +54,7 @@ func IndexFolder(path string) []AddTrackRequest {
 					}
 
 					for _, tag := range data.Tags {
-						tagType := tag[0]
+						tagType := strings.ToLower(tag[0])
 						value := strings.TrimSpace(tag[1])
 
 						switch tagType {
@@ -64,7 +64,6 @@ func IndexFolder(path string) []AddTrackRequest {
 							track.Artist = value
 						case "album":
 							track.Album = value
-							break
 						case "albumartist":
 							track.AlbumArtist = value
 						case "tracknumber":
