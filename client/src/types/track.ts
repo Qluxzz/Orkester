@@ -5,6 +5,7 @@ type ITrack = {
     Date: string
     Album: string
     Artist: string
+    Genre: string
 }
 
 export default ITrack

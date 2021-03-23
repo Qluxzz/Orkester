@@ -52,6 +52,7 @@ export default function Player({ id }: { id: number }) {
         <h2>{track.Title}</h2>
         <p>{track.Artist} - {track.Album}</p>
         <img style={{ padding: 10, width: 256 }} src={`http://localhost:3001/track/${id}/image`} alt={track.Album} />
+        <p>{track.Genre}</p>
         <Controls id={id} />
     </PlayerDiv>
 }

@@ -26,6 +26,11 @@ func createSchemas(db *sqlx.DB) {
 		imagemimetype TEXT
 	);`
 
+	genreSchema := `CREATE TABLE IF NOT EXISTS genres(
+		id INTEGER PRIMARY KEY,
+		name TEXT UNIQUE NOT NULL
+	)`
+
 	trackSchema := `CREATE TABLE IF NOT EXISTS tracks(
 		id INTEGER PRIMARY KEY,
 		title TEXT NOT NULL,
@@ -34,14 +39,17 @@ func createSchemas(db *sqlx.DB) {
 		date TEXT NOT NULL,
 		albumid INTEGER,
 		artistid INTEGER,
+		genreid INTEGER,
 		FOREIGN KEY (albumid) REFERENCES albums(id),
-		FOREIGN KEY (artistid) REFERENCES artists(id)
+		FOREIGN KEY (artistid) REFERENCES artists(id),
+		FOREIGN KEY (genreid) REFERENCES genres(id)
 	);`
 
 	tx := db.MustBegin()
 
 	tx.MustExec(artistSchema)
 	tx.MustExec(albumSchema)
+	tx.MustExec(genreSchema)
 	tx.MustExec(trackSchema)
 
 	err := tx.Commit()
@@ -57,6 +65,7 @@ type Track struct {
 	Date          string
 	Album         string
 	Artist        string
+	Genre         string
 	Image         []byte
 	ImageMimeType string
 }
@@ -78,11 +87,20 @@ func (track DBTrack) ToDomain() Track {
 		return track.Album.String
 	}()
 
+	genre := func() string {
+		if !track.Genre.Valid {
+			return ""
+		}
+
+		return track.Genre.String
+	}()
+
 	return Track{
 		Id:          track.Id,
 		Title:       track.Title,
 		TrackNumber: track.TrackNumber,
 		Date:        track.Date,
+		Genre:       genre,
 		Album:       album,
 		Artist:      artist,
 	}
@@ -95,6 +113,7 @@ type DBTrack struct {
 	Date          string         `db:"date"`
 	Album         sql.NullString `db:"album"`
 	Artist        sql.NullString `db:"artist"`
+	Genre         sql.NullString `db:"genre"`
 	Image         []byte         `db:"image"`
 	ImageMimeType string         `db:"imagemimetype"`
 }
@@ -112,6 +131,10 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 		INSERT OR IGNORE INTO albums (name, image, imagemimetype) VALUES (?, ?, ?)
 	`
 
+	insertGenreStmt := `
+		INSERT OR IGNORE INTO genres (name) VALUES (?)
+	`
+
 	insertTrackStmt := `
 		INSERT INTO tracks (
 			title,
@@ -119,20 +142,23 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 			path,
 			date,
 			albumid,
-			artistid
+			artistid,
+			genreid
 		) VALUES(
 			?,
 			?,
 			?,
 			?,
 			(SELECT id FROM albums WHERE name = ?),
-			(SELECT id FROM artists WHERE name = ?)
+			(SELECT id FROM artists WHERE name = ?),
+			(SELECT id from genres WHERE name = ?)
 		)
 	`
 
 	for _, track := range tracks {
 		tx.MustExec(insertArtistStmt, track.Artist)
 		tx.MustExec(insertAlbumStmt, track.Album.Name, track.Album.Image.Data, track.Album.Image.MimeType)
+		tx.MustExec(insertGenreStmt, track.Genre)
 
 		tx.MustExec(
 			insertTrackStmt,
@@ -142,6 +168,7 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 			track.Date,
 			track.Album.Name,
 			track.Artist,
+			track.Genre,
 		)
 	}
 
@@ -182,13 +209,16 @@ func main() {
 				albums.name album,
 				albums.image,
 				albums.imagemimetype,
-				artists.name artist
+				artists.name artist,
+				genres.name genre
 			FROM 
 				tracks t
 			LEFT JOIN artists
 				ON artists.id = t.artistid
 			LEFT JOIN albums
 				ON albums.id = t.albumid
+			LEFT JOIN genres
+				ON genres.id = t.genreid
 		`
 
 		err := db.Select(&dbTracks, getTracksStmt)
@@ -249,13 +279,16 @@ func main() {
 				t.tracknumber,
 				t.date,
 				albums.name album,
-				artists.name artist
+				artists.name artist,
+				genres.name genre
 			FROM 
 				tracks t
 			LEFT JOIN artists
 				ON artists.id = t.artistid
 			LEFT JOIN albums
 				ON albums.id = t.albumid
+			LEFT JOIN genres
+				ON genres.id = t.genreid
 			WHERE t.id = ?
 		`, id)
 		if err != nil {
