@@ -51,7 +51,6 @@ type Track struct {
 	Id          int
 	Title       string
 	TrackNumber string
-	Path        string
 	Date        string
 	Album       string
 	Artist      string
@@ -78,7 +77,6 @@ func (track DBTrack) ToDomain() Track {
 		Id:          track.Id,
 		Title:       track.Title,
 		TrackNumber: track.TrackNumber,
-		Path:        track.Path,
 		Date:        track.Date,
 		Album:       album,
 		Artist:      artist,
@@ -89,7 +87,6 @@ type DBTrack struct {
 	Id          int            `db:"id"`
 	Title       string         `db:"title"`
 	TrackNumber string         `db:"tracknumber"`
-	Path        string         `db:"path"`
 	Date        string         `db:"date"`
 	Album       sql.NullString `db:"album"`
 	Artist      sql.NullString `db:"artist"`
@@ -194,6 +191,43 @@ func main() {
 		}
 
 		_json, err := json.Marshal(tracks)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		c.Response().Header.Add("Content-Type", "application/json")
+
+		return c.Send(_json)
+	})
+
+	app.Get("/track/:id", func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		dbTrack := DBTrack{}
+
+		db.Get(&dbTrack, `
+			SELECT
+				t.id,
+				t.title,
+				t.tracknumber,
+				t.date,
+				albums.name album,
+				artists.name artist
+			FROM 
+				tracks t
+			LEFT JOIN artists
+				ON artists.id = t.artistid
+			LEFT JOIN albums
+				ON albums.id = t.albumid
+			WHERE t.id = ?
+		`, id)
+
+		track := dbTrack.ToDomain()
+
+		_json, err := json.Marshal(track)
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
