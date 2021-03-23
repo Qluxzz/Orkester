@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -20,7 +21,9 @@ func createSchemas(db *sqlx.DB) {
 
 	albumSchema := `CREATE TABLE IF NOT EXISTS albums(
 		id INTEGER PRIMARY KEY,
-		name TEXT UNIQUE NOT NULL
+		name TEXT UNIQUE NOT NULL,
+		image BLOB,
+		imagemimetype TEXT
 	);`
 
 	trackSchema := `CREATE TABLE IF NOT EXISTS tracks(
@@ -48,12 +51,14 @@ func createSchemas(db *sqlx.DB) {
 }
 
 type Track struct {
-	Id          int
-	Title       string
-	TrackNumber string
-	Date        string
-	Album       string
-	Artist      string
+	Id            int
+	Title         string
+	TrackNumber   string
+	Date          string
+	Album         string
+	Artist        string
+	Image         []byte
+	ImageMimeType string
 }
 
 func (track DBTrack) ToDomain() Track {
@@ -84,12 +89,14 @@ func (track DBTrack) ToDomain() Track {
 }
 
 type DBTrack struct {
-	Id          int            `db:"id"`
-	Title       string         `db:"title"`
-	TrackNumber string         `db:"tracknumber"`
-	Date        string         `db:"date"`
-	Album       sql.NullString `db:"album"`
-	Artist      sql.NullString `db:"artist"`
+	Id            int            `db:"id"`
+	Title         string         `db:"title"`
+	TrackNumber   string         `db:"tracknumber"`
+	Date          string         `db:"date"`
+	Album         sql.NullString `db:"album"`
+	Artist        sql.NullString `db:"artist"`
+	Image         []byte         `db:"image"`
+	ImageMimeType string         `db:"imagemimetype"`
 }
 
 func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
@@ -102,7 +109,7 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 	`
 
 	insertAlbumStmt := `
-		INSERT OR IGNORE INTO albums (name) VALUES (?)
+		INSERT OR IGNORE INTO albums (name, image, imagemimetype) VALUES (?, ?, ?)
 	`
 
 	insertTrackStmt := `
@@ -125,7 +132,7 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 
 	for _, track := range tracks {
 		tx.MustExec(insertArtistStmt, track.Artist)
-		tx.MustExec(insertAlbumStmt, track.Album)
+		tx.MustExec(insertAlbumStmt, track.Album.Name, track.Album.Image.Data, track.Album.Image.MimeType)
 
 		tx.MustExec(
 			insertTrackStmt,
@@ -133,7 +140,7 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 			track.TrackNumber,
 			track.Path,
 			track.Date,
-			track.Album,
+			track.Album.Name,
 			track.Artist,
 		)
 	}
@@ -159,6 +166,10 @@ func main() {
 
 	app := fiber.New()
 
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3002",
+	}))
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		dbTracks := []DBTrack{}
 
@@ -167,9 +178,10 @@ func main() {
 				t.id,
 				t.title,
 				t.tracknumber,
-				t.path,
 				t.date,
 				albums.name album,
+				albums.image,
+				albums.imagemimetype,
 				artists.name artist
 			FROM 
 				tracks t
@@ -198,6 +210,25 @@ func main() {
 		c.Response().Header.Add("Content-Type", "application/json")
 
 		return c.Send(_json)
+	})
+
+	app.Get("/track/:id/image", func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		type TrackImage struct {
+			Image    []byte `db:"image"`
+			MimeType string `db:"imagemimetype"`
+		}
+
+		image := TrackImage{}
+
+		db.Get(&image, "SELECT image, imagemimetype FROM albums WHERE id = (SELECT albumid FROM tracks WHERE id = ?)", id)
+
+		c.Response().Header.Add("Content-Type", image.MimeType)
+		return c.Send(image.Image)
 	})
 
 	app.Get("/track/:id", func(c *fiber.Ctx) error {
@@ -244,7 +275,7 @@ func main() {
 		}
 
 		var path string
-		err = db.Get(&path, "SELECT path FROM track WHERE id=:id", id)
+		err = db.Get(&path, "SELECT path FROM tracks WHERE id=?", id)
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
