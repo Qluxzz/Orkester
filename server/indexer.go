@@ -90,7 +90,6 @@ func IndexFolder(path string) []AddTrackRequest {
 							continue
 						}
 					}
-				case meta.TypeCueSheet:
 				case meta.TypePicture:
 					data, valid := block.Body.(*meta.Picture)
 					if !valid {
@@ -105,10 +104,6 @@ func IndexFolder(path string) []AddTrackRequest {
 							Data:     data.Data,
 						}
 					}
-
-				default:
-					block.Skip()
-				}
 			}
 
 			tracks = append(
