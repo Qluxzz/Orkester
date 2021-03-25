@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/gofiber/fiber/v2 v2.6.0
+	github.com/gosimple/slug v1.9.0
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/klauspost/compress v1.11.12 // indirect
 	github.com/mattn/go-sqlite3 v1.14.6
