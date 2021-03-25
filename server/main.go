@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -16,20 +17,22 @@ import (
 func createSchemas(db *sqlx.DB) {
 	artistSchema := `CREATE TABLE IF NOT EXISTS artists(
 		id INTEGER PRIMARY KEY,
-		name TEXT UNQIUE NOT NULL 
+		name TEXT NOT NULL UNIQUE,
+		urlname TEXT NOT NULL UNIQUE
 	);`
 
 	albumSchema := `CREATE TABLE IF NOT EXISTS albums(
 		id INTEGER PRIMARY KEY,
-		name TEXT UNIQUE NOT NULL,
+		name TEXT NOT NULL UNIQUE,
 		image BLOB,
 		imagemimetype TEXT
 	);`
 
 	genreSchema := `CREATE TABLE IF NOT EXISTS genres(
 		id INTEGER PRIMARY KEY,
-		name TEXT UNIQUE NOT NULL
-	)`
+		name TEXT NOT NULL UNIQUE,
+		urlname TEXT NOT NULL UNIQUE
+	);`
 
 	trackSchema := `CREATE TABLE IF NOT EXISTS tracks(
 		id INTEGER PRIMARY KEY,
@@ -124,7 +127,7 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 	tx := db.MustBegin()
 
 	insertArtistStmt := `
-		INSERT OR IGNORE INTO artists (name) VALUES (?)
+		INSERT OR IGNORE INTO artists (name, urlname) VALUES (?, ?)
 	`
 
 	insertAlbumStmt := `
@@ -132,7 +135,7 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 	`
 
 	insertGenreStmt := `
-		INSERT OR IGNORE INTO genres (name) VALUES (?)
+		INSERT OR IGNORE INTO genres (name, urlname) VALUES (?, ?)
 	`
 
 	insertTrackStmt := `
@@ -156,10 +159,13 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 	`
 
 	for _, track := range tracks {
-		tx.MustExec(insertArtistStmt, track.Artist)
+		if track.Artist != "" {
+			tx.MustExec(insertArtistStmt, track.Artist, slug.Make(track.Artist))
+		}
 		tx.MustExec(insertAlbumStmt, track.Album.Name, track.Album.Image.Data, track.Album.Image.MimeType)
-		tx.MustExec(insertGenreStmt, track.Genre)
-
+		if track.Genre != "" {
+			tx.MustExec(insertGenreStmt, track.Genre, slug.Make(track.Genre))
+		}
 		tx.MustExec(
 			insertTrackStmt,
 			track.Title,
@@ -176,6 +182,48 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func getTrackByIds(ids []int, db *sqlx.DB) ([]Track, error) {
+	query, args, err := sqlx.In(
+		`SELECT
+				t.id,
+				t.title,
+				t.tracknumber,
+				t.date,
+				albums.name album,
+				artists.name artist,
+				genres.name genre
+			FROM 
+				tracks t
+			LEFT JOIN artists
+				ON artists.id = t.artistid
+			LEFT JOIN albums
+				ON albums.id = t.albumid
+			LEFT JOIN genres
+				ON genres.id = t.genreid
+			WHERE t.id IN (?)
+		`,
+		ids,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	dbTracks := []DBTrack{}
+	err = db.Select(&dbTracks, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	tracks := []Track{}
+
+	for _, dbTrack := range dbTracks {
+		tracks = append(tracks, dbTrack.ToDomain())
+	}
+
+	return tracks, nil
 }
 
 func main() {
@@ -198,38 +246,21 @@ func main() {
 	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		dbTracks := []DBTrack{}
-
 		getTracksStmt := `
 			SELECT
-				t.id,
-				t.title,
-				t.tracknumber,
-				t.date,
-				albums.name album,
-				albums.image,
-				albums.imagemimetype,
-				artists.name artist,
-				genres.name genre
+				id
 			FROM 
-				tracks t
-			LEFT JOIN artists
-				ON artists.id = t.artistid
-			LEFT JOIN albums
-				ON albums.id = t.albumid
-			LEFT JOIN genres
-				ON genres.id = t.genreid
+				tracks
 		`
-
-		err := db.Select(&dbTracks, getTracksStmt)
+		trackIds := []int{}
+		err := db.Select(&trackIds, getTracksStmt)
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
 
-		tracks := []Track{}
-
-		for _, dbTrack := range dbTracks {
-			tracks = append(tracks, dbTrack.ToDomain())
+		tracks, err := getTrackByIds(trackIds, db)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
 		}
 
 		_json, err := json.Marshal(tracks)
@@ -270,34 +301,16 @@ func main() {
 			return c.Status(500).SendString(err.Error())
 		}
 
-		dbTrack := DBTrack{}
-
-		err = db.Get(&dbTrack, `
-			SELECT
-				t.id,
-				t.title,
-				t.tracknumber,
-				t.date,
-				albums.name album,
-				artists.name artist,
-				genres.name genre
-			FROM 
-				tracks t
-			LEFT JOIN artists
-				ON artists.id = t.artistid
-			LEFT JOIN albums
-				ON albums.id = t.albumid
-			LEFT JOIN genres
-				ON genres.id = t.genreid
-			WHERE t.id = ?
-		`, id)
+		tracks, err := getTrackByIds([]int{id}, db)
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
 
-		track := dbTrack.ToDomain()
+		if len(tracks) == 0 {
+			return c.SendStatus(404)
+		}
 
-		_json, err := json.Marshal(track)
+		_json, err := json.Marshal(tracks[0])
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -327,6 +340,104 @@ func main() {
 		}
 
 		return c.SendStream(stream)
+	})
+
+	app.Get("/browse/genres", func(c *fiber.Ctx) error {
+		genres := []string{}
+
+		err = db.Select(&genres, "SELECT name FROM genres")
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		_json, err := json.Marshal(genres)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		c.Response().Header.Add("Content-Type", "application/json")
+		return c.Send(_json)
+	})
+
+	app.Get("/browse/artists", func(c *fiber.Ctx) error {
+		artists := []string{}
+
+		err = db.Select(&artists, "SELECT name FROM artists")
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		_json, err := json.Marshal(artists)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		c.Response().Header.Add("Content-Type", "application/json")
+		return c.Send(_json)
+	})
+
+	app.Get("/browse/artist/:artist", func(c *fiber.Ctx) error {
+		trackIds := []int{}
+
+		err = db.Select(
+			&trackIds,
+			`SELECT
+				tracks.id
+			 FROM tracks
+			 INNER JOIN artists
+			 	ON artists.id = tracks.artistid
+			 WHERE
+			 	artists.urlname = ?
+		`, c.Params("artist"))
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		tracks, err := getTrackByIds(trackIds, db)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		c.Response().Header.Add("Content-Type", "application/json")
+
+		_json, err := json.Marshal(&tracks)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		return c.Send(_json)
+	})
+
+	app.Get("/browse/genre/:genre", func(c *fiber.Ctx) error {
+		trackIds := []int{}
+
+		err = db.Select(
+			&trackIds,
+			`SELECT
+				tracks.id
+			 FROM tracks
+			 INNER JOIN genres
+			 	ON genres.id = tracks.genreid
+			 WHERE
+			 	genres.urlname = ?
+		`, c.Params("genre"))
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		tracks, err := getTrackByIds(trackIds, db)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		c.Response().Header.Add("Content-Type", "application/json")
+
+		_json, err := json.Marshal(&tracks)
+		if err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		return c.Send(_json)
 	})
 
 	log.Fatalln(app.Listen(":3001"))
