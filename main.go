@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -19,7 +18,10 @@ func main() {
 
 	defer db.Close()
 
-	createSchemas(db)
+	err = createSchemas(db)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	tracks, err := ScanPathForMusicFiles("./content")
 	if err != nil {
@@ -33,14 +35,7 @@ func main() {
 
 	app := fiber.New()
 
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3002",
-	}))
-
 	app.Static("/", "web/build")
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendFile("./web/build/index.html")
-	})
 
 	app.Get("/api/track/:id/image", func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
@@ -193,10 +188,14 @@ func main() {
 		return c.JSON(tracks)
 	})
 
+	app.Get("/*", func(c *fiber.Ctx) error {
+		return c.SendFile("./web/build/index.html")
+	})
+
 	log.Fatalln(app.Listen(":3001"))
 }
 
-func createSchemas(db *sqlx.DB) {
+func createSchemas(db *sqlx.DB) error {
 	artistSchema := `CREATE TABLE IF NOT EXISTS artists(
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL UNIQUE,
@@ -238,7 +237,5 @@ func createSchemas(db *sqlx.DB) {
 	tx.MustExec(trackSchema)
 
 	err := tx.Commit()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	return err
 }
