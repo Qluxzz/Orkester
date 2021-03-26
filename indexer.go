@@ -10,32 +10,10 @@ import (
 	"github.com/mewkiz/flac/meta"
 )
 
-type Image struct {
-	Data     []byte
-	MimeType string
-}
-
-type Album struct {
-	Name  string
-	Image Image
-}
-
-type AddTrackRequest struct {
-	Path        string
-	Title       string
-	Artist      string
-	Album       Album
-	AlbumArtist string
-	TrackNumber string
-	Genre       string
-	Length      string
-	Date        string
-}
-
-func IndexFolder(path string) []AddTrackRequest {
+func ScanPathForMusicFiles(path string) ([]AddTrackRequest, error) {
 	path, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	tracks := []AddTrackRequest{}
@@ -44,7 +22,7 @@ func IndexFolder(path string) []AddTrackRequest {
 		filename := strings.ToLower(fileInfo.Name())
 		ext := filepath.Ext(filename)
 
-		if isMusicFile(ext) {
+		if isFlacFile(ext) {
 			f, err := flac.ParseFile(path)
 			if err != nil {
 				return nil
@@ -73,9 +51,7 @@ func IndexFolder(path string) []AddTrackRequest {
 						case "artist":
 							track.Artist = value
 						case "album":
-							track.Album = Album{
-								Name: value,
-							}
+							track.Album.Name = value
 						case "albumartist":
 							track.AlbumArtist = value
 						case "tracknumber":
@@ -98,8 +74,8 @@ func IndexFolder(path string) []AddTrackRequest {
 
 					if data.Type == coverFront {
 						track.Album.Image = Image{
-							MimeType: data.MIME,
 							Data:     data.Data,
+							MimeType: data.MIME,
 						}
 					}
 				}
@@ -113,26 +89,14 @@ func IndexFolder(path string) []AddTrackRequest {
 			return nil
 		}
 
-		if isCoverImage(filename) {
-			return nil
-		}
-
 		return nil
 	})
 
-	return tracks
+	return tracks, nil
 }
 
-func isMusicFile(extension string) bool {
-	validFileExtensions := []string{".ogg", ".flac", ".mp3"}
-
-	for _, validExtension := range validFileExtensions {
-		if extension == validExtension {
-			return true
-		}
-	}
-
-	return false
+func isFlacFile(extension string) bool {
+	return extension == ".flac"
 }
 
 func isCoverImage(filename string) bool {
