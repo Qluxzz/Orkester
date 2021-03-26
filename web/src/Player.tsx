@@ -22,7 +22,7 @@ export default function Player({ id }: { id: number }) {
 
         async function fetchTrackDetails() {
             try {
-                const response = await fetch(`http://localhost:3001/track/${id}`)
+                const response = await fetch(`/api/track/${id}`)
                 if (!response.ok)
                     throw new Error(`Http request failed with status code: ${response.status}`)
 
@@ -51,7 +51,7 @@ export default function Player({ id }: { id: number }) {
     return <PlayerDiv>
         <h2>{track.Title}</h2>
         <p>{track.Artist} - {track.Album}</p>
-        <img style={{ padding: 10, width: 256 }} src={`http://localhost:3001/track/${id}/image`} alt={track.Album} />
+        <img style={{ padding: 10, width: 256 }} src={`/api/track/${id}/image`} alt={track.Album} />
         <p>{track.Genre}</p>
         <Controls id={id} />
     </PlayerDiv>
@@ -59,7 +59,7 @@ export default function Player({ id }: { id: number }) {
 
 function Controls({ id }: { id: number }) {
     return <audio
-        src={`http://localhost:3001/stream/${id}`}
+        src={`/api/track/${id}/stream`}
         controls
     />
 }

@@ -2,7 +2,8 @@ import {
   BrowserRouter,
   Switch,
   Route,
-  useParams
+  useParams,
+  Link
 } from "react-router-dom"
 
 import Player from "./Player";
@@ -22,6 +23,7 @@ function App() {
       <Switch>
         <Route path="/track/:id" children={<PlayerWrapper />} />
         <Route path="/">
+          <Link to="/track/80">Press here plz</Link>
           <div>Welcome home!</div>
         </Route>
       </Switch>
