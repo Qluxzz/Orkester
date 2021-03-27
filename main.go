@@ -45,6 +45,9 @@ func main() {
 	browse.Get("/artists", handlers.BrowseArtists(db))
 	browse.Get("/artists/:artist-url-name", handlers.BrowseArtist(db))
 
+	browse.Get("/genres", handlers.BrowseGenres(db))
+	browse.Get("/genres/:genre-url-name", handlers.BrowseGenre((db)))
+
 	app.Static("/", "web/build")
 
 	app.Get("/*", func(c *fiber.Ctx) error {

@@ -45,18 +45,18 @@ func TrackImage(db *sqlx.DB) fiber.Handler {
 
 		err = db.Get(
 			&image,
-			`SELECT 
-				image, 
-				imagemimetype 
-			FROM 
-				albums 
-			WHERE 
+			`SELECT
+				image,
+				imagemimetype
+			FROM
+				albums
+			WHERE
 				id = (
-					SELECT 
-						albumid 
-					FROM 
-						tracks 
-					WHERE 
+					SELECT
+						albumid
+					FROM
+						tracks
+					WHERE
 						id = ?
 				)`,
 			id,

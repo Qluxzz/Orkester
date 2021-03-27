@@ -4,19 +4,41 @@ import (
 	"goreact/repositories"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
 )
 
+type NameAndUrlName struct {
+	name    string
+	urlname string
+}
+
 func BrowseArtists(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		genres := []string{}
+		artists := []string{}
 
-		err := db.Select(&genres, "SELECT name FROM genres")
+		err := db.Select(
+			&artists,
+			"SELECT name FROM artists",
+		)
+
 		if err != nil {
-			return c.Status(500).SendString(err.Error())
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
-		return c.JSON(genres)
+		artistsAndUrlnames := []NameAndUrlName{}
+
+		for _, artist := range artists {
+			artistsAndUrlnames = append(
+				artistsAndUrlnames,
+				NameAndUrlName{
+					name:    artist,
+					urlname: slug.Make(artist),
+				},
+			)
+		}
+
+		return c.JSON(artistsAndUrlnames)
 	}
 }
 
@@ -27,12 +49,11 @@ func BrowseArtist(db *sqlx.DB) fiber.Handler {
 		err := db.Select(
 			&trackIds,
 			`SELECT
-			tracks.id
-		 FROM tracks
-		 INNER JOIN artists
-			 ON artists.id = tracks.artistid
-		 WHERE
-			 artists.urlname = ?
+				id
+			FROM 
+				tracks
+			WHERE
+				artistid = (SELECT id FROM artists WHERE urlname = ?)
 		`, c.Params("artist-url-name"))
 
 		if err != nil {
@@ -50,18 +71,46 @@ func BrowseArtist(db *sqlx.DB) fiber.Handler {
 
 func BrowseGenres(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		genres := []string{}
+
+		err := db.Select(
+			&genres,
+			"SELECT name FROM genres",
+		)
+
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		genresAndUrlnames := []NameAndUrlName{}
+
+		for _, genre := range genres {
+			genresAndUrlnames = append(
+				genresAndUrlnames,
+				NameAndUrlName{
+					name:    genre,
+					urlname: slug.Make(genre),
+				},
+			)
+		}
+
+		return c.JSON(genresAndUrlnames)
+	}
+}
+
+func BrowseGenre(db *sqlx.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		trackIds := []int{}
 
 		err := db.Select(
 			&trackIds,
 			`SELECT
-				tracks.id
-			 FROM tracks
-			 INNER JOIN genres
-			 	ON genres.id = tracks.genreid
-			 WHERE
-			 	genres.urlname = ?
-		`, c.Params("genre"))
+				id
+			FROM
+				tracks
+			WHERE
+				genreid = (SELECT id FROM genre WHERE urlname = ?)
+		`, c.Params("genre-url-name"))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
