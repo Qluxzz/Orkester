@@ -11,7 +11,7 @@ const Button = styled.button<IButton>`
     border-radius: 0;
     border: 0;
     background-color: red;
-    
+
     ${props => props.playbackState === "playing" && `
         background-color: green;
         color: white;

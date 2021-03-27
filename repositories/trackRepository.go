@@ -4,13 +4,12 @@ import (
 	"goreact/indexFiles"
 	"goreact/models"
 
-	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
 )
 
 func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 	insertArtistStmt := `
-		INSERT OR IGNORE INTO artists (name, urlname) VALUES (?, ?)
+		INSERT OR IGNORE INTO artists (name) VALUES (?)
 	`
 
 	insertAlbumStmt := `
@@ -18,7 +17,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 	`
 
 	insertGenreStmt := `
-		INSERT OR IGNORE INTO genres (name, urlname) VALUES (?, ?)
+		INSERT OR IGNORE INTO genres (name) VALUES (?)
 	`
 
 	insertTrackStmt := `
@@ -45,7 +44,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 
 	for _, track := range tracks {
 		if track.Artist != "" {
-			tx.MustExec(insertArtistStmt, track.Artist, slug.Make(track.Artist))
+			tx.MustExec(insertArtistStmt, track.Artist)
 		}
 
 		if track.Album.Name != "" {
@@ -53,7 +52,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 		}
 
 		if track.Genre != "" {
-			tx.MustExec(insertGenreStmt, track.Genre, slug.Make(track.Genre))
+			tx.MustExec(insertGenreStmt, track.Genre)
 		}
 
 		tx.MustExec(
@@ -82,7 +81,7 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 				albums.name album,
 				artists.name artist,
 				genres.name genre
-			FROM 
+			FROM
 				tracks t
 			LEFT JOIN artists
 				ON artists.id = t.artistid
