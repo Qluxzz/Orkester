@@ -1,4 +1,4 @@
-package main
+package indexFiles
 
 import (
 	"log"
@@ -10,13 +10,13 @@ import (
 	"github.com/mewkiz/flac/meta"
 )
 
-func ScanPathForMusicFiles(path string) ([]AddTrackRequest, error) {
+func ScanPathForMusicFiles(path string) ([]IndexedTrack, error) {
 	path, err := filepath.EvalSymlinks(path)
 	if err != nil {
 		return nil, err
 	}
 
-	tracks := []AddTrackRequest{}
+	tracks := []IndexedTrack{}
 
 	filepath.Walk(path, func(path string, fileInfo os.FileInfo, err error) error {
 		filename := strings.ToLower(fileInfo.Name())
@@ -29,7 +29,7 @@ func ScanPathForMusicFiles(path string) ([]AddTrackRequest, error) {
 			}
 			defer f.Close()
 
-			track := AddTrackRequest{
+			track := IndexedTrack{
 				Path: path,
 			}
 
@@ -125,4 +125,26 @@ func isCoverImage(filename string) bool {
 	}()
 
 	return hasValidFileName && hasValidExtension
+}
+
+type Image struct {
+	Data     []byte
+	MimeType string
+}
+
+type Album struct {
+	Name  string
+	Image Image
+}
+
+type IndexedTrack struct {
+	Path        string
+	Title       string
+	Artist      string
+	Album       Album
+	AlbumArtist string
+	TrackNumber string
+	Genre       string
+	Length      string
+	Date        string
 }

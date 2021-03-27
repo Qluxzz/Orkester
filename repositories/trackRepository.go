@@ -1,11 +1,14 @@
-package main
+package repositories
 
 import (
+	"goreact/indexFiles"
+	"goreact/models"
+
 	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
 )
 
-func addTracks(tracks []AddTrackRequest, db *sqlx.DB) error {
+func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 	insertArtistStmt := `
 		INSERT OR IGNORE INTO artists (name, urlname) VALUES (?, ?)
 	`
@@ -69,7 +72,7 @@ func addTracks(tracks []AddTrackRequest, db *sqlx.DB) error {
 	return err
 }
 
-func getTrackByIds(ids []int, db *sqlx.DB) ([]Track, error) {
+func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 	query, args, err := sqlx.In(`
 			SELECT
 				t.id,
@@ -96,13 +99,13 @@ func getTrackByIds(ids []int, db *sqlx.DB) ([]Track, error) {
 		return nil, err
 	}
 
-	dbTracks := []DBTrack{}
+	dbTracks := []models.DBTrack{}
 	err = db.Select(&dbTracks, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	tracks := []Track{}
+	tracks := []models.Track{}
 
 	for _, dbTrack := range dbTracks {
 		tracks = append(tracks, dbTrack.ToDomain())

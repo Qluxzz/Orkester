@@ -1,4 +1,4 @@
-package main
+package models
 
 import "database/sql"
 
@@ -60,26 +60,4 @@ func (track DBTrack) ToDomain() Track {
 		Album:       album,
 		Artist:      artist,
 	}
-}
-
-type Image struct {
-	Data     []byte
-	MimeType string
-}
-
-type Album struct {
-	Name  string
-	Image Image
-}
-
-type AddTrackRequest struct {
-	Path        string
-	Title       string
-	Artist      string
-	Album       Album
-	AlbumArtist string
-	TrackNumber string
-	Genre       string
-	Length      string
-	Date        string
 }

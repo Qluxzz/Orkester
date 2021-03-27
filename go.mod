@@ -1,4 +1,4 @@
-module github.com/qluxzz/goreact
+module goreact
 
 go 1.15
 
