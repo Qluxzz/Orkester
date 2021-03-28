@@ -4,13 +4,18 @@ import styled from "styled-components"
 
 
 const PlayerDiv = styled.div`
-    background-radius: 20%;
-    border: 1px solid green;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
+    padding: 20px;
+    flex-grow: 1;
+`
+
+const TrackImage = styled.img`
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 2px solid white;
+
 `
 
 
@@ -49,10 +54,10 @@ export default function Player({ id }: { id: number }) {
         return <div>Loading</div>
 
     return <PlayerDiv>
-        <h2>{track.Title}</h2>
-        <p>{track.Artist} - {track.Album}</p>
-        <img style={{ padding: 10, width: 256 }} src={`/api/v1/track/${id}/image`} alt={track.Album} />
-        <p>{track.Genre}</p>
+        <p style={{ margin: 5, textAlign: "center" }}>Playing from album<br />{track.Album.Name}</p>
+        <TrackImage src={`/api/v1/track/${id}/image`} alt={track.Album.Name} />
+        <h2 style={{ margin: 5 }}>{track.Title}</h2>
+        <p style={{ margin: 5 }}>{track.Artist.Name}</p>
         <Controls id={id} />
     </PlayerDiv>
 }
@@ -61,5 +66,9 @@ function Controls({ id }: { id: number }) {
     return <audio
         src={`/api/v1/track/${id}/stream`}
         controls
+        style={{ 
+            margin: "0 -20px -20px -20px",
+            flexGrow: 1
+         }}
     />
 }

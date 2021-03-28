@@ -14,7 +14,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 	`
 
 	insertAlbumStmt := `
-		INSERT OR IGNORE INTO albums (name, image, imagemimetype) VALUES (?, ?, ?)
+		INSERT OR IGNORE INTO albums (name, urlname, image, imagemimetype) VALUES (?, ?, ?, ?)
 	`
 
 	insertGenreStmt := `
@@ -49,7 +49,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 		}
 
 		if track.Album.Name != "" {
-			tx.MustExec(insertAlbumStmt, track.Album.Name, track.Album.Image.Data, track.Album.Image.MimeType)
+			tx.MustExec(insertAlbumStmt, track.Album.Name, slug.Make(track.Album.Name), track.Album.Image.Data, track.Album.Image.MimeType)
 		}
 
 		if track.Genre != "" {
@@ -79,9 +79,15 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 				t.title,
 				t.tracknumber,
 				t.date,
-				albums.name album,
-				artists.name artist,
-				genres.name genre
+				albums.id albumid,
+				albums.name albumname,
+				albums.urlname albumurlname,
+				artists.id artistid,
+				artists.name artistname,
+				artists.urlname artisturlname,
+				genres.id genreid,
+				genres.name genrename,
+				genres.urlname genreurlname
 			FROM
 				tracks t
 			LEFT JOIN artists

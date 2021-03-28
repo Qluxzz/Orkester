@@ -75,8 +75,8 @@ function GenreViewWrapper() {
     headerColumns={["Title", "Artist", "Album"]}
     rows={tracks.map(track => [
       <Link to={`/track/${track.Id}`}>{track.Title}</Link>,
-      <Link to={`/album/${track.Album}`}>{track.Album}</Link>,
-      <Link to={`/artist/${track.Artist}`}>{track.Artist}</Link>
+      <Link to={`/album/${track.Album.Id}`}>{track.Album.UrlName}</Link>,
+      <Link to={`/artist/${track.Artist.Id}`}>{track.Artist.UrlName}</Link>
     ])}
   />
 }
