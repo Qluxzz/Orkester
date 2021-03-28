@@ -93,6 +93,8 @@ function BrowseView({ type }: { type: "artists" | "genres" }) {
   console.log(type)
 
   useEffect(() => {
+    let isCanceled = false
+
     async function getBrowseView() {
       const response = await fetch(`/api/v1/browse/${type}`)
 
@@ -102,8 +104,14 @@ function BrowseView({ type }: { type: "artists" | "genres" }) {
     }
 
     getBrowseView()
-      .then(list => setList(list))
+      .then(list => {
+        if (isCanceled)
+          return
 
+        setList(list)
+      })
+
+    return () => { isCanceled = true }
   }, [type])
 
   return <div>
