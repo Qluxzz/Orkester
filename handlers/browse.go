@@ -4,41 +4,28 @@ import (
 	"goreact/repositories"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
 )
 
 type NameAndUrlName struct {
-	name    string
-	urlname string
+	Name    string
+	Urlname string
 }
 
 func BrowseArtists(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		artists := []string{}
+		artists := []NameAndUrlName{}
 
 		err := db.Select(
 			&artists,
-			"SELECT name FROM artists",
+			"SELECT name, urlname FROM artists",
 		)
 
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
-		artistsAndUrlnames := []NameAndUrlName{}
-
-		for _, artist := range artists {
-			artistsAndUrlnames = append(
-				artistsAndUrlnames,
-				NameAndUrlName{
-					name:    artist,
-					urlname: slug.Make(artist),
-				},
-			)
-		}
-
-		return c.JSON(artistsAndUrlnames)
+		return c.JSON(artists)
 	}
 }
 
@@ -54,7 +41,7 @@ func BrowseArtist(db *sqlx.DB) fiber.Handler {
 				tracks
 			WHERE
 				artistid = (SELECT id FROM artists WHERE urlname = ?)
-		`, c.Params("artist-url-name"))
+		`, c.Params("name"))
 
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
@@ -71,30 +58,18 @@ func BrowseArtist(db *sqlx.DB) fiber.Handler {
 
 func BrowseGenres(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		genres := []string{}
+		genres := []NameAndUrlName{}
 
 		err := db.Select(
 			&genres,
-			"SELECT name FROM genres",
+			"SELECT name, urlname FROM genres",
 		)
 
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
-		genresAndUrlnames := []NameAndUrlName{}
-
-		for _, genre := range genres {
-			genresAndUrlnames = append(
-				genresAndUrlnames,
-				NameAndUrlName{
-					name:    genre,
-					urlname: slug.Make(genre),
-				},
-			)
-		}
-
-		return c.JSON(genresAndUrlnames)
+		return c.JSON(genres)
 	}
 }
 
@@ -109,8 +84,8 @@ func BrowseGenre(db *sqlx.DB) fiber.Handler {
 			FROM
 				tracks
 			WHERE
-				genreid = (SELECT id FROM genre WHERE urlname = ?)
-		`, c.Params("genre-url-name"))
+				genreid = (SELECT id FROM genres WHERE urlname = ?)
+		`, c.Params("name"))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
