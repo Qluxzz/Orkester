@@ -54,10 +54,10 @@ export default function Player({ id }: { id: number }) {
         return <div>Loading</div>
 
     return <PlayerDiv>
-        <p style={{ margin: 5, textAlign: "center" }}>Playing from album<br />{track.Album.Name}</p>
-        <TrackImage src={`/api/v1/track/${id}/image`} alt={track.Album.Name} />
-        <h2 style={{ margin: 5 }}>{track.Title}</h2>
-        <p style={{ margin: 5 }}>{track.Artist.Name}</p>
+        <p style={{ margin: 5, textAlign: "center" }}>Playing from album<br />{track.album.name}</p>
+        <TrackImage src={`/api/v1/track/${id}/image`} alt={track.album.name} />
+        <h2 style={{ margin: 5 }}>{track.title}</h2>
+        <p style={{ margin: 5 }}>{track.artist.name}</p>
         <Controls id={id} />
     </PlayerDiv>
 }

@@ -7,6 +7,7 @@ type DBTrack struct {
 	Title         string         `db:"title"`
 	TrackNumber   string         `db:"tracknumber"`
 	Date          string         `db:"date"`
+	Length        int            `db:"length"`
 	AlbumId       sql.NullInt32  `db:"albumid"`
 	AlbumName     sql.NullString `db:"albumname"`
 	AlbumUrlName  sql.NullString `db:"albumurlname"`
@@ -21,31 +22,32 @@ type DBTrack struct {
 }
 
 type Track struct {
-	Id          int
-	Title       string
-	TrackNumber string
-	Date        string
-	Album       *Album
-	Artist      *Artist
-	Genre       *Genre
+	Id          int     `json:"id"`
+	Title       string  `json:"title"`
+	TrackNumber string  `json:"trackNumber"`
+	Date        string  `json:"date"`
+	Length      int     `json:"length"`
+	Album       *Album  `json:"album"`
+	Artist      *Artist `json:"artist"`
+	Genre       *Genre  `json:"genre"`
 }
 
 type Album struct {
-	Id      int
-	Name    string
-	UrlName string
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	UrlName string `json:"urlName"`
 }
 
 type Artist struct {
-	Id      int
-	Name    string
-	UrlName string
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	UrlName string `json:"urlName"`
 }
 
 type Genre struct {
-	Id      int
-	Name    string
-	UrlName string
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	UrlName string `json:"urlName"`
 }
 
 func (track DBTrack) ToDomain() Track {
@@ -93,6 +95,7 @@ func (track DBTrack) ToDomain() Track {
 		Title:       track.Title,
 		TrackNumber: track.TrackNumber,
 		Date:        track.Date,
+		Length:      track.Length,
 		Genre:       genre,
 		Album:       album,
 		Artist:      artist,

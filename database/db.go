@@ -31,6 +31,7 @@ func createSchemas(db *sqlx.DB) error {
 		tracknumber TEXT NOT NULL,
 		path TEXT NOT NULL,
 		date TEXT NOT NULL,
+		length INT NOT NULL,
 		albumid INTEGER,
 		artistid INTEGER,
 		genreid INTEGER,
