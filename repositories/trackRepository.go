@@ -4,12 +4,13 @@ import (
 	"goreact/indexFiles"
 	"goreact/models"
 
+	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
 )
 
 func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 	insertArtistStmt := `
-		INSERT OR IGNORE INTO artists (name) VALUES (?)
+		INSERT OR IGNORE INTO artists (name, urlname) VALUES (?, ?)
 	`
 
 	insertAlbumStmt := `
@@ -17,7 +18,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 	`
 
 	insertGenreStmt := `
-		INSERT OR IGNORE INTO genres (name) VALUES (?)
+		INSERT OR IGNORE INTO genres (name, urlname) VALUES (?, ?)
 	`
 
 	insertTrackStmt := `
@@ -44,7 +45,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 
 	for _, track := range tracks {
 		if track.Artist != "" {
-			tx.MustExec(insertArtistStmt, track.Artist)
+			tx.MustExec(insertArtistStmt, track.Artist, slug.Make(track.Artist))
 		}
 
 		if track.Album.Name != "" {
@@ -52,7 +53,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 		}
 
 		if track.Genre != "" {
-			tx.MustExec(insertGenreStmt, track.Genre)
+			tx.MustExec(insertGenreStmt, track.Genre, slug.Make(track.Genre))
 		}
 
 		tx.MustExec(

@@ -42,11 +42,11 @@ func main() {
 
 	browse := v1.Group("/browse")
 
+	browse.Get("/artists/:name", handlers.BrowseArtist(db))
 	browse.Get("/artists", handlers.BrowseArtists(db))
-	browse.Get("/artists/:artist-url-name", handlers.BrowseArtist(db))
 
+	browse.Get("/genres/:name", handlers.BrowseGenre(db))
 	browse.Get("/genres", handlers.BrowseGenres(db))
-	browse.Get("/genres/:genre-url-name", handlers.BrowseGenre((db)))
 
 	app.Static("/", "web/build")
 

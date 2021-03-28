@@ -7,7 +7,8 @@ import (
 func createSchemas(db *sqlx.DB) error {
 	artistSchema := `CREATE TABLE IF NOT EXISTS artists(
 		id INTEGER PRIMARY KEY,
-		name TEXT NOT NULL UNIQUE
+		name TEXT NOT NULL UNIQUE,
+		urlname TEXT NOT NULL UNIQUE
 	);`
 
 	albumSchema := `CREATE TABLE IF NOT EXISTS albums(
@@ -19,7 +20,8 @@ func createSchemas(db *sqlx.DB) error {
 
 	genreSchema := `CREATE TABLE IF NOT EXISTS genres(
 		id INTEGER PRIMARY KEY,
-		name TEXT NOT NULL UNIQUE
+		name TEXT NOT NULL UNIQUE,
+		urlname TEXT NOT NULL UNIQUE
 	);`
 
 	trackSchema := `CREATE TABLE IF NOT EXISTS tracks(
