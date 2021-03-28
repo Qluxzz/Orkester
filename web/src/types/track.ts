@@ -1,23 +1,24 @@
 type ITrack = {
-    Id: number
-    Title: string
-    TrackNumber: string
-    Date: string
-    Album: IAlbum
-    Artist: IArtist
-    Genre: string
+    id: number
+    title: string
+    trackNumber: string
+    date: string
+    length: number
+    album: IAlbum
+    artist: IArtist
+    genre: string
 }
 
 type IArtist = {
-    Id: number
-    Name: string
-    UrlName: string
+    id: number
+    name: string
+    urlName: string
 }
 
 type IAlbum = {
-    Id: number
-    Name: string
-    UrlName: string
+    id: number
+    name: string
+    urlName: string
 }
 
 export default ITrack

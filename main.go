@@ -48,6 +48,10 @@ func main() {
 	browse.Get("/genres/:name", handlers.BrowseGenre(db))
 	browse.Get("/genres", handlers.BrowseGenres(db))
 
+	album := v1.Group("/album")
+
+	album.Get("/:id", handlers.GetAlbum(db))
+
 	app.Static("/", "web/build")
 
 	app.Get("/*", func(c *fiber.Ctx) error {

@@ -6,25 +6,35 @@ type ITableProps = {
     rows: React.ReactNode[][]
 }
 
+const TableStyle = styled.table`
+    border: 0px;
+`
+
+const TableData = styled.td`
+    padding: 5px;
+    border: 0px;
+`
+
+const TableRow = styled.tr<{ striped?: boolean }>`
+    margin: 0 5px;
+    border: none;
+    background : ${props => props.striped ? "#333" : "#444"}
+`
+
 export function Table({ headerColumns, rows }: ITableProps) {
-    return <table>
+    return <TableStyle>
         <thead>
-            <tr>
+            <TableRow>
                 {headerColumns.map((column, i) => <th key={i}>{column}</th>)}
-            </tr>
+            </TableRow>
         </thead>
         <tbody>
             {rows.map((row, i) => 
-                <tr key={i}>
-                    {row.map((column, i) => <td key={i}>{column}</td>)}
-                </tr>
+                <TableRow key={i} striped={i % 2 === 0}>
+                    {row.map((column, i) => <TableData key={i}>{column}</TableData>)}
+                </TableRow>
             )}
         </tbody>
-    </table>
+    </TableStyle>
 }
 
-export const StripedTable = styled(Table)`
-    td:nth-child(odd) {
-        background: #ddd;
-    }
-`

@@ -27,10 +27,12 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 			tracknumber,
 			path,
 			date,
+			length,
 			albumid,
 			artistid,
 			genreid
 		) VALUES(
+			?,
 			?,
 			?,
 			?,
@@ -62,6 +64,7 @@ func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
 			track.TrackNumber,
 			track.Path,
 			track.Date,
+			track.Length,
 			track.Album.Name,
 			track.Artist,
 			track.Genre,
@@ -79,6 +82,7 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 				t.title,
 				t.tracknumber,
 				t.date,
+				t.length,
 				albums.id albumid,
 				albums.name albumname,
 				albums.urlname albumurlname,

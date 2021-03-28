@@ -30,7 +30,8 @@ func ScanPathForMusicFiles(path string) ([]IndexedTrack, error) {
 			defer f.Close()
 
 			track := IndexedTrack{
-				Path: path,
+				Path:   path,
+				Length: int(f.Info.NSamples) / int(f.Info.SampleRate),
 			}
 
 			for _, block := range f.Blocks {
@@ -60,8 +61,6 @@ func ScanPathForMusicFiles(path string) ([]IndexedTrack, error) {
 							track.Genre = value
 						case "date":
 							track.Date = value
-						case "length":
-							track.Length = value
 						}
 					}
 				case meta.TypePicture:
@@ -145,6 +144,6 @@ type IndexedTrack struct {
 	AlbumArtist string
 	TrackNumber string
 	Genre       string
-	Length      string
+	Length      int
 	Date        string
 }
