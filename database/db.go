@@ -14,6 +14,7 @@ func createSchemas(db *sqlx.DB) error {
 	albumSchema := `CREATE TABLE IF NOT EXISTS albums(
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL UNIQUE,
+		urlname TEXT NOT NULL UNIQUE,
 		image BLOB,
 		imagemimetype TEXT
 	);`
