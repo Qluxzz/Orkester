@@ -9,20 +9,26 @@ type IAlbum = {
     tracks: ITrack[]
 }
 
-function secondsToTimeFormat(value: number): string {
-    if (value < 60)
-        return `00:${value.toString().padStart(2, "0")}`
+function padWithTwoLeadingZeroes(value: number): string {
+    return value.toString(10).padStart(2, "0")
+}
 
-    const oneHourInSeconds = 60 * 60
+export function secondsToTimeFormat(value: number): string {
+    const hours = Math.floor(value / 3600)
+    value -= hours * 3600
+    const minutes = Math.floor(value / 60)
+    value -= minutes * 60
+    const seconds = value
 
-    if (value < oneHourInSeconds) {
-        const minutes = Math.floor(value / 60)
-        const seconds = Math.floor(value - Math.floor(value / 60) * 60)
+    const parts = []
 
-        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-    }
+    if (hours > 0)
+        parts.push(padWithTwoLeadingZeroes(hours))
 
-    throw new Error(`One hour and above is currently not handled`)
+    parts.push(padWithTwoLeadingZeroes(minutes))
+    parts.push(padWithTwoLeadingZeroes(seconds))
+
+    return parts.join(":")
 }
 
 
