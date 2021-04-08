@@ -8,6 +8,9 @@
             "problemMatcher": [],
             "runOptions": {
                 "runOn": "folderOpen"
+            },
+            "presentation": {
+                "group": "watch"
             }
         },
         {
@@ -17,6 +20,9 @@
             "problemMatcher": [],
             "runOptions": {
                 "runOn": "folderOpen"
+            },
+            "presentation": {
+                "group": "watch"
             }
         }
     ]
