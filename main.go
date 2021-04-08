@@ -58,5 +58,5 @@ func main() {
 		return c.SendFile("./web/build/index.html")
 	})
 
-	log.Fatalln(app.Listen(":3000"))
+	log.Fatalln(app.Listen(":42000"))
 }
