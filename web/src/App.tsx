@@ -11,6 +11,7 @@ import Player from "./Player";
 import styled from "styled-components"
 import { BrowseView, GenreView } from "./Browse";
 import { GetAlbumWithId } from "./Album";
+import { GetArtistWithId } from "./Artist"
 
 const AppStyle = styled.div`
   display: flex;
@@ -30,6 +31,7 @@ function App() {
         <Route path="/browse/genres" children={<BrowseView type="genres" />} />
         <Route path="/browse/artists" children={<BrowseView type="artists" />} />
         <Route path="/album/:id" component={AlbumViewWrapper} />
+        <Route path="/artist/:id" component={ArtistViewWrapper} />
         <Route path="/">
           <Link to="/track/80">Press here plz</Link>
           <div>Welcome home!</div>
@@ -55,6 +57,12 @@ function AlbumViewWrapper() {
   const { id } = useParams<{ id: string }>()
 
   return <GetAlbumWithId id={parseInt(id)} />
+}
+
+function ArtistViewWrapper() {
+  const { id } = useParams<{ id: string }>()
+
+  return <GetArtistWithId id={parseInt(id)} />
 }
 
 export default App;

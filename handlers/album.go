@@ -62,10 +62,6 @@ func GetAlbum(db *sqlx.DB) fiber.Handler {
 
 		album.Tracks = tracks
 
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-		}
-
 		return c.JSON(album)
 	}
 }

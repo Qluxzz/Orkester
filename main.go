@@ -52,6 +52,9 @@ func main() {
 
 	album.Get("/:id", handlers.GetAlbum(db))
 
+	artist := v1.Group("/artist")
+	artist.Get("/:id", handlers.GetArtist(db))
+
 	app.Static("/", "web/build")
 
 	app.Get("/*", func(c *fiber.Ctx) error {
