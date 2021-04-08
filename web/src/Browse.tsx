@@ -26,6 +26,10 @@ export function GenreView({ name }: { name: string }) {
 
                 setTracks(tracks)
             })
+            .catch(error => {
+                console.error("Failed to load genre!", error)
+                throw error
+            })
 
 
         return () => { isCanceled = true }
@@ -46,8 +50,9 @@ export function GenreView({ name }: { name: string }) {
 
 
 type IList = {
-    Name: string
-    Urlname: string
+    id: number
+    name: string
+    urlName: string
 }[]
 
 export function BrowseView({ type }: { type: "artists" | "genres" }) {
@@ -82,9 +87,9 @@ export function BrowseView({ type }: { type: "artists" | "genres" }) {
         {list === "loading"
             ? <p>Loading...</p>
             : <ol>
-                {list.map(({ Name, Urlname }) =>
-                    <Link to={`/browse/${type}/${Urlname}`}>
-                        <li>{Name}</li>
+                {list.map(({ name, urlName }) =>
+                    <Link to={`/browse/${type}/${urlName}`}>
+                        <li>{name}</li>
                     </Link>
                 )}
             </ol>

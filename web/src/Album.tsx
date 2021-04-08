@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Table } from "./Table";
 import ITrack from "./types/track";
 
-type IAlbum = {
+interface IAlbum {
     name: string
     artist: string
     year: Date
@@ -47,7 +48,7 @@ function AlbumView({ name, artist, year, tracks } : IAlbum) {
             ]}
             rows={tracks.map((track) => [
                 track.trackNumber,
-                track.title,
+                <Link to={`/track/${track.id}`}>{track.title}</Link>,
                 secondsToTimeFormat(track.length)
             ])}
         />
@@ -78,6 +79,7 @@ export function GetAlbumWithId({ id }: { id: number }) {
             })
             .catch(error => {
                 console.error("Failed to get album info!", error)
+                throw error
             })
 
         return () => { isCanceled = true }
