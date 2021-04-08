@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import ITrack from "./types/track"
 import styled from "styled-components"
 import { Link } from "react-router-dom"
+import { Helmet } from "react-helmet"
 
 
 const PlayerDiv = styled.div`
@@ -45,6 +46,8 @@ export default function Player({ id }: { id: number }) {
             .then(track => {
                 if (!isCanceled)
                     setTrack(track)
+
+                document.title = `${track.title} - ${track.album.name}`
             })
             .catch(error => console.error(error))
 
