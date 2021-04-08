@@ -1,20 +1,16 @@
 package handlers
 
 import (
+	"goreact/models"
 	"goreact/repositories"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
 )
 
-type NameAndUrlName struct {
-	Name    string
-	Urlname string
-}
-
 func BrowseArtists(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		artists := []NameAndUrlName{}
+		artists := []models.IdNameAndUrlName{}
 
 		err := db.Select(
 			&artists,
@@ -58,7 +54,7 @@ func BrowseArtist(db *sqlx.DB) fiber.Handler {
 
 func BrowseGenres(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		genres := []NameAndUrlName{}
+		genres := []models.IdNameAndUrlName{}
 
 		err := db.Select(
 			&genres,
