@@ -38,8 +38,8 @@ export function GenreView({ name }: { name: string }) {
         headerColumns={["Title", "Artist", "Album"]}
         rows={tracks.map(track => [
             <Link to={`/track/${track.id}`}>{track.title}</Link>,
-            <Link to={`/album/${track.album.id}`}>{track.album.urlName}</Link>,
-            <Link to={`/artist/${track.artist.id}`}>{track.artist.urlName}</Link>
+            track.artist && <Link to={`/artist/${track.artist.id}`}>{track.artist.name}</Link>,
+            track.album && <Link to={`/album/${track.album.id}`}>{track.album.name}</Link>,
         ])}
     />
 }
