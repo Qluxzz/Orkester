@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import ITrack from "./types/track"
 import styled from "styled-components"
+import { Link } from "react-router-dom"
 
 
 const PlayerDiv = styled.div`
@@ -54,10 +55,10 @@ export default function Player({ id }: { id: number }) {
         return <div>Loading</div>
 
     return <PlayerDiv>
-        <p style={{ margin: 5, textAlign: "center" }}>Playing from album<br />{track.album.name}</p>
+        <p style={{ margin: 5, textAlign: "center" }}>Playing from album<br /><Link to={`/album/${track.album.id}/${track.album.urlName}`}>{track.album.name}</Link></p>
         <TrackImage src={`/api/v1/track/${id}/image`} alt={track.album.name} />
         <h2 style={{ margin: 5 }}>{track.title}</h2>
-        <p style={{ margin: 5 }}>{track.artist.name}</p>
+        <Link to={`/artist/${track.artist.id}/${track.artist.urlName}`}><p style={{ margin: 5 }}>{track.artist.name}</p></Link>
         <Controls id={id} />
     </PlayerDiv>
 }
