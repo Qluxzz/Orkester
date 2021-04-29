@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { usePlayerContext } from "./Context";
 import { Table } from "./Table";
 import ITrack from "./types/track";
 
@@ -36,6 +36,8 @@ export function secondsToTimeFormat(value: number): string {
 
 
 function AlbumView({ name, artist, year, tracks } : IAlbum) {
+    const { play } = usePlayerContext()
+
     return <div>
         {name}
         {artist}
@@ -48,7 +50,12 @@ function AlbumView({ name, artist, year, tracks } : IAlbum) {
             ]}
             rows={tracks.map((track) => [
                 track.trackNumber,
-                <Link to={`/track/${track.id}`}>{track.title}</Link>,
+                <button 
+                    type="button" 
+                    onClick={() => play(track.id)}
+                >
+                    {track.title}
+                </button>,
                 secondsToTimeFormat(track.length)
             ])}
         />

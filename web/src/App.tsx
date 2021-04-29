@@ -1,3 +1,5 @@
+import React from "react"
+
 import {
   BrowserRouter,
   Switch,
@@ -12,40 +14,53 @@ import styled from "styled-components"
 import { BrowseView, GenreView } from "./Browse";
 import { GetAlbumWithId } from "./Album";
 import { GetArtistWithId } from "./Artist"
+import { PlayerContextProvider } from "./Context";
+import PlayerBar from "./PlayerBar";
 
 const AppStyle = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  flex: 1 1 100%;
 `
 
 
 function App() {
-  return <AppStyle>
-    <BrowserRouter>
-      <Switch>
-        <Route path="/track/:id" component={PlayerWrapper} />
-        <Route path="/browse/genres/:name" component={GenreViewWrapper} />
-        <Route path="/browse/genres" children={<BrowseView type="genres" />} />
-        <Route path="/browse/artists" children={<BrowseView type="artists" />} />
-        <Route path="/album/:id" component={AlbumViewWrapper} />
-        <Route path="/artist/:id" component={ArtistViewWrapper} />
-        <Route path="/">
-          <Link to="/track/80">Press here plz</Link>
-          <div>Welcome home!</div>
-        </Route>
-      </Switch>
-    </BrowserRouter>
-  </AppStyle>
+  return <PlayerContextProvider>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%"
+      }}
+    >
+      <BrowserRouter>
+        <AppStyle>
+          <Switch>
+            <Route path="/track/:id" component={PlayerWrapper} />
+            <Route path="/browse/genres/:name" component={GenreViewWrapper} />
+            <Route path="/browse/genres" children={<BrowseView type="genre" />} />
+            <Route path="/browse/artists" children={<BrowseView type="artist" />} />
+            <Route path="/album/:id" component={AlbumViewWrapper} />
+            <Route path="/artist/:id" component={ArtistViewWrapper} />
+            <Route path="/">
+              <Link to="/track/80">Press here plz</Link>
+              <div>Welcome home!</div>
+            </Route>
+          </Switch>
+        </AppStyle>
+        <PlayerBar />
+      </BrowserRouter>
+    </div>
+  </PlayerContextProvider >
 }
 
 function GenreViewWrapper() {
   const { name } = useParams<{ name: string }>()
 
   return <GenreView name={name} />
-} 
+}
 
 function PlayerWrapper() {
   const { id } = useParams<{ id: string }>()
@@ -66,3 +81,5 @@ function ArtistViewWrapper() {
 }
 
 export default App;
+
+

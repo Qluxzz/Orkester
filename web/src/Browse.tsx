@@ -55,7 +55,7 @@ type IList = {
     urlName: string
 }[]
 
-export function BrowseView({ type }: { type: "artists" | "genres" }) {
+export function BrowseView({ type }: { type: "artist" | "genre" }) {
     const [list, setList] = useState<IList | "loading">("loading")
 
     console.log(type)
@@ -64,7 +64,7 @@ export function BrowseView({ type }: { type: "artists" | "genres" }) {
         let isCanceled = false
 
         async function getBrowseView() {
-            const response = await fetch(`/api/v1/browse/${type}`)
+            const response = await fetch(`/api/v1/browse/${type}s`)
 
             const list: IList = await response.json()
 
@@ -87,8 +87,8 @@ export function BrowseView({ type }: { type: "artists" | "genres" }) {
         {list === "loading"
             ? <p>Loading...</p>
             : <ol>
-                {list.map(({ name, urlName }) =>
-                    <Link to={`/browse/${type}/${urlName}`}>
+                {list.map(({ name, id, urlName }) =>
+                    <Link to={`/${type}/${id}`}>
                         <li>{name}</li>
                     </Link>
                 )}

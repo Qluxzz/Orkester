@@ -60,17 +60,6 @@ export default function Player({ id }: { id: number }) {
         <TrackImage src={`/api/v1/track/${id}/image`} alt={track.album.name} />
         <h2 style={{ margin: 5 }}>{track.title}</h2>
         <Link to={`/artist/${track.artist.id}/${track.artist.urlName}`}><p style={{ margin: 5 }}>{track.artist.name}</p></Link>
-        <Controls id={id} />
     </PlayerDiv>
 }
 
-function Controls({ id }: { id: number }) {
-    return <audio
-        src={`/api/v1/track/${id}/stream`}
-        controls
-        style={{ 
-            margin: "0 -20px -20px -20px",
-            flexGrow: 1
-         }}
-    />
-}
