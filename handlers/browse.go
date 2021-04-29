@@ -14,7 +14,7 @@ func BrowseArtists(db *sqlx.DB) fiber.Handler {
 
 		err := db.Select(
 			&artists,
-			"SELECT name, urlname FROM artists",
+			"SELECT id, name, urlname FROM artists",
 		)
 
 		if err != nil {
