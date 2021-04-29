@@ -9,15 +9,26 @@ import (
 	"goreact/repositories"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func main() {
+func scanAndAddTracksToDb(db *sqlx.DB) {
 	tracks, err := indexFiles.ScanPathForMusicFiles("./content")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	err = repositories.AddTracks(tracks, db)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Print("Tracks has been added")
+}
+
+func main() {
 	db, err := database.GetInstance()
 	if err != nil {
 		log.Fatalln(err)
@@ -25,12 +36,15 @@ func main() {
 
 	defer db.Close()
 
-	err = repositories.AddTracks(tracks, db)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	go scanAndAddTracksToDb(db)
 
 	app := fiber.New()
+
+	// Middlewares
+
+	app.Use(logger.New())
+
+	// Routes
 
 	v1 := app.Group("/api/v1")
 
@@ -55,11 +69,12 @@ func main() {
 	artist := v1.Group("/artist")
 	artist.Get("/:id", handlers.GetArtist(db))
 
-	app.Static("/", "web/build")
+	// app.Static("/", "web/build")
 
-	app.Get("/*", func(c *fiber.Ctx) error {
-		return c.SendFile("./web/build/index.html")
-	})
+	// app.Get("/*", func(c *fiber.Ctx) error {
+	// 	return c.SendFile("./web/build/index.html")
+	// })
 
+	// Start app
 	log.Fatalln(app.Listen(":42000"))
 }
