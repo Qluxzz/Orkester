@@ -58,7 +58,16 @@ func GetInstance() (*sqlx.DB, error) {
 		return db, nil
 	}
 
-	db, err := sqlx.Connect("sqlite3", ":memory:")
+	/*
+		Each connection to ":memory:" opens a brand new in-memory sql database,
+		so if the stdlib's sql engine happens to open another connection and you've only specified ":memory:",
+		that connection will see a brand new database.
+		A workaround is to use "file::memory:?cache=shared" (or "file:foobar?mode=memory&cache=shared").
+		Every connection to this string will point to the same in-memory database.
+
+		https://github.com/mattn/go-sqlite3#faq
+	*/
+	db, err := sqlx.Connect("sqlite3", "file::memory:?cache=shared")
 	if err != nil {
 		return nil, err
 	}
