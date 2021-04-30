@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import styled from "styled-components"
-import { usePlayerContext } from "./Context"
+import { usePlayerContext } from "../../Context"
 
 const Bar = styled.div`
   display: flex;

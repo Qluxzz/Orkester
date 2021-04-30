@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import IPlaybackState from "./types/playbackState"
+import IPlaybackState from "../../types/playbackState"
 
 type IButton = {
     playbackState: IPlaybackState
