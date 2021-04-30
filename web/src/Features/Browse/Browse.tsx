@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Table } from "./Table"
-import ITrack from "./types/track"
+import Table from "Table"
+import ITrack from "types/track"
 
 
 export function GenreView({ name }: { name: string }) {

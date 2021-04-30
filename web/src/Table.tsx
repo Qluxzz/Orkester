@@ -21,7 +21,7 @@ const TableRow = styled.tr<{ striped?: boolean }>`
     background : ${props => props.striped ? "#333" : "#444"}
 `
 
-export function Table({ headerColumns, rows }: ITableProps) {
+export default function Table({ headerColumns, rows }: ITableProps) {
     return <TableStyle>
         <thead>
             <TableRow>

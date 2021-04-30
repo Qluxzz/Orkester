@@ -8,14 +8,14 @@ import {
   Link
 } from "react-router-dom"
 
-import Player from "./Player";
+import Player from "./Features/Player/Player";
 
 import styled from "styled-components"
-import { BrowseView, GenreView } from "./Browse";
+import { BrowseView, GenreView } from "./Features/Browse/Browse";
 import { GetAlbumWithId } from "./Album";
 import { GetArtistWithId } from "./Artist"
 import { PlayerContextProvider } from "./Context";
-import PlayerBar from "./PlayerBar";
+import PlayerBar from "./Features/Player/PlayerBar";
 
 const AppStyle = styled.div`
   display: flex;

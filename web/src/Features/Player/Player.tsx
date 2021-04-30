@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import ITrack from "./types/track"
+import ITrack from "types/track"
 import styled from "styled-components"
 import { Link } from "react-router-dom"
 
