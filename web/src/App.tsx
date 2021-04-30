@@ -8,14 +8,11 @@ import {
   Link
 } from "react-router-dom"
 
-import Player from "./Features/Player/Player";
-
 import styled from "styled-components"
-import { BrowseView, GenreView } from "./Features/Browse/Browse";
-import { GetAlbumWithId } from "./Album";
-import { GetArtistWithId } from "./Artist"
-import { PlayerContextProvider } from "./Context";
-import PlayerBar from "./Features/Player/PlayerBar";
+import { GetAlbumWithId } from "Features/Album/Album"
+import { GetArtistWithId } from "Artist"
+import { PlayerContextProvider } from "Context"
+import PlayerBar from "Features/Player/PlayerBar"
 
 const AppStyle = styled.div`
   display: flex;
@@ -25,23 +22,18 @@ const AppStyle = styled.div`
   flex: 1 1 100%;
 `
 
+const Container = styled.div`
+  display: flex;
+  flexDirection: column;
+  height: 100%;
+`
 
 function App() {
   return <PlayerContextProvider>
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%"
-      }}
-    >
+    <Container>
       <BrowserRouter>
         <AppStyle>
           <Switch>
-            <Route path="/track/:id" component={PlayerWrapper} />
-            <Route path="/browse/genres/:name" component={GenreViewWrapper} />
-            <Route path="/browse/genres" children={<BrowseView type="genre" />} />
-            <Route path="/browse/artists" children={<BrowseView type="artist" />} />
             <Route path="/album/:id" component={AlbumViewWrapper} />
             <Route path="/artist/:id" component={ArtistViewWrapper} />
             <Route path="/">
@@ -52,20 +44,8 @@ function App() {
         </AppStyle>
         <PlayerBar />
       </BrowserRouter>
-    </div>
+    </Container>
   </PlayerContextProvider >
-}
-
-function GenreViewWrapper() {
-  const { name } = useParams<{ name: string }>()
-
-  return <GenreView name={name} />
-}
-
-function PlayerWrapper() {
-  const { id } = useParams<{ id: string }>()
-
-  return <Player id={parseInt(id)} />
 }
 
 function AlbumViewWrapper() {
@@ -81,5 +61,3 @@ function ArtistViewWrapper() {
 }
 
 export default App;
-
-
