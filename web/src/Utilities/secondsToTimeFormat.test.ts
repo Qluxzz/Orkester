@@ -1,6 +1,6 @@
 import fc from "fast-check"
 
-import { secondsToTimeFormat } from "./Album"
+import { secondsToTimeFormat } from "Utilities/secondsToTimeFormat"
 
 function padToTwoZeroes(input: number): string {
     return input.toString().padStart(2, "0")

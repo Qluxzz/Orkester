@@ -54,14 +54,6 @@ func main() {
 	track.Get("/:id/stream", handlers.TrackStream(db))
 	track.Get("/:id", handlers.TrackInfo(db))
 
-	browse := v1.Group("/browse")
-
-	browse.Get("/artists/:name", handlers.BrowseArtist(db))
-	browse.Get("/artists", handlers.BrowseArtists(db))
-
-	browse.Get("/genres/:name", handlers.BrowseGenre(db))
-	browse.Get("/genres", handlers.BrowseGenres(db))
-
 	album := v1.Group("/album")
 
 	album.Get("/:id", handlers.GetAlbum(db))
