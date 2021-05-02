@@ -16,7 +16,20 @@ const Input = styled.input`
 `
 
 const SearchResults = styled.div`
+    h1 {
+        margin-bottom: 0;
+    }
+`
 
+const UnorderedListWithNoDots = styled.ul`
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+        margin: 5px 0;
+        padding: 5px 0;
+    }
 `
 
 async function search(query: string) {
@@ -75,15 +88,15 @@ export default function SearchBar() {
                 : <>
                     {searchResults.tracks.length > 0 && <>
                         <h1>Tracks</h1>
-                        <ul>{searchResults.tracks.map(track => <li onClick={() => play(track.id)} key={track.id}>{track.name}</li>)}</ul>
+                        <UnorderedListWithNoDots>{searchResults.tracks.map(track => <li onClick={() => play(track.id)} key={track.id}>{track.name}</li>)}</UnorderedListWithNoDots>
                     </>}
                     {searchResults.albums.length > 0 && <>
                         <h1>Albums</h1>
-                        <ul>{searchResults.albums.map(album => <Link to={`/album/${album.id}`}><li key={album.id}>{album.name}</li></Link>)}</ul>
+                        <UnorderedListWithNoDots>{searchResults.albums.map(album => <Link to={`/album/${album.id}`}><li key={album.id}>{album.name}</li></Link>)}</UnorderedListWithNoDots>
                     </>}
                     {searchResults.artists.length > 0 && <>
                         <h1>Artists</h1>
-                        <ul>{searchResults.artists.map(artist => <Link to={`/artist/${artist.id}`}><li key={artist.id}>{artist.name}</li></Link>)}</ul>
+                        <UnorderedListWithNoDots>{searchResults.artists.map(artist => <Link to={`/artist/${artist.id}`}><li key={artist.id}>{artist.name}</li></Link>)}</UnorderedListWithNoDots>
                     </>}
                 </>
             }
