@@ -28,9 +28,6 @@ async function search(query: string) {
     throw new Error(`Http request failed with status code ${response.status}`)
 }
 
-const MIN_QUERY_LENGTH = 4
-
-
 interface ISearchResults {
     tracks: IArtist[]
     artists: IArtist[]
@@ -44,9 +41,6 @@ export default function SearchBar() {
 
     useEffect(() => {
         if (!query)
-            return
-
-        if (query.trim().length < MIN_QUERY_LENGTH)
             return
 
         let isCanceled = false
