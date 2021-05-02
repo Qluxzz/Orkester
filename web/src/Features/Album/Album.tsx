@@ -3,6 +3,7 @@ import { usePlayerContext } from "Context";
 import Table from "Table";
 import ITrack from "types/track";
 import { secondsToTimeFormat } from "Utilities/secondsToTimeFormat";
+import styled from "styled-components";
 
 interface IAlbum {
     name: string
@@ -39,6 +40,17 @@ export function GetAlbumWithId({ id }: { id: number }) {
 }
 
 
+const LinkButton = styled.button`
+    background: none;
+    color: white;
+    border: none;
+    text-decoration: underline;
+
+    :hover {
+        cursor: pointer;
+    }
+`
+
 function AlbumView({ name, artist, year, tracks } : IAlbum) {
     const { play } = usePlayerContext()
 
@@ -54,12 +66,12 @@ function AlbumView({ name, artist, year, tracks } : IAlbum) {
             ]}
             rows={tracks.map((track) => [
                 track.trackNumber,
-                <button 
+                <LinkButton 
                     type="button" 
                     onClick={() => play(track.id)}
                 >
                     {track.title}
-                </button>,
+                </LinkButton>,
                 secondsToTimeFormat(track.length)
             ])}
         />
