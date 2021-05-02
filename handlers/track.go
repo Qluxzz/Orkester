@@ -22,7 +22,7 @@ func TrackInfo(db *sqlx.DB) fiber.Handler {
 		}
 
 		if len(tracks) == 0 {
-			return c.SendStatus(404)
+			return c.SendStatus(fiber.StatusNotFound)
 		}
 
 		return c.JSON(tracks[0])

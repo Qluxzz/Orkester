@@ -49,17 +49,18 @@ func main() {
 	v1 := app.Group("/api/v1")
 
 	track := v1.Group("/track")
-
 	track.Get("/:id/image", handlers.TrackImage(db))
 	track.Get("/:id/stream", handlers.TrackStream(db))
 	track.Get("/:id", handlers.TrackInfo(db))
 
 	album := v1.Group("/album")
-
 	album.Get("/:id", handlers.GetAlbum(db))
 
 	artist := v1.Group("/artist")
 	artist.Get("/:id", handlers.GetArtist(db))
+
+	search := v1.Group("/search")
+	search.Get("/:query", handlers.Search(db))
 
 	// app.Static("/", "web/build")
 

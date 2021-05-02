@@ -13,8 +13,9 @@ import { GetAlbumWithId } from "Features/Album/Album"
 import { GetArtistWithId } from "Artist"
 import { PlayerContextProvider } from "Context"
 import PlayerBar from "Features/Player/PlayerBar"
+import SearchBar from "Features/Search/SearchBar"
 
-const AppStyle = styled.div`
+const Content = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -24,15 +25,15 @@ const AppStyle = styled.div`
 
 const Container = styled.div`
   display: flex;
-  flexDirection: column;
-  height: 100%;
+  flex-direction: column;
 `
 
 function App() {
   return <PlayerContextProvider>
     <Container>
       <BrowserRouter>
-        <AppStyle>
+        <SearchBar />
+        <Content>
           <Switch>
             <Route path="/album/:id" component={AlbumViewWrapper} />
             <Route path="/artist/:id" component={ArtistViewWrapper} />
@@ -41,7 +42,7 @@ function App() {
               <div>Welcome home!</div>
             </Route>
           </Switch>
-        </AppStyle>
+        </Content>
         <PlayerBar />
       </BrowserRouter>
     </Container>

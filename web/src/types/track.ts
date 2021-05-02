@@ -9,13 +9,13 @@ type ITrack = {
     genre: string
 }
 
-type IArtist = {
+export type IArtist = {
     id: number
     name: string
     urlName: string
 }
 
-type IAlbum = {
+export type IAlbum = {
     id: number
     name: string
     urlName: string
