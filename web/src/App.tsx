@@ -39,10 +39,6 @@ function App() {
             <Route path="/album/:id" component={AlbumViewWrapper} />
             <Route path="/artist/:id" component={ArtistViewWrapper} />
             <Route path="/search/:query" component={SearchViewWrapper} />
-            <Route path="/">
-              <Link to="/track/80">Press here plz</Link>
-              <div>Welcome home!</div>
-            </Route>
           </Switch>
         </Content>
         <PlayerBar />

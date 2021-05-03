@@ -23,7 +23,10 @@ export default function SearchBar() {
     }
 
     return <Bar>
-        <Input onChange={e => updateQueryAndHistory(e.target.value)} value={query}></Input>
+        <Input
+            onChange={e => updateQueryAndHistory(e.target.value)}
+            value={query}
+        />
     </Bar>
 }
 
