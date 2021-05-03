@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func AddTracks(tracks []indexFiles.IndexedTrack, db *sqlx.DB) error {
+func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 	insertArtistStmt := `
 		INSERT OR IGNORE INTO artists (name, urlname) VALUES (?, ?)
 	`

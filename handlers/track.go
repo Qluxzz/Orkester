@@ -21,7 +21,7 @@ func TrackInfo(db *sqlx.DB) fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
-		if len(tracks) == 0 {
+		if len(tracks) != 1 {
 			return c.SendStatus(fiber.StatusNotFound)
 		}
 

@@ -4,88 +4,38 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/mewkiz/flac"
 	"github.com/mewkiz/flac/meta"
+	"github.com/mikkyang/id3-go"
+	v2 "github.com/mikkyang/id3-go/v2"
 )
 
-func ScanPathForMusicFiles(path string) ([]IndexedTrack, error) {
+func ScanPathForMusicFiles(path string) ([]*IndexedTrack, error) {
 	path, err := filepath.EvalSymlinks(path)
 	if err != nil {
 		return nil, err
 	}
 
-	tracks := []IndexedTrack{}
+	tracks := []*IndexedTrack{}
 
 	filepath.Walk(path, func(path string, fileInfo os.FileInfo, err error) error {
 		filename := strings.ToLower(fileInfo.Name())
 		ext := filepath.Ext(filename)
 
-		if isFlacFile(ext) {
-			f, err := flac.ParseFile(path)
-			if err != nil {
-				return nil
+		switch ext {
+		case ".flac":
+			track, err := parseFlacFile(path)
+			if err == nil {
+				tracks = append(tracks, track)
 			}
-			defer f.Close()
-
-			track := IndexedTrack{
-				Path:   path,
-				Length: int(f.Info.NSamples) / int(f.Info.SampleRate),
+		case ".mp3":
+			track, err := parseMp3File(path)
+			if err == nil {
+				tracks = append(tracks, track)
 			}
-
-			for _, block := range f.Blocks {
-				switch block.Type {
-				case meta.TypeVorbisComment:
-					data, valid := block.Body.(*meta.VorbisComment)
-					if !valid {
-						log.Fatalln("Block said it was TypeVorbisComment but could not be cast to it!")
-					}
-
-					for _, tag := range data.Tags {
-						tagType := strings.ToLower(tag[0])
-						value := strings.TrimSpace(tag[1])
-
-						switch tagType {
-						case "title":
-							track.Title = value
-						case "artist":
-							track.Artist = value
-						case "album":
-							track.Album.Name = value
-						case "albumartist":
-							track.AlbumArtist = value
-						case "tracknumber":
-							track.TrackNumber = value
-						case "genre":
-							track.Genre = value
-						case "date":
-							track.Date = value
-						}
-					}
-				case meta.TypePicture:
-					data, valid := block.Body.(*meta.Picture)
-					if !valid {
-						log.Fatalln("Block said it was TypePicture but could not be cast to it!")
-					}
-
-					coverFront := uint32(3)
-
-					if data.Type == coverFront {
-						track.Album.Image = Image{
-							Data:     data.Data,
-							MimeType: data.MIME,
-						}
-					}
-				}
-			}
-
-			tracks = append(
-				tracks,
-				track,
-			)
-
-			return nil
 		}
 
 		return nil
@@ -94,36 +44,104 @@ func ScanPathForMusicFiles(path string) ([]IndexedTrack, error) {
 	return tracks, nil
 }
 
-func isFlacFile(extension string) bool {
-	return extension == ".flac"
+func parseFlacFile(path string) (*IndexedTrack, error) {
+	f, err := flac.ParseFile(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	track := new(IndexedTrack)
+
+	track.Path = path
+	track.Length = int(f.Info.NSamples) / int(f.Info.SampleRate)
+
+	for _, block := range f.Blocks {
+		switch block.Type {
+		case meta.TypeVorbisComment:
+			data, valid := block.Body.(*meta.VorbisComment)
+			if !valid {
+				log.Fatalln("Block said it was TypeVorbisComment but could not be cast to it!")
+			}
+
+			for _, tag := range data.Tags {
+				tagType := strings.ToLower(tag[0])
+				value := strings.TrimSpace(tag[1])
+
+				switch tagType {
+				case "title":
+					track.Title = value
+				case "artist":
+					track.Artist = value
+				case "album":
+					track.Album.Name = value
+				case "albumartist":
+					track.AlbumArtist = value
+				case "tracknumber":
+					track.TrackNumber = value
+				case "genre":
+					track.Genre = value
+				case "date":
+					track.Date = value
+				}
+			}
+		case meta.TypePicture:
+			data, valid := block.Body.(*meta.Picture)
+			if !valid {
+				log.Fatalln("Block said it was TypePicture but could not be cast to it!")
+			}
+
+			coverFront := uint32(3)
+
+			if data.Type == coverFront {
+				track.Album.Image = Image{
+					Data:     data.Data,
+					MimeType: data.MIME,
+				}
+			}
+		}
+	}
+
+	return track, nil
 }
 
-func isCoverImage(filename string) bool {
-	hasValidFileName := func() bool {
-		validFilenames := []string{"cover", "folder"}
+func parseMp3File(path string) (*IndexedTrack, error) {
+	mp3File, err := id3.Open(path)
+	if err != nil {
+		return nil, err
+	}
 
-		for _, validFilename := range validFilenames {
-			if strings.HasPrefix(filename, validFilename) {
-				return true
-			}
+	defer mp3File.Close()
+
+	track := new(IndexedTrack)
+	track.Title = TrimNullFromString(mp3File.Title())
+	track.Path = path
+	lengthFrame, valid := mp3File.Frame("TLEN").(*v2.TextFrame)
+	if valid {
+		lengthMs, err := strconv.Atoi(strings.Trim(lengthFrame.Text(), "\x00"))
+		if err == nil {
+			track.Length = lengthMs / 1000
 		}
+	} else {
+		log.Fatal("Lengthframe was not a valid cast")
+	}
 
-		return false
-	}()
+	track.Album.Name = TrimNullFromString(mp3File.Album())
 
-	hasValidExtension := func() bool {
-		validFileExtensions := []string{".jpg", ".jpeg", ".png"}
+	imageFrame, valid := mp3File.Frame("APIC").(*v2.ImageFrame)
+	if valid {
+		track.Album.Image.Data = imageFrame.Data()
+		track.Album.Image.MimeType = TrimNullFromString(imageFrame.MIMEType())
+	}
+	track.Artist = TrimNullFromString(mp3File.Artist())
+	track.Genre = TrimNullFromString(mp3File.Genre())
+	track.Date = TrimNullFromString(mp3File.Year())
 
-		for _, validFileExtension := range validFileExtensions {
-			if strings.HasSuffix(filename, validFileExtension) {
-				return true
-			}
-		}
+	return track, nil
+}
 
-		return false
-	}()
-
-	return hasValidFileName && hasValidExtension
+func TrimNullFromString(s string) string {
+	return strings.Trim(s, "\x00")
 }
 
 type Image struct {
