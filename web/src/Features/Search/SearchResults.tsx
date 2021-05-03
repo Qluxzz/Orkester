@@ -1,5 +1,5 @@
-import { usePlayerContext } from "Context"
 import React, { useEffect, useState } from "react"
+import { usePlayerContext } from "Context"
 import { Link } from "react-router-dom"
 import styled from "styled-components"
 import { IArtist, IAlbum } from "types/track"
@@ -43,10 +43,10 @@ interface ISearchResults {
 async function search(query: string) {
     const response = await fetch(`/api/v1/search/${query}`)
 
-    if (response.ok)
-        return response.json()
+    if (!response.ok)
+        throw new Error(`Http request failed with status code ${response.status}`)
 
-    throw new Error(`Http request failed with status code ${response.status}`)
+    return response.json()
 }
 
 
@@ -68,9 +68,6 @@ export default function SearchResults({ query }: { query: string }) {
                 setSearchResults(searchResults)
             })
             .catch((error: Error) => {
-                if (error.name === "AbortError")
-                    return
-
                 console.error("Failed to get search results", error)
             })
 

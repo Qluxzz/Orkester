@@ -4,9 +4,7 @@ import {
   BrowserRouter,
   Switch,
   Route,
-  useParams,
-  Link
-} from "react-router-dom"
+  useParams} from "react-router-dom"
 
 import styled from "styled-components"
 import { GetAlbumWithId } from "Features/Album/Album"
