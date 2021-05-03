@@ -9,7 +9,7 @@ const Container = styled.div`
     gap: 20px;
 
     h1 {
-        margin-bottom: 0;
+        margin: 0;
     }
 
     div {
