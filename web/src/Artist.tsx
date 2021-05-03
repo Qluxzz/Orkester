@@ -36,7 +36,6 @@ export function GetArtistWithId({ id }: { id: number }) {
             })
             .catch(error => {
                 console.error("Failed to get artist info!", error)
-                throw error
             })
 
         return () => { isCanceled = true }

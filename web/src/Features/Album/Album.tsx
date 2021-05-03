@@ -27,7 +27,6 @@ export function GetAlbumWithId({ id }: { id: number }) {
             })
             .catch(error => {
                 console.error("Failed to get album info!", error)
-                throw error
             })
 
         return () => { isCanceled = true }
