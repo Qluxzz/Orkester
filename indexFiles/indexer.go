@@ -118,7 +118,7 @@ func parseMp3File(path string) (*IndexedTrack, error) {
 	track.Path = path
 	lengthFrame, valid := mp3File.Frame("TLEN").(*v2.TextFrame)
 	if valid {
-		lengthMs, err := strconv.Atoi(strings.Trim(lengthFrame.Text(), "\x00"))
+		lengthMs, err := strconv.Atoi(TrimNullFromString(lengthFrame.Text()))
 		if err == nil {
 			track.Length = lengthMs / 1000
 		}
