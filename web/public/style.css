@@ -5,14 +5,13 @@ html, body {
 }
 
 body {
-    display: flex;
-    flex-direction: column;
     color: white;
     background-color: #222;
 }
 
 #root {
-    flex-grow: 1;
+    display: flex;
+    height: 100%;
 }
 
 a, a:visited {

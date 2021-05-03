@@ -5,13 +5,8 @@ import { usePlayerContext } from "Context"
 const Bar = styled.div`
   display: flex;
   flex-direction: column;
-  flex: 0 0 100px;
   background: #333;
   padding: 10px;
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
 `
 
 export default function PlayerBar() {
