@@ -33,7 +33,7 @@ func createSchemas(db *sqlx.DB) error {
 		date TEXT NOT NULL,
 		length INT NOT NULL,
 		albumid INTEGER,
-		artistid INTEGER,
+		artistid INTEGER NOT NULL,
 		genreid INTEGER,
 		FOREIGN KEY (albumid) REFERENCES albums(id),
 		FOREIGN KEY (artistid) REFERENCES artists(id),
