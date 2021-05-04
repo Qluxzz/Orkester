@@ -69,11 +69,17 @@ const TableRow = styled.tr<{ striped?: boolean }>`
     background : ${props => props.striped ? "#333" : "#444"}
 `
 
+const AlbumViewContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+`
+
 
 function AlbumView({ name, artist, year, tracks }: IAlbum) {
     const { play } = usePlayerContext()
 
-    return <div>
+    return <AlbumViewContainer>
         {name}
         {artist}
         {year}
@@ -102,7 +108,7 @@ function AlbumView({ name, artist, year, tracks }: IAlbum) {
                 )}
             </tbody>
         </TableStyle>
-    </div>
+    </AlbumViewContainer>
 }
 
 async function fetchAlbumInfo(id: number): Promise<IAlbum> {
