@@ -1,6 +1,7 @@
 package indexFiles
 
 import (
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -105,8 +106,15 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 		}
 	}
 
+	if track.Artist == "" {
+		return nil, errors.New("track was missing artist")
+	}
+
 	return track, nil
 }
+
+// Info on frames and fields can be found here
+// https://id3.org/id3v2.3.0 (2021-05-04)
 
 func parseMp3File(path string) (*IndexedTrack, error) {
 	mp3File, err := id3.Open(path)
@@ -148,6 +156,10 @@ func parseMp3File(path string) (*IndexedTrack, error) {
 	track.Artist = TrimNullFromString(mp3File.Artist())
 	track.Genre = TrimNullFromString(mp3File.Genre())
 	track.Date = TrimNullFromString(mp3File.Year())
+
+	if track.Artist == "" {
+		return nil, errors.New("track was missing artist")
+	}
 
 	return track, nil
 }
