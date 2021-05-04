@@ -46,7 +46,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 	tx := db.MustBegin()
 
 	for _, track := range tracks {
-			tx.MustExec(insertArtistStmt, track.Artist, slug.Make(track.Artist))
+		tx.MustExec(insertArtistStmt, track.Artist, slug.Make(track.Artist))
 
 		if track.Album.Name != "" {
 			tx.MustExec(insertAlbumStmt, track.Album.Name, slug.Make(track.Album.Name), track.Album.Image.Data, track.Album.Image.MimeType)
@@ -120,4 +120,13 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 	}
 
 	return tracks, nil
+}
+
+func GetTrackById(id int, db *sqlx.DB) (models.Track, error) {
+	tracks, err := GetTracksByIds([]int{id}, db)
+	if err != nil {
+		return models.Track{}, err
+	}
+
+	return tracks[0], nil
 }
