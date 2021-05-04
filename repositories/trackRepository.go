@@ -46,9 +46,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 	tx := db.MustBegin()
 
 	for _, track := range tracks {
-		if track.Artist != "" {
 			tx.MustExec(insertArtistStmt, track.Artist, slug.Make(track.Artist))
-		}
 
 		if track.Album.Name != "" {
 			tx.MustExec(insertAlbumStmt, track.Album.Name, slug.Make(track.Album.Name), track.Album.Image.Data, track.Album.Image.MimeType)
