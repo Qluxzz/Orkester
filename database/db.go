@@ -51,13 +51,7 @@ func createSchemas(db *sqlx.DB) error {
 	return err
 }
 
-var db *sqlx.DB
-
 func GetInstance() (*sqlx.DB, error) {
-	if db != nil {
-		return db, nil
-	}
-
 	/*
 		Each connection to ":memory:" opens a brand new in-memory sql database,
 		so if the stdlib's sql engine happens to open another connection and you've only specified ":memory:",
