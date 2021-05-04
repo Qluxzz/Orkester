@@ -28,7 +28,7 @@ func createSchemas(db *sqlx.DB) error {
 	trackSchema := `CREATE TABLE IF NOT EXISTS tracks(
 		id INTEGER PRIMARY KEY,
 		title TEXT NOT NULL,
-		tracknumber TEXT NOT NULL,
+		tracknumber INTEGER NOT NULL,
 		path TEXT NOT NULL,
 		date TEXT NOT NULL,
 		length INT NOT NULL,
