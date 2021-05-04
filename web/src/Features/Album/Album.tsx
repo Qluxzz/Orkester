@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { usePlayerContext } from "Context";
-import Table from "Table";
+import styled from "styled-components";
+
 import ITrack from "types/track";
 import { secondsToTimeFormat } from "Utilities/secondsToTimeFormat";
-import styled from "styled-components";
+import { usePlayerContext } from "Context";
 
 interface IAlbum {
     name: string
@@ -50,30 +50,58 @@ const LinkButton = styled.button`
     }
 `
 
-function AlbumView({ name, artist, year, tracks } : IAlbum) {
+const TableStyle = styled.table`
+    border: 0px;
+    * {
+        font-size: 16px;
+    }
+`
+
+const TableData = styled.td<{ align?: "left" | "center" | "right" }>`
+    padding: 5px;
+    border: none;
+    text-align: ${props => props.align}
+`
+
+const TableRow = styled.tr<{ striped?: boolean }>`
+    margin: 0 5px;
+    border: none;
+    background : ${props => props.striped ? "#333" : "#444"}
+`
+
+
+function AlbumView({ name, artist, year, tracks }: IAlbum) {
     const { play } = usePlayerContext()
 
     return <div>
         {name}
         {artist}
         {year}
-        <Table
-            headerColumns={[
-                "#",
-                "Name",
-                "Length"
-            ]}
-            rows={tracks.map((track) => [
-                track.trackNumber,
-                <LinkButton 
-                    type="button" 
-                    onClick={() => play(track.id)}
-                >
-                    {track.title}
-                </LinkButton>,
-                secondsToTimeFormat(track.length)
-            ])}
-        />
+        <TableStyle>
+            <thead>
+                <TableRow>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Length</th>
+                </TableRow>
+            </thead>
+            <tbody>
+                {tracks.map((track, i) =>
+                    <TableRow key={i} striped={i % 2 === 0}>
+                        <TableData>{track.trackNumber}</TableData>
+                        <TableData>
+                            <LinkButton
+                                type="button"
+                                onClick={() => play(track.id)}
+                            >
+                                {track.title}
+                            </LinkButton>
+                        </TableData>
+                        <TableData align="center">{secondsToTimeFormat(track.length)}</TableData>
+                    </TableRow>
+                )}
+            </tbody>
+        </TableStyle>
     </div>
 }
 
