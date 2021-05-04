@@ -8,13 +8,13 @@ func createSchemas(db *sqlx.DB) error {
 	artistSchema := `CREATE TABLE IF NOT EXISTS artists(
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL UNIQUE,
-		urlname TEXT NOT NULL UNIQUE
+		urlname TEXT NOT NULL
 	);`
 
 	albumSchema := `CREATE TABLE IF NOT EXISTS albums(
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL UNIQUE,
-		urlname TEXT NOT NULL UNIQUE,
+		urlname TEXT NOT NULL,
 		image BLOB,
 		imagemimetype TEXT
 	);`
@@ -22,7 +22,7 @@ func createSchemas(db *sqlx.DB) error {
 	genreSchema := `CREATE TABLE IF NOT EXISTS genres(
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL UNIQUE,
-		urlname TEXT NOT NULL UNIQUE
+		urlname TEXT NOT NULL
 	);`
 
 	trackSchema := `CREATE TABLE IF NOT EXISTS tracks(
