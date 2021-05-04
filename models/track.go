@@ -5,7 +5,7 @@ import "database/sql"
 type DBTrack struct {
 	Id            int            `db:"id"`
 	Title         string         `db:"title"`
-	TrackNumber   string         `db:"tracknumber"`
+	TrackNumber   int            `db:"tracknumber"`
 	Date          string         `db:"date"`
 	Length        int            `db:"length"`
 	AlbumId       sql.NullInt32  `db:"albumid"`
@@ -24,7 +24,7 @@ type DBTrack struct {
 type Track struct {
 	Id          int     `json:"id"`
 	Title       string  `json:"title"`
-	TrackNumber string  `json:"trackNumber"`
+	TrackNumber int     `json:"trackNumber"`
 	Date        string  `json:"date"`
 	Length      int     `json:"length"`
 	Album       *Album  `json:"album"`

@@ -78,7 +78,10 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 				case "albumartist":
 					track.AlbumArtist = value
 				case "tracknumber":
-					track.TrackNumber = value
+					trackNumber, err := strconv.Atoi(value)
+					if err == nil {
+						track.TrackNumber = trackNumber
+					}
 				case "genre":
 					track.Genre = value
 				case "date":
@@ -116,6 +119,15 @@ func parseMp3File(path string) (*IndexedTrack, error) {
 	track := new(IndexedTrack)
 	track.Title = TrimNullFromString(mp3File.Title())
 	track.Path = path
+
+	trackNumberFrame, valid := mp3File.Frame("TRCK").(*v2.TextFrame)
+	if valid {
+		trackNumber, err := strconv.Atoi(TrimNullFromString(trackNumberFrame.Text()))
+		if err == nil {
+			track.TrackNumber = trackNumber
+		}
+	}
+
 	lengthFrame, valid := mp3File.Frame("TLEN").(*v2.TextFrame)
 	if valid {
 		lengthMs, err := strconv.Atoi(TrimNullFromString(lengthFrame.Text()))
@@ -160,7 +172,7 @@ type IndexedTrack struct {
 	Artist      string
 	Album       Album
 	AlbumArtist string
-	TrackNumber string
+	TrackNumber int
 	Genre       string
 	Length      int
 	Date        string
