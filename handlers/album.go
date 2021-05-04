@@ -3,6 +3,7 @@ package handlers
 import (
 	"goreact/models"
 	"goreact/repositories"
+	"sort"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
@@ -59,6 +60,9 @@ func GetAlbum(db *sqlx.DB) fiber.Handler {
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
+
+		// Sort by track number ascending
+		sort.SliceStable(tracks, func(i int, j int) bool { return tracks[i].TrackNumber < tracks[j].TrackNumber })
 
 		album.Tracks = tracks
 
