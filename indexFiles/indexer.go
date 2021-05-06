@@ -1,6 +1,7 @@
 package indexFiles
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 	"os"
@@ -54,7 +55,7 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 
 	track := new(IndexedTrack)
 
-	track.Path = path
+	track.Path = CreateValidNullString(path)
 	track.Length = int(f.Info.NSamples) / int(f.Info.SampleRate)
 
 	for _, block := range f.Blocks {
@@ -71,22 +72,22 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 
 				switch tagType {
 				case "title":
-					track.Title = value
+					track.Title = CreateValidNullString(value)
 				case "artist":
-					track.Artist = value
+					track.Artist = CreateValidNullString(value)
 				case "album":
-					track.Album.Name = value
+					track.Album.Name = CreateValidNullString(value)
 				case "albumartist":
-					track.AlbumArtist = value
+					track.AlbumArtist = CreateValidNullString(value)
 				case "tracknumber":
 					trackNumber, err := strconv.Atoi(value)
 					if err == nil {
 						track.TrackNumber = trackNumber
 					}
 				case "genre":
-					track.Genre = value
+					track.Genre = CreateValidNullString(value)
 				case "date":
-					track.Date = value
+					track.Date = CreateValidNullString(value)
 				}
 			}
 		case meta.TypePicture:
@@ -100,17 +101,24 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 			if data.Type == coverFront {
 				track.Album.Image = Image{
 					Data:     data.Data,
-					MimeType: data.MIME,
+					MimeType: CreateValidNullString(data.MIME),
 				}
 			}
 		}
 	}
 
-	if track.Artist == "" {
+	if !track.Artist.Valid {
 		return nil, errors.New("track was missing artist")
 	}
 
 	return track, nil
+}
+
+func CreateValidNullString(s string) sql.NullString {
+	return sql.NullString{
+		String: s,
+		Valid:  true,
+	}
 }
 
 // Info on frames and fields can be found here
@@ -125,8 +133,8 @@ func parseMp3File(path string) (*IndexedTrack, error) {
 	defer mp3File.Close()
 
 	track := new(IndexedTrack)
-	track.Title = TrimNullFromString(mp3File.Title())
-	track.Path = path
+	track.Title = CreateValidNullString(TrimNullFromString(mp3File.Title()))
+	track.Path = CreateValidNullString(path)
 
 	trackNumberFrame, valid := mp3File.Frame("TRCK").(*v2.TextFrame)
 	if valid {
@@ -146,18 +154,20 @@ func parseMp3File(path string) (*IndexedTrack, error) {
 		log.Fatal("Lengthframe was not a valid cast")
 	}
 
-	track.Album.Name = TrimNullFromString(mp3File.Album())
+	track.Album.Name = CreateValidNullString(TrimNullFromString(mp3File.Album()))
 
 	imageFrame, valid := mp3File.Frame("APIC").(*v2.ImageFrame)
 	if valid {
-		track.Album.Image.Data = imageFrame.Data()
-		track.Album.Image.MimeType = TrimNullFromString(imageFrame.MIMEType())
+		track.Album.Image = Image{
+			Data:     imageFrame.Data(),
+			MimeType: CreateValidNullString(imageFrame.MIMEType()),
+		}
 	}
-	track.Artist = TrimNullFromString(mp3File.Artist())
-	track.Genre = TrimNullFromString(mp3File.Genre())
-	track.Date = TrimNullFromString(mp3File.Year())
+	track.Artist = CreateValidNullString(TrimNullFromString(mp3File.Artist()))
+	track.Genre = CreateValidNullString(TrimNullFromString(mp3File.Genre()))
+	track.Date = CreateValidNullString(TrimNullFromString(mp3File.Year()))
 
-	if track.Artist == "" {
+	if !track.Artist.Valid {
 		return nil, errors.New("track was missing artist")
 	}
 
@@ -170,22 +180,22 @@ func TrimNullFromString(s string) string {
 
 type Image struct {
 	Data     []byte
-	MimeType string
+	MimeType sql.NullString
 }
 
 type Album struct {
-	Name  string
+	Name  sql.NullString
 	Image Image
 }
 
 type IndexedTrack struct {
-	Path        string
-	Title       string
-	Artist      string
+	Path        sql.NullString
+	Title       sql.NullString
+	Artist      sql.NullString
 	Album       Album
-	AlbumArtist string
+	AlbumArtist sql.NullString
 	TrackNumber int
-	Genre       string
+	Genre       sql.NullString
 	Length      int
-	Date        string
+	Date        sql.NullString
 }

@@ -2,12 +2,13 @@ package database
 
 import (
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func createSchemas(db *sqlx.DB) error {
 	artistSchema := `CREATE TABLE IF NOT EXISTS artists(
 		id INTEGER PRIMARY KEY,
-		name TEXT NOT NULL UNIQUE,
+		name TEXT NOT NULL UNIQUE COLLATE NOCASE,
 		urlname TEXT NOT NULL
 	);`
 
