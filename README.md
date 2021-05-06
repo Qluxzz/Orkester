@@ -1,2 +1,7 @@
 # Go(React)
-Single Page Application using React and React Router with Golang for Backend using Gofiber.
+Web based music player for local music
+
+Built using Gofiber and React
+
+## Screenshots
+![Screenshot](screenshot.png)
