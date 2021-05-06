@@ -62,6 +62,8 @@ func Search(db *sqlx.DB) fiber.Handler {
 				albums
 			WHERE
 				LOWER(REPLACE(name, ' ', '')) LIKE ?
+			ORDER BY
+				name
 			`,
 			wildcardQuery,
 		)
@@ -80,6 +82,8 @@ func Search(db *sqlx.DB) fiber.Handler {
 				artists
 			WHERE
 				LOWER(REPLACE(name, ' ', '')) LIKE ?
+			ORDER BY
+				name
 			`,
 			wildcardQuery,
 		)
