@@ -1,5 +1,5 @@
 # Go(React)
-Web based music player for local music
+WIP Web based music player for local music
 
 Built using Gofiber and React
 
