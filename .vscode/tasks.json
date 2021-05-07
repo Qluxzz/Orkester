@@ -24,6 +24,12 @@
             "presentation": {
                 "group": "watch"
             }
+        },
+        {
+            "label": "run tests",
+            "type": "shell",
+            "command": "go test ./...",
+            "problemMatcher": []
         }
     ]
 }
