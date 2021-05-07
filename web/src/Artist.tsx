@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom"
+import styled from "styled-components";
 
 interface IArtist {
     name: string
@@ -9,6 +10,7 @@ interface IArtist {
 interface IAlbum {
     id: number
     name: string
+    year: string
     urlName: string
 }
 
@@ -47,13 +49,54 @@ export function GetArtistWithId({ id }: { id: number }) {
     return <ArtistView {...artist} />
 }
 
+const Album = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    background: #333;
+    padding: 10px;
+
+    img {
+        display: block;
+        max-width: 100%;
+    }
+
+    p {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: bold;
+        padding: 10px;
+    }
+`
+
+const ArtistName = styled.h1`
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`
+
+
 function ArtistView(artist: IArtist) {
-    return <div>
-        <h1>{artist.name}</h1>
-        <ul>
-            {artist.albums.map((album, i) => <li key={i}>
-                <Link to={`/album/${album.id}/${album.urlName}`}><h2>{album.name}</h2></Link>
-            </li>)}
-        </ul>
-    </div>
+    return <>
+        <div>
+            <ArtistName>{artist.name}</ArtistName>
+        </div>
+        <div style={{ 
+            display: "grid", 
+            gap: 24, 
+            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+            gridTemplateRows: "1fr"
+        }}>
+            {artist.albums.map((album, i) => 
+                <Link to={`/album/${album.id}/${album.urlName}`}>
+                    <Album>
+                    <img src={`/api/v1/album/${album.id}/image`} alt={`Album cover for ${album.name} by ${artist.name}`} />
+                    <p>{album.name}</p>
+                    <p>{album.year}</p>
+                    </Album>
+                </Link>
+            )}
+        </div>
+    </>
 }

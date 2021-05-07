@@ -1,28 +1,22 @@
 package handlers
 
 import (
-	"goreact/models"
 	"goreact/repositories"
 	"sort"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
 )
 
-type Album struct {
-	Name   string         `json:"name"`
-	Year   string         `json:"year"`
-	Tracks []models.Track `json:"tracks"`
-}
-
 func GetAlbum(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id := c.Params("id")
 
-		album := Album{}
+		var albumName string
 
 		err := db.Get(
-			&album,
+			&albumName,
 			`
 			SELECT
 				name
@@ -64,8 +58,44 @@ func GetAlbum(db *sqlx.DB) fiber.Handler {
 		// Sort by track number ascending
 		sort.SliceStable(tracks, func(i int, j int) bool { return tracks[i].TrackNumber < tracks[j].TrackNumber })
 
-		album.Tracks = tracks
+		return c.JSON(&fiber.Map{
+			"name":   albumName,
+			"tracks": tracks,
+		})
+	}
+}
 
-		return c.JSON(album)
+func GetAlbumCover(db *sqlx.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		type albumImage struct {
+			Image    []byte `db:"image"`
+			MimeType string `db:"imagemimetype"`
+		}
+
+		image := albumImage{}
+
+		err = db.Get(
+			&image,
+			`SELECT
+				image,
+				imagemimetype
+			FROM
+				albums
+			WHERE
+				id = ?`,
+			id,
+		)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		c.Response().Header.Add("Content-Type", image.MimeType)
+		c.Response().Header.Add("Cache-Control", "max-age=31536000")
+		return c.Send(image.Image)
 	}
 }

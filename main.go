@@ -54,6 +54,7 @@ func main() {
 
 	album := v1.Group("/album")
 	album.Get("/:id", handlers.GetAlbum(db))
+	album.Get("/:id/image", handlers.GetAlbumCover(db))
 
 	artist := v1.Group("/artist")
 	artist.Get("/:id", handlers.GetArtist(db))
