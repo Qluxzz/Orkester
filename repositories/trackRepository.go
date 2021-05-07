@@ -10,7 +10,7 @@ import (
 
 func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 	insertArtistStmt := `
-		INSERT INTO artists (name, urlname) VALUES (?, ?) ON CONFLICT(name) DO NOTHING
+		INSERT INTO artists (name, urlname) VALUES (?, ?) ON CONFLICT DO NOTHING
 	`
 
 	insertAlbumStmt := `
@@ -26,11 +26,11 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			?, 
 			?, 
 			(SELECT id FROM artists WHERE name = ?)
-		) ON CONFLICT (name, artistid) DO NOTHING
+		) ON CONFLICT DO NOTHING
 	`
 
 	insertGenreStmt := `
-		INSERT INTO genres (name, urlname) VALUES (?, ?) ON CONFLICT(name) DO NOTHING
+		INSERT INTO genres (name, urlname) VALUES (?, ?) ON CONFLICT DO NOTHING
 	`
 
 	insertTrackStmt := `
@@ -62,7 +62,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			),
 			(SELECT id FROM artists WHERE name = $7),
 			(SELECT id from genres WHERE name = $8)
-		)
+		) ON CONFLICT DO NOTHING
 	`
 
 	tx := db.MustBegin()
