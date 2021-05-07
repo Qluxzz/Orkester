@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"goreact/indexFiles"
 	"goreact/models"
 
@@ -152,11 +153,15 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 	return tracks, nil
 }
 
-func GetTrackById(id int, db *sqlx.DB) (models.Track, error) {
+func GetTrackById(id int, db *sqlx.DB) (*models.Track, error) {
 	tracks, err := GetTracksByIds([]int{id}, db)
 	if err != nil {
-		return models.Track{}, err
+		return nil, err
 	}
 
-	return tracks[0], nil
+	if len(tracks) == 0 {
+		return nil, errors.New("no tracks were found")
+	}
+
+	return &tracks[0], nil
 }

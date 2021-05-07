@@ -3,12 +3,14 @@ package indexFiles
 import (
 	"database/sql"
 	"errors"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/mewkiz/flac"
 	"github.com/mewkiz/flac/meta"
 	"github.com/mikkyang/id3-go"
@@ -107,11 +109,93 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 		}
 	}
 
+	if !track.Album.Image.MimeType.Valid {
+		image, err := ScanFolderForCoverImage(filepath.Dir(path))
+		if err == nil {
+			track.Album.Image = *image
+		}
+	}
+
 	if !track.Artist.Valid {
 		return nil, errors.New("track was missing artist")
 	}
 
 	return track, nil
+}
+
+func ScanFolderForCoverImage(path string) (*Image, error) {
+	validImages := []string{}
+
+	filepath.Walk(path, func(currentPath string, fileInfo os.FileInfo, err error) error {
+		if fileInfo.IsDir() {
+			return nil
+		}
+
+		ext := filepath.Ext(currentPath)
+
+		hasValidExtension := func(ext string) bool {
+			validExtensions := []string{
+				".png",
+				".jpg",
+			}
+
+			lowerExt := strings.ToLower(ext)
+
+			for _, validExtension := range validExtensions {
+				if lowerExt == validExtension {
+					return true
+				}
+			}
+
+			return false
+		}(ext)
+
+		fileName := fileInfo.Name()
+
+		filenameWithoutExtension := fileName[0 : len(fileName)-len(ext)]
+
+		hasValidFileName := func(filename string) bool {
+			validFileNames := []string{
+				"cover",
+				"folder",
+			}
+
+			loweredFileName := strings.ToLower(filename)
+
+			for _, validFileName := range validFileNames {
+				if loweredFileName == validFileName {
+					return true
+				}
+			}
+
+			return false
+		}(filenameWithoutExtension)
+
+		if hasValidExtension && hasValidFileName {
+			validImages = append(validImages, currentPath)
+		}
+
+		return nil
+	})
+
+	if len(validImages) > 0 {
+		data, err := ioutil.ReadFile(validImages[0])
+		if err != nil {
+			return nil, err
+		}
+
+		mime := mimetype.Detect(data)
+		if mime == nil {
+			return nil, errors.New("failed to get image mimetype")
+		}
+
+		return &Image{
+			Data:     data,
+			MimeType: CreateValidNullString(mime.String()),
+		}, nil
+	}
+
+	return nil, errors.New("failed to find cover image")
 }
 
 func CreateValidNullString(s string) sql.NullString {
