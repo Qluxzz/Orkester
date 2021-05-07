@@ -56,7 +56,7 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 	track := new(IndexedTrack)
 
 	track.Path = CreateValidNullString(path)
-	track.Length = int(f.Info.NSamples) / int(f.Info.SampleRate)
+	track.Length = CreateValidNullInt(int(f.Info.NSamples) / int(f.Info.SampleRate))
 
 	for _, block := range f.Blocks {
 		switch block.Type {
@@ -82,7 +82,7 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 				case "tracknumber":
 					trackNumber, err := strconv.Atoi(value)
 					if err == nil {
-						track.TrackNumber = trackNumber
+						track.TrackNumber = CreateValidNullInt(trackNumber)
 					}
 				case "genre":
 					track.Genre = CreateValidNullString(value)
@@ -121,6 +121,13 @@ func CreateValidNullString(s string) sql.NullString {
 	}
 }
 
+func CreateValidNullInt(n int) sql.NullInt32 {
+	return sql.NullInt32{
+		Int32: int32(n),
+		Valid: true,
+	}
+}
+
 // Info on frames and fields can be found here
 // https://id3.org/id3v2.3.0 (2021-05-04)
 
@@ -140,7 +147,7 @@ func parseMp3File(path string) (*IndexedTrack, error) {
 	if valid {
 		trackNumber, err := strconv.Atoi(TrimNullFromString(trackNumberFrame.Text()))
 		if err == nil {
-			track.TrackNumber = trackNumber
+			track.TrackNumber = CreateValidNullInt(trackNumber)
 		}
 	}
 
@@ -148,10 +155,8 @@ func parseMp3File(path string) (*IndexedTrack, error) {
 	if valid {
 		lengthMs, err := strconv.Atoi(TrimNullFromString(lengthFrame.Text()))
 		if err == nil {
-			track.Length = lengthMs / 1000
+			track.Length = CreateValidNullInt(lengthMs / 1000)
 		}
-	} else {
-		log.Fatal("Lengthframe was not a valid cast")
 	}
 
 	track.Album.Name = CreateValidNullString(TrimNullFromString(mp3File.Album()))
@@ -194,8 +199,8 @@ type IndexedTrack struct {
 	Artist      sql.NullString
 	Album       Album
 	AlbumArtist sql.NullString
-	TrackNumber int
+	TrackNumber sql.NullInt32
 	Genre       sql.NullString
-	Length      int
+	Length      sql.NullInt32
 	Date        sql.NullString
 }
