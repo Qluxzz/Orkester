@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/djimenez/iconv-go v0.0.0-20160305225143-8960e66bd3da // indirect
+	github.com/gabriel-vasile/mimetype v1.2.0
 	github.com/gofiber/fiber/v2 v2.6.0
 	github.com/gosimple/slug v1.9.0
 	github.com/jmoiron/sqlx v1.3.1
