@@ -41,7 +41,8 @@ func createSchemas(db *sqlx.DB) error {
 		genreid INTEGER,
 		FOREIGN KEY (albumid) REFERENCES albums(id),
 		FOREIGN KEY (artistid) REFERENCES artists(id),
-		FOREIGN KEY (genreid) REFERENCES genres(id)
+		FOREIGN KEY (genreid) REFERENCES genres(id),
+		UNIQUE (title, albumid, artistid)
 	);`
 
 	tx := db.MustBegin()
