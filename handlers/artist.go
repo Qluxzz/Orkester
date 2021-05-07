@@ -7,26 +7,41 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Artist struct {
-	Name   string                    `json:"name"`
-	Albums []models.IdNameAndUrlName `json:"albums"`
+type ArtistAlbum struct {
+	Id      int            `json:"id"`
+	Name    string         `json:"name"`
+	UrlName string         `json:"urlName"`
+	Tracks  []models.Track `json:"tracks"`
 }
 
 func GetArtist(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id := c.Params("id")
 
-		artist := Artist{}
+		var artistName string
 
 		err := db.Get(
-			&artist,
-			`
-				SELECT
-					name
-				FROM
-					artists
-				WHERE
-					id = ?
+			&artistName,
+			"SELECT name FROM artists WHERE id = ?",
+			id,
+		)
+
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		albums := []ArtistAlbum{}
+
+		err = db.Select(
+			&albums,
+			`SELECT
+				id,
+				name,
+				urlname
+			FROM
+				albums
+			WHERE
+				artistid = ?
 			`,
 			id,
 		)
@@ -35,20 +50,9 @@ func GetArtist(db *sqlx.DB) fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
-		albums := []models.IdNameAndUrlName{}
-
-		err = db.Select(
-			&albums,
-			`SELECT id, name, urlname FROM albums WHERE id IN (SELECT albumid FROM tracks WHERE artistid = ?)`,
-			id,
-		)
-
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-		}
-
-		artist.Albums = albums
-
-		return c.JSON(artist)
+		return c.JSON(&fiber.Map{
+			"name":   artistName,
+			"albums": albums,
+		})
 	}
 }
