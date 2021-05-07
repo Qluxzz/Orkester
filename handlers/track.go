@@ -62,6 +62,7 @@ func TrackImage(db *sqlx.DB) fiber.Handler {
 		}
 
 		c.Response().Header.Add("Content-Type", image.MimeType)
+		c.Response().Header.Add("Cache-Control", "max-age=31536000")
 		return c.Send(image.Image)
 	}
 }
