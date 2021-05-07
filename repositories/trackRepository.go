@@ -14,7 +14,19 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 	`
 
 	insertAlbumStmt := `
-		INSERT INTO albums (name, urlname, image, imagemimetype) VALUES (?, ?, ?, ?) ON CONFLICT(name) DO NOTHING
+		INSERT INTO albums (
+			name, 
+			urlname, 
+			image, 
+			imagemimetype, 
+			artistid
+		) VALUES (
+			?,
+			?, 
+			?, 
+			?, 
+			(SELECT id FROM artists WHERE name = ?)
+		) ON CONFLICT (name, artistid) DO NOTHING
 	`
 
 	insertGenreStmt := `
@@ -32,14 +44,24 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			artistid,
 			genreid
 		) VALUES(
-			?,
-			?,
-			?,
-			?,
-			?,
-			(SELECT id FROM albums WHERE name = ?),
-			(SELECT id FROM artists WHERE name = ?),
-			(SELECT id from genres WHERE name = ?)
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			(
+				SELECT 
+					id 
+				FROM 
+					albums 
+				WHERE 
+					name = $6
+					AND artistid = (
+						SELECT id FROM artists WHERE name = $7
+					)
+			),
+			(SELECT id FROM artists WHERE name = $7),
+			(SELECT id from genres WHERE name = $8)
 		)
 	`
 
@@ -49,7 +71,14 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 		tx.MustExec(insertArtistStmt, track.Artist, slug.Make(track.Artist.String))
 
 		if track.Album.Name.Valid {
-			tx.MustExec(insertAlbumStmt, track.Album.Name, slug.Make(track.Album.Name.String), track.Album.Image.Data, track.Album.Image.MimeType)
+			tx.MustExec(
+				insertAlbumStmt,
+				track.Album.Name,
+				slug.Make(track.Album.Name.String),
+				track.Album.Image.Data,
+				track.Album.Image.MimeType,
+				track.Artist,
+			)
 		}
 
 		if track.Genre.Valid {
@@ -64,6 +93,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			track.Date,
 			track.Length,
 			track.Album.Name,
+			track.Artist,
 			track.Artist,
 			track.Genre,
 		)

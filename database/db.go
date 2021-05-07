@@ -14,10 +14,13 @@ func createSchemas(db *sqlx.DB) error {
 
 	albumSchema := `CREATE TABLE IF NOT EXISTS albums(
 		id INTEGER PRIMARY KEY,
-		name TEXT NOT NULL UNIQUE,
+		name TEXT NOT NULL,
 		urlname TEXT NOT NULL,
 		image BLOB,
-		imagemimetype TEXT
+		imagemimetype TEXT,
+		artistid INTEGER NOT NULL,
+		FOREIGN KEY (artistid) REFERENCES artists(id),
+		UNIQUE (name, artistid)
 	);`
 
 	genreSchema := `CREATE TABLE IF NOT EXISTS genres(
