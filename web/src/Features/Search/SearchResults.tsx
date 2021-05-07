@@ -88,15 +88,21 @@ export default function SearchResults({ query }: { query: string }) {
     return <Container>
         {searchResults.tracks.length > 0 && <div>
             <h1>Tracks</h1>
-            <UnorderedListWithNoDots>{searchResults.tracks.map(track => <li onClick={() => play(track.id)} key={track.id}>{track.name}</li>)}</UnorderedListWithNoDots>
+            <UnorderedListWithNoDots>{searchResults.tracks.map(track =>
+                <li onClick={() => play(track.id)} key={track.id}>{track.name}</li>
+            )}</UnorderedListWithNoDots>
         </div>}
         {searchResults.albums.length > 0 && <div>
             <h1>Albums</h1>
-            <UnorderedListWithNoDots>{searchResults.albums.map(album => <Link to={`/album/${album.id}`}><li key={album.id}>{album.name}</li></Link>)}</UnorderedListWithNoDots>
+            <UnorderedListWithNoDots>{searchResults.albums.map(album =>
+                <Link to={`/album/${album.id}`} key={album.id}><li>{album.name}</li></Link>
+            )}</UnorderedListWithNoDots>
         </div>}
         {searchResults.artists.length > 0 && <div>
             <h1>Artists</h1>
-            <UnorderedListWithNoDots>{searchResults.artists.map(artist => <Link to={`/artist/${artist.id}`}><li key={artist.id}>{artist.name}</li></Link>)}</UnorderedListWithNoDots>
+            <UnorderedListWithNoDots>{searchResults.artists.map(artist =>
+                <Link to={`/artist/${artist.id}`} key={artist.id}><li>{artist.name}</li></Link>
+            )}</UnorderedListWithNoDots>
         </div>}
     </Container>
 }
