@@ -8,18 +8,26 @@ import (
 )
 
 type Album struct {
-	Name   string
-	Tracks []models.Track
+	Name    string
+	UrlName string
+	Tracks  []models.Track
 }
 
 func GetAlbum(albumId int, db *sqlx.DB) (*Album, error) {
-	var albumName string
+
+	type NameAndUrlName struct {
+		Name    string `db:"name"`
+		UrlName string `db:"urlname"`
+	}
+
+	nameAndUrlName := NameAndUrlName{}
 
 	err := db.Get(
-		&albumName,
+		&nameAndUrlName,
 		`
 			SELECT
-				name
+				name,
+				urlname
 			FROM 
 				albums
 			WHERE
@@ -59,8 +67,9 @@ func GetAlbum(albumId int, db *sqlx.DB) (*Album, error) {
 	sort.SliceStable(tracks, func(i int, j int) bool { return tracks[i].TrackNumber < tracks[j].TrackNumber })
 
 	return &Album{
-		Name:   albumName,
-		Tracks: tracks,
+		Name:    nameAndUrlName.Name,
+		UrlName: nameAndUrlName.UrlName,
+		Tracks:  tracks,
 	}, nil
 }
 
