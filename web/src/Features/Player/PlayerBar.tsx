@@ -21,7 +21,17 @@ export default function PlayerBar() {
             <div style={{ marginLeft: 10 }}>
                 <h1 style={{ margin: 0 }}>{track.title}</h1>
                 <h2 style={{ margin: 0 }}>
-                    <Link to={`/artist/${track.artist.id}`}>{track.artist.name}</Link> - <Link to={`/album/${track.album.id}`}>{track.album.name}</Link>
+                    <Link
+                        to={`/artist/${track.artist.id}/${track.artist.urlName}`}
+                    >
+                        {track.artist.name}
+                    </Link>
+                    {" - "}
+                    <Link
+                        to={`/album/${track.album.id}/${track.album.urlName}`}
+                    >
+                        {track.album.name}
+                    </Link>
                 </h2>
             </div>
         </div>
