@@ -2,7 +2,6 @@ package database
 
 import (
 	"goreact/models"
-	"goreact/repositories"
 	"sort"
 
 	"github.com/jmoiron/sqlx"
@@ -51,7 +50,7 @@ func GetAlbum(albumId int, db *sqlx.DB) (*Album, error) {
 		return nil, err
 	}
 
-	tracks, err := repositories.GetTracksByIds(trackIds, db)
+	tracks, err := GetTracksByIds(trackIds, db)
 	if err != nil {
 		return nil, err
 	}
