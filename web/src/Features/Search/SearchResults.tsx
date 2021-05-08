@@ -8,10 +8,6 @@ const Container = styled.div`
     display: flex;
     gap: 20px;
 
-    h1 {
-        margin: 0;
-    }
-
     div {
         flex: 1 1 0;
         max-width: 300px;
