@@ -1,7 +1,6 @@
 package database
 
 import (
-	"goreact/models"
 	"net/url"
 	"strings"
 
@@ -23,10 +22,16 @@ func formatQuery(query string) (string, error) {
 	return query, nil
 }
 
+type IdNameAndUrlName struct {
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	Urlname string `json:"urlName"`
+}
+
 type SearchResults struct {
-	Tracks  []models.IdNameAndUrlName
-	Albums  []models.IdNameAndUrlName
-	Artists []models.IdNameAndUrlName
+	Tracks  []IdNameAndUrlName
+	Albums  []IdNameAndUrlName
+	Artists []IdNameAndUrlName
 }
 
 func Search(query string, db *sqlx.DB) (*SearchResults, error) {
@@ -37,7 +42,7 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 
 	wildcardQuery := "%" + query + "%"
 
-	tracks := []models.IdNameAndUrlName{}
+	tracks := []IdNameAndUrlName{}
 	err = db.Select(
 		&tracks,
 		`SELECT
@@ -56,7 +61,7 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 		return nil, err
 	}
 
-	albums := []models.IdNameAndUrlName{}
+	albums := []IdNameAndUrlName{}
 	err = db.Select(
 		&albums,
 		`SELECT
@@ -77,7 +82,7 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 		return nil, err
 	}
 
-	artists := []models.IdNameAndUrlName{}
+	artists := []IdNameAndUrlName{}
 	err = db.Select(
 		&artists,
 		`SELECT
