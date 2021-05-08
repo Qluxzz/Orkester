@@ -1,9 +1,7 @@
 package repositories
 
 import (
-	"errors"
 	"goreact/indexFiles"
-	"goreact/models"
 
 	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
@@ -104,64 +102,6 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 	return err
 }
 
-func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
-	query, args, err := sqlx.In(`
-			SELECT
-				t.id,
-				t.title,
-				t.tracknumber,
-				t.date,
-				t.length,
-				albums.id albumid,
-				albums.name albumname,
-				albums.urlname albumurlname,
-				artists.id artistid,
-				artists.name artistname,
-				artists.urlname artisturlname,
-				genres.id genreid,
-				genres.name genrename,
-				genres.urlname genreurlname
-			FROM
-				tracks t
-			LEFT JOIN artists
-				ON artists.id = t.artistid
-			LEFT JOIN albums
-				ON albums.id = t.albumid
-			LEFT JOIN genres
-				ON genres.id = t.genreid
-			WHERE t.id IN (?)
-		`,
-		ids,
-	)
+type NotFoundError string
 
-	if err != nil {
-		return nil, err
-	}
-
-	dbTracks := []models.DBTrack{}
-	err = db.Select(&dbTracks, query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	tracks := []models.Track{}
-
-	for _, dbTrack := range dbTracks {
-		tracks = append(tracks, dbTrack.ToDomain())
-	}
-
-	return tracks, nil
-}
-
-func GetTrackById(id int, db *sqlx.DB) (*models.Track, error) {
-	tracks, err := GetTracksByIds([]int{id}, db)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(tracks) == 0 {
-		return nil, errors.New("no tracks were found")
-	}
-
-	return &tracks[0], nil
-}
+func (e *NotFoundError) Error() string { return "Not Found" }
