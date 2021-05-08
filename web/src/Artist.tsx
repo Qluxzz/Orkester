@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom"
+import { Link, useHistory } from "react-router-dom"
 import styled from "styled-components";
 
 interface IArtist {
     name: string
+    urlName: string
     albums: IAlbum[]
 }
 
 interface IAlbum {
     id: number
     name: string
-    year: string
     urlName: string
 }
 
 export function GetArtistWithId({ id }: { id: number }) {
     const [artist, setArtist] = useState<IArtist>()
+    const history = useHistory()
 
     useEffect(() => {
         let isCanceled = false
@@ -35,13 +36,15 @@ export function GetArtistWithId({ id }: { id: number }) {
                     return
 
                 setArtist(artist)
+
+                history.replace(`/artist/${id}/${artist.urlName}`)
             })
             .catch(error => {
                 console.error("Failed to get artist info!", error)
             })
 
         return () => { isCanceled = true }
-    }, [id])
+    }, [id, history])
 
     if (!artist)
         return <div>Loading...</div>
@@ -89,12 +92,11 @@ function ArtistView(artist: IArtist) {
             gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
             gridTemplateRows: "1fr"
         }}>
-            {artist.albums.map((album, i) => 
-                <Link to={`/album/${album.id}/${album.urlName}`}>
+            {artist.albums.map(album => 
+                <Link to={`/album/${album.id}/${album.urlName}`} key={album.id}>
                     <Album>
                     <img src={`/api/v1/album/${album.id}/image`} alt={`Album cover for ${album.name} by ${artist.name}`} />
                     <p>{album.name}</p>
-                    <p>{album.year}</p>
                     </Album>
                 </Link>
             )}

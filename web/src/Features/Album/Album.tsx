@@ -4,16 +4,17 @@ import styled from "styled-components";
 import ITrack from "types/track";
 import { secondsToTimeFormat } from "Utilities/secondsToTimeFormat";
 import { usePlayerContext } from "Context";
+import { useHistory } from "react-router";
 
 interface IAlbum {
     name: string
-    artist: string
-    year: Date
+    urlName: string
     tracks: ITrack[]
 }
 
 export function GetAlbumWithId({ id }: { id: number }) {
     const [album, setAlbum] = useState<IAlbum>()
+    const history = useHistory()
 
     useEffect(() => {
         let isCanceled = false
@@ -24,13 +25,16 @@ export function GetAlbumWithId({ id }: { id: number }) {
                     return
 
                 setAlbum(album)
+
+                history.replace(`/album/${id}/${album.urlName}`)
+
             })
             .catch(error => {
                 console.error("Failed to get album info!", error)
             })
 
         return () => { isCanceled = true }
-    }, [id])
+    }, [id, history])
 
     if (!album)
         return <div>Loading...</div>
@@ -76,13 +80,11 @@ const AlbumViewContainer = styled.div`
 `
 
 
-function AlbumView({ name, artist, year, tracks }: IAlbum) {
+function AlbumView({ name, tracks }: IAlbum) {
     const { play } = usePlayerContext()
 
     return <AlbumViewContainer>
         {name}
-        {artist}
-        {year}
         <TableStyle>
             <thead>
                 <TableRow>

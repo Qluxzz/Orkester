@@ -14,16 +14,17 @@ type ArtistAlbum struct {
 }
 
 type Artist struct {
-	Name   string
-	Albums []ArtistAlbum
+	Name    string `db:"name"`
+	UrlName string `db:"urlname"`
+	Albums  []ArtistAlbum
 }
 
 func GetArtistById(artistId int, db *sqlx.DB) (*Artist, error) {
-	var artistName string
+	artist := Artist{}
 
 	err := db.Get(
-		&artistName,
-		"SELECT name FROM artists WHERE id = ?",
+		&artist,
+		"SELECT name, urlname FROM artists WHERE id = ?",
 		artistId,
 	)
 
@@ -52,7 +53,8 @@ func GetArtistById(artistId int, db *sqlx.DB) (*Artist, error) {
 	}
 
 	return &Artist{
-		Name:   artistName,
-		Albums: albums,
+		Name:    artist.Name,
+		UrlName: artist.UrlName,
+		Albums:  albums,
 	}, nil
 }
