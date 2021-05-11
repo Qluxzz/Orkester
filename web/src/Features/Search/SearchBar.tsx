@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useHistory } from "react-router-dom"
+import { useHistory, useParams } from "react-router-dom"
 import styled from "styled-components"
 
 
@@ -14,7 +14,8 @@ const Input = styled.input`
 `
 
 export default function SearchBar() {
-    const [query, setQuery] = useState<string>()
+    const { query: initalQuery } = useParams<{ query: string }>()
+    const [query, setQuery] = useState<string>(initalQuery)
     const history = useHistory()
 
     function updateQueryAndHistory(query: string) {
