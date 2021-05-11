@@ -21,6 +21,7 @@ func GetAlbum(db *sqlx.DB) fiber.Handler {
 		}
 
 		return c.JSON(&fiber.Map{
+			"id":      album.Id,
 			"name":    album.Name,
 			"urlName": album.UrlName,
 			"tracks":  album.Tracks,

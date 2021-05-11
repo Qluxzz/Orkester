@@ -8,6 +8,7 @@ import (
 )
 
 type Album struct {
+	Id      string
 	Name    string
 	UrlName string
 	Tracks  []models.Track
@@ -16,6 +17,7 @@ type Album struct {
 func GetAlbum(albumId int, db *sqlx.DB) (*Album, error) {
 
 	type NameAndUrlName struct {
+		Id      int    `db:"id"`
 		Name    string `db:"name"`
 		UrlName string `db:"urlname"`
 	}
@@ -26,6 +28,7 @@ func GetAlbum(albumId int, db *sqlx.DB) (*Album, error) {
 		&nameAndUrlName,
 		`
 			SELECT
+				id,
 				name,
 				urlname
 			FROM 
@@ -73,13 +76,8 @@ func GetAlbum(albumId int, db *sqlx.DB) (*Album, error) {
 	}, nil
 }
 
-type AlbumImage struct {
-	Image    []byte `db:"image"`
-	MimeType string `db:"imagemimetype"`
-}
-
-func GetAlbumCover(albumId int, db *sqlx.DB) (*AlbumImage, error) {
-	image := AlbumImage{}
+func GetAlbumCover(albumId int, db *sqlx.DB) (*models.AlbumImage, error) {
+	image := models.AlbumImage{}
 
 	err := db.Get(
 		&image,
