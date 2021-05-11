@@ -3,6 +3,7 @@ import { usePlayerContext } from "Context"
 import { Link } from "react-router-dom"
 import styled from "styled-components"
 import { IArtist, IAlbum } from "types/track"
+import CenteredDotLoader from "CenteredDotLoader"
 
 const Container = styled.div`
     display: flex;
@@ -71,7 +72,7 @@ export default function SearchResults({ query }: { query: string }) {
     }, [query])
 
     if (!searchResults)
-        return null
+        return <CenteredDotLoader />
 
     const noSearchResults = searchResults
         && searchResults.albums.length === 0
