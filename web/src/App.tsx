@@ -24,6 +24,8 @@ const Content = styled.div`
   padding: 10px;
   overflow: auto;
   flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
 `
 
 
