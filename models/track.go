@@ -32,23 +32,15 @@ type Track struct {
 	Genre       *Genre  `json:"genre"`
 }
 
-type Album struct {
+type IdNameAndUrlName struct {
 	Id      int    `json:"id"`
 	Name    string `json:"name"`
 	UrlName string `json:"urlName"`
 }
 
-type Artist struct {
-	Id      int    `json:"id"`
-	Name    string `json:"name"`
-	UrlName string `json:"urlName"`
-}
-
-type Genre struct {
-	Id      int    `json:"id"`
-	Name    string `json:"name"`
-	UrlName string `json:"urlName"`
-}
+type Album = IdNameAndUrlName
+type Artist = IdNameAndUrlName
+type Genre = IdNameAndUrlName
 
 func (track DBTrack) ToDomain() Track {
 	artist := func() *Artist {
@@ -56,12 +48,11 @@ func (track DBTrack) ToDomain() Track {
 			return nil
 		}
 
-		a := new(Artist)
-		a.Id = int(track.ArtistId.Int32)
-		a.Name = track.ArtistName.String
-		a.UrlName = track.ArtistUrlName.String
-
-		return a
+		return &Artist{
+			Id:      int(track.ArtistId.Int32),
+			Name:    track.ArtistName.String,
+			UrlName: track.ArtistUrlName.String,
+		}
 	}()
 
 	album := func() *Album {
@@ -69,12 +60,11 @@ func (track DBTrack) ToDomain() Track {
 			return nil
 		}
 
-		a := new(Album)
-		a.Id = int(track.AlbumId.Int32)
-		a.Name = track.AlbumName.String
-		a.UrlName = track.AlbumUrlName.String
-
-		return a
+		return &Album{
+			Id:      int(track.AlbumId.Int32),
+			Name:    track.AlbumName.String,
+			UrlName: track.AlbumUrlName.String,
+		}
 	}()
 
 	genre := func() *Genre {
@@ -82,12 +72,11 @@ func (track DBTrack) ToDomain() Track {
 			return nil
 		}
 
-		g := new(Genre)
-		g.Id = int(track.GenreId.Int32)
-		g.Name = track.GenreName.String
-		g.UrlName = track.GenreUrlName.String
-
-		return g
+		return &Genre{
+			Id:      int(track.GenreId.Int32),
+			Name:    track.GenreName.String,
+			UrlName: track.GenreUrlName.String,
+		}
 	}()
 
 	return Track{
