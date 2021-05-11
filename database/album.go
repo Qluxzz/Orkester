@@ -7,25 +7,18 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Album struct {
-	Id      string
-	Name    string
-	UrlName string
-	Tracks  []models.Track
+type album struct {
+	Id      int            `db:"id"      json:"id"`
+	Name    string         `db:"name"    json:"name"`
+	UrlName string         `db:"urlName" json:"urlName"`
+	Tracks  []models.Track `db:"tracks"  json:"tracks"`
 }
 
-func GetAlbum(albumId int, db *sqlx.DB) (*Album, error) {
-
-	type NameAndUrlName struct {
-		Id      int    `db:"id"`
-		Name    string `db:"name"`
-		UrlName string `db:"urlname"`
-	}
-
-	nameAndUrlName := NameAndUrlName{}
+func GetAlbum(albumId int, db *sqlx.DB) (*album, error) {
+	album := album{}
 
 	err := db.Get(
-		&nameAndUrlName,
+		&album,
 		`
 			SELECT
 				id,
@@ -69,15 +62,18 @@ func GetAlbum(albumId int, db *sqlx.DB) (*Album, error) {
 	// Sort by track number ascending
 	sort.SliceStable(tracks, func(i int, j int) bool { return tracks[i].TrackNumber < tracks[j].TrackNumber })
 
-	return &Album{
-		Name:    nameAndUrlName.Name,
-		UrlName: nameAndUrlName.UrlName,
-		Tracks:  tracks,
-	}, nil
+	album.Tracks = tracks
+
+	return &album, nil
 }
 
-func GetAlbumCover(albumId int, db *sqlx.DB) (*models.AlbumImage, error) {
-	image := models.AlbumImage{}
+type albumImage struct {
+	Image    []byte `db:"image"`
+	MimeType string `db:"imagemimetype"`
+}
+
+func GetAlbumCover(albumId int, db *sqlx.DB) (*albumImage, error) {
+	image := albumImage{}
 
 	err := db.Get(
 		&image,
