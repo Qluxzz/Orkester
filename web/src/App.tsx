@@ -4,7 +4,8 @@ import {
   BrowserRouter,
   Switch,
   Route,
-  useParams} from "react-router-dom"
+  useParams
+} from "react-router-dom"
 
 import styled from "styled-components"
 import { GetAlbumWithId } from "Features/Album/Album"
@@ -33,7 +34,7 @@ function App() {
   return <PlayerContextProvider>
     <Container>
       <BrowserRouter>
-        <SearchBar />
+        <Route path={["/search/:query", "/"]} component={SearchBar} />
         <Content>
           <Switch>
             <Route path="/album/:id" component={AlbumViewWrapper} />
