@@ -71,7 +71,8 @@ const Album = styled.div`
         overflow: hidden;
         text-overflow: ellipsis;
         font-weight: bold;
-        padding: 10px;
+        padding: 10px 0 5px 0;
+        line-height: 1;
     }
 `
 
