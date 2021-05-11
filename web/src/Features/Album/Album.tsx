@@ -8,7 +8,7 @@ import { Redirect, Route, Switch, useHistory } from "react-router";
 import CenteredDotLoader from "CenteredDotLoader";
 
 interface IAlbum {
-    id: string
+    id: number
     name: string
     urlName: string
     tracks: ITrack[]
