@@ -13,18 +13,19 @@ type ArtistAlbum struct {
 	Tracks  []models.Track `json:"tracks"`
 }
 
-type Artist struct {
-	Name    string `db:"name"`
-	UrlName string `db:"urlname"`
-	Albums  []ArtistAlbum
+type artist struct {
+	Id      int           `db:"id" json:"id"`
+	Name    string        `db:"name" json:"name"`
+	UrlName string        `db:"urlname" json:"urlName"`
+	Albums  []ArtistAlbum `json:"albums"`
 }
 
-func GetArtistById(artistId int, db *sqlx.DB) (*Artist, error) {
-	artist := Artist{}
+func GetArtistById(artistId int, db *sqlx.DB) (*artist, error) {
+	artist := artist{}
 
 	err := db.Get(
 		&artist,
-		"SELECT name, urlname FROM artists WHERE id = ?",
+		"SELECT id, name, urlname FROM artists WHERE id = ?",
 		artistId,
 	)
 
@@ -52,9 +53,7 @@ func GetArtistById(artistId int, db *sqlx.DB) (*Artist, error) {
 		return nil, err
 	}
 
-	return &Artist{
-		Name:    artist.Name,
-		UrlName: artist.UrlName,
-		Albums:  albums,
-	}, nil
+	artist.Albums = albums
+
+	return &artist, nil
 }
