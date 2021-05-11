@@ -50,9 +50,12 @@ function Controls({ track }: { track: ITrack }) {
     const playerRef = useRef<HTMLAudioElement>(null)
 
     useEffect(() => {
-        // If playing in other document, pause this playback
+        /*
+            A StorageEvent is sent to a window when a storage area it 
+            has access to is changed within the context of another document.
+        */
         window.addEventListener("storage", () => {
-            console.log("localStorage was updated")
+            // If playing in other document, pause this playback
             playerRef.current?.pause()
         })
     }, [])
