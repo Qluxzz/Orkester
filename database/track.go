@@ -25,7 +25,7 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 				genres.urlname genreurlname
 			FROM
 				tracks t
-			LEFT JOIN artists
+			INNER JOIN artists
 				ON artists.id = t.artistid
 			LEFT JOIN albums
 				ON albums.id = t.albumid

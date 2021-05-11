@@ -45,7 +45,7 @@ func GetArtistById(artistId int, db *sqlx.DB) (*artist, error) {
 				albums
 			WHERE
 				artistid = ?
-			`,
+		`,
 		artistId,
 	)
 
