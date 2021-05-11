@@ -10,7 +10,7 @@ import (
 type album struct {
 	Id      int            `db:"id"      json:"id"`
 	Name    string         `db:"name"    json:"name"`
-	UrlName string         `db:"urlName" json:"urlName"`
+	UrlName string         `db:"urlname" json:"urlName"`
 	Tracks  []models.Track `db:"tracks"  json:"tracks"`
 }
 
