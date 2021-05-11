@@ -26,26 +26,42 @@ func ScanPathForMusicFiles(path string) ([]*IndexedTrack, error) {
 	tracks := []*IndexedTrack{}
 
 	filepath.Walk(path, func(path string, fileInfo os.FileInfo, err error) error {
-		filename := strings.ToLower(fileInfo.Name())
-		ext := filepath.Ext(filename)
-
-		switch ext {
-		case ".flac":
-			track, err := parseFlacFile(path)
-			if err == nil {
-				tracks = append(tracks, track)
-			}
-		case ".mp3":
-			track, err := parseMp3File(path)
-			if err == nil {
-				tracks = append(tracks, track)
-			}
+		track, _ := parseAudioFile(path)
+		if track != nil {
+			tracks = append(tracks, track)
 		}
 
 		return nil
 	})
 
 	return tracks, nil
+}
+
+func parseAudioFile(path string) (*IndexedTrack, error) {
+	var track *IndexedTrack
+	var err error
+
+	switch filepath.Ext(path) {
+	case ".flac":
+		track, err = parseFlacFile(path)
+	case ".mp3":
+		track, err = parseMp3File(path)
+	default:
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if track.Image == nil {
+		image, err := ScanFolderForCoverImage(filepath.Dir(path))
+		if err == nil {
+			track.Image = image
+		}
+	}
+
+	return track, nil
 }
 
 func parseFlacFile(path string) (*IndexedTrack, error) {
@@ -76,14 +92,13 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 				case "title":
 					track.Title = CreateValidNullString(value)
 				case "artist":
-					track.Artist = CreateValidNullString(value)
+					track.ArtistName = CreateValidNullString(value)
 				case "album":
-					track.Album.Name = CreateValidNullString(value)
+					track.AlbumName = CreateValidNullString(value)
 				case "albumartist":
 					track.AlbumArtist = CreateValidNullString(value)
 				case "tracknumber":
-					trackNumber, err := strconv.Atoi(value)
-					if err == nil {
+					if trackNumber, err := strconv.Atoi(value); err == nil {
 						track.TrackNumber = CreateValidNullInt(trackNumber)
 					}
 				case "genre":
@@ -101,7 +116,7 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 			coverFront := uint32(3)
 
 			if data.Type == coverFront {
-				track.Album.Image = Image{
+				track.Image = &Image{
 					Data:     data.Data,
 					MimeType: CreateValidNullString(data.MIME),
 				}
@@ -109,18 +124,66 @@ func parseFlacFile(path string) (*IndexedTrack, error) {
 		}
 	}
 
-	if !track.Album.Image.MimeType.Valid {
-		image, err := ScanFolderForCoverImage(filepath.Dir(path))
-		if err == nil {
-			track.Album.Image = *image
-		}
-	}
-
-	if !track.Artist.Valid {
+	if !track.ArtistName.Valid {
 		return nil, errors.New("track was missing artist")
 	}
 
 	return track, nil
+}
+
+// Info on frames and fields can be found here
+// https://id3.org/id3v2.3.0 (2021-05-04)
+
+func parseMp3File(path string) (*IndexedTrack, error) {
+	mp3File, err := id3.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	defer mp3File.Close()
+
+	track := new(IndexedTrack)
+	track.Title = CreateValidNullString(TrimNullFromString(mp3File.Title()))
+	track.Path = CreateValidNullString(path)
+
+	trackNumberFrame, valid := mp3File.Frame("TRCK").(*v2.TextFrame)
+	if valid {
+		trackNumber, err := strconv.Atoi(TrimNullFromString(trackNumberFrame.Text()))
+		if err == nil {
+			track.TrackNumber = CreateValidNullInt(trackNumber)
+		}
+	}
+
+	lengthFrame, valid := mp3File.Frame("TLEN").(*v2.TextFrame)
+	if valid {
+		lengthMs, err := strconv.Atoi(TrimNullFromString(lengthFrame.Text()))
+		if err == nil {
+			track.Length = CreateValidNullInt(lengthMs / 1000)
+		}
+	}
+
+	track.AlbumName = CreateValidNullString(TrimNullFromString(mp3File.Album()))
+
+	imageFrame, valid := mp3File.Frame("APIC").(*v2.ImageFrame)
+	if valid {
+		track.Image = &Image{
+			Data:     imageFrame.Data(),
+			MimeType: CreateValidNullString(imageFrame.MIMEType()),
+		}
+	}
+	track.ArtistName = CreateValidNullString(TrimNullFromString(mp3File.Artist()))
+	track.Genre = CreateValidNullString(TrimNullFromString(mp3File.Genre()))
+	track.Date = CreateValidNullString(TrimNullFromString(mp3File.Year()))
+
+	if !track.ArtistName.Valid {
+		return nil, errors.New("track was missing artist")
+	}
+
+	return track, nil
+}
+
+func TrimNullFromString(s string) string {
+	return strings.Trim(s, "\x00")
 }
 
 func ScanFolderForCoverImage(path string) (*Image, error) {
@@ -212,76 +275,17 @@ func CreateValidNullInt(n int) sql.NullInt32 {
 	}
 }
 
-// Info on frames and fields can be found here
-// https://id3.org/id3v2.3.0 (2021-05-04)
-
-func parseMp3File(path string) (*IndexedTrack, error) {
-	mp3File, err := id3.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	defer mp3File.Close()
-
-	track := new(IndexedTrack)
-	track.Title = CreateValidNullString(TrimNullFromString(mp3File.Title()))
-	track.Path = CreateValidNullString(path)
-
-	trackNumberFrame, valid := mp3File.Frame("TRCK").(*v2.TextFrame)
-	if valid {
-		trackNumber, err := strconv.Atoi(TrimNullFromString(trackNumberFrame.Text()))
-		if err == nil {
-			track.TrackNumber = CreateValidNullInt(trackNumber)
-		}
-	}
-
-	lengthFrame, valid := mp3File.Frame("TLEN").(*v2.TextFrame)
-	if valid {
-		lengthMs, err := strconv.Atoi(TrimNullFromString(lengthFrame.Text()))
-		if err == nil {
-			track.Length = CreateValidNullInt(lengthMs / 1000)
-		}
-	}
-
-	track.Album.Name = CreateValidNullString(TrimNullFromString(mp3File.Album()))
-
-	imageFrame, valid := mp3File.Frame("APIC").(*v2.ImageFrame)
-	if valid {
-		track.Album.Image = Image{
-			Data:     imageFrame.Data(),
-			MimeType: CreateValidNullString(imageFrame.MIMEType()),
-		}
-	}
-	track.Artist = CreateValidNullString(TrimNullFromString(mp3File.Artist()))
-	track.Genre = CreateValidNullString(TrimNullFromString(mp3File.Genre()))
-	track.Date = CreateValidNullString(TrimNullFromString(mp3File.Year()))
-
-	if !track.Artist.Valid {
-		return nil, errors.New("track was missing artist")
-	}
-
-	return track, nil
-}
-
-func TrimNullFromString(s string) string {
-	return strings.Trim(s, "\x00")
-}
-
 type Image struct {
 	Data     []byte
 	MimeType sql.NullString
 }
 
-type Album struct {
-	Name  sql.NullString
-	Image Image
-}
-
 type IndexedTrack struct {
 	Path        sql.NullString
 	Title       sql.NullString
-	Artist      sql.NullString
-	Album       Album
+	ArtistName  sql.NullString
+	AlbumName   sql.NullString
+	Image       *Image
 	AlbumArtist sql.NullString
 	TrackNumber sql.NullInt32
 	Genre       sql.NullString
