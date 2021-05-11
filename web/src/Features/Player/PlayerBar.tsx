@@ -70,7 +70,18 @@ function Controls({ track }: { track: ITrack }) {
         autoPlay
         onPlay={() => {
             window.localStorage.setItem("track", track.id.toString())
-            window.localStorage.setItem("playingSession", (Math.random() * 1000).toString())
+
+            const playingSession = (() => {
+                const currentSession = window.localStorage.getItem("playingSession")
+                return currentSession
+                    ? (Number.parseInt(currentSession) + 1 % 10000).toString()
+                    : Math.floor(Math.random() * 10000).toString(10)
+            })()
+
+            window.localStorage.setItem(
+                "playingSession",
+                playingSession
+            )
         }}
     />
 }
