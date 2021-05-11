@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom"
 import styled from "styled-components"
 import { usePlayerContext } from "Context"
+import { useEffect, useRef } from "react"
+import ITrack from "types/track"
 
 const Bar = styled.div`
   display: flex;
@@ -11,6 +13,7 @@ const Bar = styled.div`
 
 export default function PlayerBar() {
     const { track } = usePlayerContext()
+
 
     if (!track)
         return <Bar>Nothing is currently playing...</Bar>
@@ -39,17 +42,31 @@ export default function PlayerBar() {
                 </h2>
             </div>
         </div>
-        <Controls id={track.id} />
+        <Controls track={track} />
     </Bar>
 }
 
-function Controls({ id }: { id: number }) {
+function Controls({ track }: { track: ITrack }) {
+    const playerRef = useRef<HTMLAudioElement>(null)
+
+    useEffect(() => {
+        // If playing in other document, pause this playback
+        window.addEventListener("storage", () => {
+            console.log("localStorage was updated")
+            playerRef.current?.pause()
+        })
+    }, [])
+
     return <audio
-        src={`/api/v1/track/${id}/stream`}
+        ref={playerRef}
+        src={`/api/v1/track/${track.id}/stream`}
         controls
         style={{
             flexGrow: 1
         }}
         autoPlay
+        onPlay={() => {
+            window.localStorage.setItem("track", track.id.toString())
+        }}
     />
 }
