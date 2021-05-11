@@ -4,7 +4,7 @@ import styled from "styled-components";
 import ITrack from "types/track";
 import { secondsToTimeFormat } from "Utilities/secondsToTimeFormat";
 import { usePlayerContext } from "Context";
-import { useHistory } from "react-router";
+import CenteredDotLoader from "CenteredDotLoader";
 
 interface IAlbum {
     name: string
@@ -37,7 +37,7 @@ export function GetAlbumWithId({ id }: { id: number }) {
     }, [id, history])
 
     if (!album)
-        return <div>Loading...</div>
+        return <CenteredDotLoader />
 
     return <AlbumView {...album} />
 }

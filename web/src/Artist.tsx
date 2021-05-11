@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useHistory } from "react-router-dom"
 import styled from "styled-components";
 
+import CenteredDotLoader from "CenteredDotLoader"
+
 interface IArtist {
     name: string
     urlName: string
@@ -47,7 +49,7 @@ export function GetArtistWithId({ id }: { id: number }) {
     }, [id, history])
 
     if (!artist)
-        return <div>Loading...</div>
+        return <CenteredDotLoader />
 
     return <ArtistView {...artist} />
 }
