@@ -19,6 +19,8 @@ func scanAndAddTracksToDb(db *sqlx.DB) {
 		log.Fatalln(err)
 	}
 
+	log.Printf("%d tracks found", len(tracks))
+
 	err = repositories.AddTracks(tracks, db)
 	if err != nil {
 		log.Fatalln(err)
