@@ -9,7 +9,7 @@ export function secondsToTimeFormat(value: number): string {
     value -= hours * 3600
     const minutes = Math.floor(value / 60)
     value -= minutes * 60
-    const seconds = value
+    const seconds = Math.round(value)
 
     const parts = []
 
