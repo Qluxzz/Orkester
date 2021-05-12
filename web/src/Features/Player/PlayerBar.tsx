@@ -48,16 +48,16 @@ export default function PlayerBar() {
 
 function Controls({ track }: { track: ITrack }) {
     const playerRef = useRef<HTMLAudioElement>(null)
+    const channel = new BroadcastChannel("currently_playing")
 
     useEffect(() => {
-        /*
-            A StorageEvent is sent to a window when a storage area it 
-            has access to is changed within the context of another document.
-        */
-        window.addEventListener("storage", () => {
-            // If playing in other document, pause this playback
+        channel.onmessage = _ => {
             playerRef.current?.pause()
-        })
+        }
+
+        return () => {
+            channel.close()
+        }
     }, [])
 
     return <audio
@@ -71,17 +71,7 @@ function Controls({ track }: { track: ITrack }) {
         onPlay={() => {
             window.localStorage.setItem("track", track.id.toString())
 
-            const playingSession = (() => {
-                const currentSession = window.localStorage.getItem("playingSession")
-                return currentSession
-                    ? (Number.parseInt(currentSession) + 1 % 10000).toString()
-                    : Math.floor(Math.random() * 10000).toString(10)
-            })()
-
-            window.localStorage.setItem(
-                "playingSession",
-                playingSession
-            )
+            channel.postMessage("playing")
         }}
     />
 }
