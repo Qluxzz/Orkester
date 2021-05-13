@@ -58,7 +58,7 @@ function Controls({ track }: { track: ITrack }) {
         return () => {
             channel.close()
         }
-    }, [])
+    }, [channel])
 
     return <audio
         ref={playerRef}
