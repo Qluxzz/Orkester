@@ -61,9 +61,20 @@ const Album = styled.div`
     background: #333;
     padding: 10px;
 
-    img {
-        display: block;
-        max-width: 100%;
+    picture {
+        position: relative;
+        overflow: hidden;
+        height: 0;
+        padding-top: 100%;
+
+        img {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
     }
 
     p {
@@ -89,17 +100,19 @@ function ArtistView(artist: IArtist) {
         <div>
             <ArtistName>{artist.name}</ArtistName>
         </div>
-        <div style={{ 
-            display: "grid", 
-            gap: 24, 
+        <div style={{
+            display: "grid",
+            gap: 24,
             gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
             gridTemplateRows: "1fr"
         }}>
-            {artist.albums.map(album => 
+            {artist.albums.map(album =>
                 <Link to={`/album/${album.id}/${album.urlName}`} key={album.id}>
                     <Album>
-                    <img src={`/api/v1/album/${album.id}/image`} alt={`Album cover for ${album.name} by ${artist.name}`} />
-                    <p>{album.name}</p>
+                        <picture>
+                            <img src={`/api/v1/album/${album.id}/image`} alt={`Album cover for ${album.name} by ${artist.name}`} />
+                        </picture>
+                        <p>{album.name}</p>
                     </Album>
                 </Link>
             )}
