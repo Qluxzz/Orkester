@@ -64,9 +64,6 @@ function Controls({ track }: { track: ITrack }) {
         ref={playerRef}
         src={`/api/v1/track/${track.id}/stream`}
         controls
-        style={{
-            flexGrow: 1
-        }}
         autoPlay
         onPlay={() => {
             window.localStorage.setItem("track", track.id.toString())
