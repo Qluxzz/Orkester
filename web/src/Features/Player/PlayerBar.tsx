@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom"
 import styled from "styled-components"
 import { usePlayerContext } from "Context"
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import ITrack from "types/track"
 
 const Bar = styled.div`
@@ -48,7 +48,7 @@ export default function PlayerBar() {
 
 function Controls({ track }: { track: ITrack }) {
     const playerRef = useRef<HTMLAudioElement>(null)
-    const channel = new BroadcastChannel("currently_playing")
+    const channel = useMemo(() => new BroadcastChannel("currently_playing"), [])
 
     useEffect(() => {
         channel.onmessage = _ => {
