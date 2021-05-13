@@ -21,10 +21,6 @@ func GetArtist(db *sqlx.DB) fiber.Handler {
 			return err
 		}
 
-		return c.JSON(&fiber.Map{
-			"name":    artist.Name,
-			"urlName": artist.UrlName,
-			"albums":  artist.Albums,
-		})
+		return c.JSON(artist)
 	}
 }
