@@ -2,8 +2,13 @@ function padWithTwoLeadingZeroes(value: number): string {
     return value.toString(10).padStart(2, "0")
 }
 
-// Convert seconds to (hours):(minutes):(seconds)
-// Example: secondsToTimeFormat(1337) => 22:17
+/**
+ * Convert seconds to (hours):(minutes):(seconds)
+ * @param {Number} value 
+ * @returns {string} formatted value
+ * @example // returns 22:17
+ * secondsToTimeFormat(1337)
+ */
 export function secondsToTimeFormat(value: number): string {
     const hours = Math.floor(value / 3600)
     value -= hours * 3600
