@@ -94,11 +94,12 @@ function AlbumView({ name, tracks }: IAlbum) {
     })
 
     function sortByColumn(column: ISortColumn) {
-        const sortDirection =
+        const sortDirection = (
             sortOptions.column === column
-                && sortOptions.direction === "ascending"
-                ? "descending"
-                : "ascending"
+            && sortOptions.direction === "ascending"
+        )
+            ? "descending"
+            : "ascending"
 
         setSortOptions({
             column: column,
