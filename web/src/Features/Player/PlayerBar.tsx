@@ -25,9 +25,9 @@ export default function PlayerBar() {
             >
                 <img key={track.id} width="72" height="72" src={`/api/v1/album/${track.album.id}/image`} alt={track.album.name} />
             </Link>
-            <div style={{ marginLeft: 10 }}>
+            <div style={{ marginLeft: 10, overflow: "hidden" }}>
                 <h1>{track.title}</h1>
-                <h2>
+                <h2 style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                     <Link
                         to={`/artist/${track.artist.id}/${track.artist.urlName}`}
                     >
