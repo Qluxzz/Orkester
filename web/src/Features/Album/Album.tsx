@@ -37,11 +37,13 @@ export function GetAlbumWithId({ id }: { id: number }) {
     if (!album)
         return <CenteredDotLoader />
 
+    const completeUrl = `/album/${album.id}/${album.urlName}`
+
     return <Switch>
-        <Route path={`/album/${album.id}/${album.urlName}`}>
+        <Route path={completeUrl}>
             <AlbumView {...album} />
         </Route>
-        <Redirect to={`/album/${album.id}/${album.urlName}`} />
+        <Redirect to={completeUrl} />
     </Switch>
 }
 
