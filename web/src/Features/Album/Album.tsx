@@ -78,11 +78,11 @@ const TrackLength = styled.div`
 
 
 
-type ISorting = "trackNumber" | "title" | "length"
+type ISortColumn = "trackNumber" | "title" | "length"
 type ISortDirection = "ascending" | "descending"
 
 interface ISortOptions {
-    column: ISorting
+    column: ISortColumn
     direction: ISortDirection
 }
 
@@ -93,7 +93,7 @@ function AlbumView({ name, tracks }: IAlbum) {
         direction: "ascending"
     })
 
-    function sortByColumn(column: ISorting) {
+    function sortByColumn(column: ISortColumn) {
         const sortDirection =
             sortOptions.column === column
                 && sortOptions.direction === "ascending"
