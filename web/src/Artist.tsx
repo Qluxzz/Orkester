@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import { Link, useHistory } from "react-router-dom"
+import React, { useEffect, useState } from "react";
+import { Link, Redirect, Switch, Route } from "react-router-dom"
 import styled from "styled-components";
 
 import CenteredDotLoader from "CenteredDotLoader"
 
 interface IArtist {
+    id: number
     name: string
     urlName: string
     albums: IAlbum[]
@@ -18,7 +19,6 @@ interface IAlbum {
 
 export function GetArtistWithId({ id }: { id: number }) {
     const [artist, setArtist] = useState<IArtist>()
-    const history = useHistory()
 
     useEffect(() => {
         let isCanceled = false
@@ -38,20 +38,25 @@ export function GetArtistWithId({ id }: { id: number }) {
                     return
 
                 setArtist(artist)
-
-                history.replace(`/artist/${id}/${artist.urlName}`)
             })
             .catch(error => {
                 console.error("Failed to get artist info!", error)
             })
 
         return () => { isCanceled = true }
-    }, [id, history])
+    }, [id])
 
     if (!artist)
         return <CenteredDotLoader />
 
-    return <ArtistView {...artist} />
+    const completeUrl = `/artist/${artist.id}/${artist.urlName}`
+
+    return <Switch>
+        <Route path={completeUrl}>
+            <ArtistView {...artist} />
+        </Route>
+        <Redirect to={completeUrl} />
+    </Switch>
 }
 
 const Album = styled.div`
