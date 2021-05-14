@@ -82,31 +82,37 @@ const HeaderRow = styled(Row)`
 type ISorting = "trackNumber" | "title" | "length"
 type ISortDirection = "ascending" | "descending"
 
+interface ISortOptions {
+    column: ISorting
+    direction: ISortDirection
+}
 
 function AlbumView({ name, tracks }: IAlbum) {
-    const [sorting, setSorting] = useState<ISorting>("trackNumber")
-    const [sortDirection, setSortDirection] = useState<ISortDirection>("ascending")
     const { play } = usePlayerContext()
+    const [sortOptions, setSortOptions] = useState<ISortOptions>({
+        column: "trackNumber",
+        direction: "ascending"
+    })
 
     function sortByColumn(column: ISorting) {
-        if (sorting === column)
-            setSortDirection(
-                sortDirection === "ascending"
-                    ? "descending"
-                    : "ascending"
-            )
-        else {
-            setSorting(column)
-            setSortDirection("ascending")
-        }
+        const sortDirection =
+            sortOptions.column === column
+                && sortOptions.direction === "ascending"
+                ? "descending"
+                : "ascending"
+
+        setSortOptions({
+            column: column,
+            direction: sortDirection
+        })
     }
 
     const sortedTracks = [...tracks].sort((a, b) => {
-        const comparison = sortDirection === "ascending"
+        const comparison = sortOptions.direction === "ascending"
             ? greaterThan
             : lesserThan
 
-        switch (sorting) {
+        switch (sortOptions.column) {
             case "length":
                 return comparison(
                     a.length,
