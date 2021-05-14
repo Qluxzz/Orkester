@@ -165,18 +165,20 @@ async function fetchAlbumInfo(id: number): Promise<IAlbum> {
     return await response.json()
 }
 
-function greaterThan<Type extends number | string>(a: Type, b: Type) {
-    if (a === b)
-        return 0
-    return a > b
-        ? 1
-        : -1
+function sortDirection(direction: ISortDirection) {
+    return function <Type extends number | string>(a: Type, b: Type) {
+        if (a === b)
+            return 0
+
+        if (direction === "descending") {
+            [a, b] = [b, a]
+        }
+
+        return a > b
+            ? 1
+            : -1
+    }
 }
 
-function lesserThan<Type extends number | string>(a: Type, b: Type) {
-    if (a === b)
-        return 0
-    return a < b
-        ? 1
-        : -1
-}
+const greaterThan = sortDirection("ascending")
+const lesserThan = sortDirection("descending")
