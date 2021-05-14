@@ -108,9 +108,16 @@ function AlbumView(album: IAlbum) {
     }
 
     const sortedTracks = [...album.tracks].sort((a, b) => {
-        const comparison = sortOptions.direction === "ascending"
-            ? greaterThan
-            : lesserThan
+        const comparison = (() => {
+            switch (sortOptions.direction) {
+                case "ascending":
+                    return greaterThan
+                case "descending":
+                    return lessThan
+                default:
+                    throw new Error(`Unknown sort directon ${sortOptions.direction}`)
+            }
+        })()
 
         switch (sortOptions.column) {
             case "length":
@@ -156,7 +163,10 @@ function AlbumView(album: IAlbum) {
                 <TrackLength onClick={() => sortByColumn("length")}>🕒</TrackLength>
             </HeaderRow>
             {sortedTracks.map(track =>
-                <TrackRow key={track.id} onClick={() => play(track.id)}>
+                <TrackRow
+                    key={track.id}
+                    onClick={() => play(track.id)}
+                >
                     <TrackNumber>{track.trackNumber}</TrackNumber>
                     <TrackTitle>{track.title}</TrackTitle>
                     <TrackLength>{secondsToTimeFormat(track.length)}</TrackLength>
@@ -191,4 +201,4 @@ function sortDirection(direction: ISortDirection) {
 }
 
 const greaterThan = sortDirection("ascending")
-const lesserThan = sortDirection("descending")
+const lessThan = sortDirection("descending")
