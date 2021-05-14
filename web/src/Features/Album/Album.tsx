@@ -127,6 +127,8 @@ function AlbumView({ name, tracks }: IAlbum) {
                     a.trackNumber,
                     b.trackNumber
                 )
+            default:
+                throw new Error("Unknown sort column")
         }
     })
 
