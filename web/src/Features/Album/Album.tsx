@@ -48,7 +48,13 @@ export function GetAlbumWithId({ id }: { id: number }) {
 const Row = styled.div`
     display: flex;
     padding: 10px 20px;
+`
+const HeaderRow = styled(Row)`
+    border-bottom: 1px solid #333;
+    margin-bottom: 10px;
+`
 
+const TrackRow = styled(Row)`
     :hover {
         background: #333;
     }
@@ -70,14 +76,7 @@ const TrackLength = styled.div`
 
 `
 
-const HeaderRow = styled(Row)`
-    border-bottom: 1px solid #333;
-    margin-bottom: 10px;
 
-    :hover {
-        background: none;
-    }
-`
 
 type ISorting = "trackNumber" | "title" | "length"
 type ISortDirection = "ascending" | "descending"
@@ -147,11 +146,11 @@ function AlbumView({ name, tracks }: IAlbum) {
                 <TrackLength onClick={() => sortByColumn("length")}>🕒</TrackLength>
             </HeaderRow>
             {sortedTracks.map(track =>
-                <Row key={track.id} onClick={() => play(track.id)}>
+                <TrackRow key={track.id} onClick={() => play(track.id)}>
                     <TrackNumber>{track.trackNumber}</TrackNumber>
                     <TrackTitle>{track.title}</TrackTitle>
                     <TrackLength>{secondsToTimeFormat(track.length)}</TrackLength>
-                </Row>
+                </TrackRow>
             )}
         </section>
     </div>
