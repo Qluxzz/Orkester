@@ -4,7 +4,7 @@ import styled from "styled-components";
 import ITrack from "types/track";
 import { secondsToTimeFormat } from "Utilities/secondsToTimeFormat";
 import { usePlayerContext } from "Context";
-import { Redirect, Route, Switch, useHistory } from "react-router";
+import { Redirect, Route, Switch } from "react-router";
 import CenteredDotLoader from "CenteredDotLoader";
 
 interface IAlbum {
@@ -16,7 +16,6 @@ interface IAlbum {
 
 export function GetAlbumWithId({ id }: { id: number }) {
     const [album, setAlbum] = useState<IAlbum>()
-    const history = useHistory()
 
     useEffect(() => {
         let isCanceled = false
@@ -33,7 +32,7 @@ export function GetAlbumWithId({ id }: { id: number }) {
             })
 
         return () => { isCanceled = true }
-    }, [id, history])
+    }, [id])
 
     if (!album)
         return <CenteredDotLoader />
@@ -46,75 +45,110 @@ export function GetAlbumWithId({ id }: { id: number }) {
     </Switch>
 }
 
-
-const LinkButton = styled.button`
-    background: none;
-    color: white;
-    border: none;
-    text-decoration: underline;
+const Row = styled.div`
+    display: flex;
+    padding: 10px 20px;
 
     :hover {
-        cursor: pointer;
+        background: #333;
     }
 `
 
-const TableStyle = styled.table`
-    border: 0px;
-    * {
-        font-size: 16px;
+const TrackNumber = styled.div`
+    width: 50px;
+`
+
+const TrackTitle = styled.div`
+    flex: 1 1 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 20px;
+`
+
+const TrackLength = styled.div`
+
+`
+
+const HeaderRow = styled(Row)`
+    border-bottom: 1px solid #333;
+    margin-bottom: 10px;
+
+    :hover {
+        background: none;
     }
 `
 
-const TableData = styled.td<{ align?: "left" | "center" | "right" }>`
-    padding: 5px;
-    border: none;
-    text-align: ${props => props.align}
-`
-
-const TableRow = styled.tr<{ striped?: boolean }>`
-    margin: 0 5px;
-    border: none;
-    background : ${props => props.striped ? "#333" : "#444"}
-`
-
-const AlbumViewContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-`
+type ISorting = "trackNumber" | "title" | "length"
+type ISortDirection = "ascending" | "descending"
 
 
 function AlbumView({ name, tracks }: IAlbum) {
+    const [sorting, setSorting] = useState<ISorting>("trackNumber")
+    const [sortDirection, setSortDirection] = useState<ISortDirection>("ascending")
     const { play } = usePlayerContext()
 
-    return <AlbumViewContainer>
-        {name}
-        <TableStyle>
-            <thead>
-                <TableRow>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Length</th>
-                </TableRow>
-            </thead>
-            <tbody>
-                {tracks.map((track, i) =>
-                    <TableRow key={i} striped={i % 2 === 0}>
-                        <TableData>{track.trackNumber}</TableData>
-                        <TableData>
-                            <LinkButton
-                                type="button"
-                                onClick={() => play(track.id)}
-                            >
-                                {track.title}
-                            </LinkButton>
-                        </TableData>
-                        <TableData align="center">{secondsToTimeFormat(track.length)}</TableData>
-                    </TableRow>
-                )}
-            </tbody>
-        </TableStyle>
-    </AlbumViewContainer>
+    function sortByColumn(column: ISorting) {
+        if (sorting === column)
+            setSortDirection(
+                sortDirection === "ascending"
+                    ? "descending"
+                    : "ascending"
+            )
+        else {
+            setSorting(column)
+            setSortDirection("ascending")
+        }
+    }
+
+    const sortedTracks = [...tracks].sort((a, b) => {
+        const comparison = sortDirection === "ascending"
+            ? greaterThan
+            : lesserThan
+
+        switch (sorting) {
+            case "length":
+                return comparison(
+                    a.length,
+                    b.length
+                )
+            case "title":
+                return comparison(
+                    a.title.toLowerCase(),
+                    b.title.toLowerCase()
+                )
+            case "trackNumber":
+                return comparison(
+                    a.trackNumber,
+                    b.trackNumber
+                )
+        }
+    })
+
+
+    return <div
+        style={{
+            display: "flex",
+            justifyContent: "center",
+            flexDirection: "column"
+        }}
+    >
+        <h1>{name}</h1>
+        <section>
+            <HeaderRow>
+                <TrackNumber onClick={() => sortByColumn("trackNumber")}>#</TrackNumber>
+                <TrackTitle onClick={() => sortByColumn("title")}>TITLE</TrackTitle>
+                <TrackLength onClick={() => sortByColumn("length")}>🕒</TrackLength>
+            </HeaderRow>
+            {sortedTracks.map(track =>
+                <Row key={track.id} onClick={() => play(track.id)}>
+                    <TrackNumber>{track.trackNumber}</TrackNumber>
+                    <TrackTitle>{track.title}</TrackTitle>
+                    <TrackLength>{secondsToTimeFormat(track.length)}</TrackLength>
+                </Row>
+            )}
+        </section>
+    </div>
 }
 
 async function fetchAlbumInfo(id: number): Promise<IAlbum> {
@@ -124,4 +158,20 @@ async function fetchAlbumInfo(id: number): Promise<IAlbum> {
         throw new Error(`Http request failed with status ${response.status}`)
 
     return await response.json()
+}
+
+function greaterThan<Type extends number | string>(a: Type, b: Type) {
+    if (a === b)
+        return 0
+    return a > b
+        ? 1
+        : -1
+}
+
+function lesserThan<Type extends number | string>(a: Type, b: Type) {
+    if (a === b)
+        return 0
+    return a < b
+        ? 1
+        : -1
 }
