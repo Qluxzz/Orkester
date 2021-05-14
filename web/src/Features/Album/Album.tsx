@@ -86,7 +86,7 @@ interface ISortOptions {
     direction: ISortDirection
 }
 
-function AlbumView({ name, tracks }: IAlbum) {
+function AlbumView(album: IAlbum) {
     const { play } = usePlayerContext()
     const [sortOptions, setSortOptions] = useState<ISortOptions>({
         column: "trackNumber",
@@ -107,7 +107,7 @@ function AlbumView({ name, tracks }: IAlbum) {
         })
     }
 
-    const sortedTracks = [...tracks].sort((a, b) => {
+    const sortedTracks = [...album.tracks].sort((a, b) => {
         const comparison = sortOptions.direction === "ascending"
             ? greaterThan
             : lesserThan
@@ -133,6 +133,7 @@ function AlbumView({ name, tracks }: IAlbum) {
         }
     })
 
+    const totalPlayTime = album.tracks.reduce((acc, x) => (acc += x.length), 0)
 
     return <div
         style={{
@@ -141,7 +142,13 @@ function AlbumView({ name, tracks }: IAlbum) {
             flexDirection: "column"
         }}
     >
-        <h1>{name}</h1>
+        <header style={{ display: "flex", padding: 10 }}>
+            <img src={`/api/v1/album/${album.id}/image`} style={{ width: 192 }} alt={`Album cover for ${album.name}`} />
+            <div style={{ padding: 10 }}>
+                <h1>{album.name}</h1>
+                <p>{album.tracks.length} track{album.tracks.length !== 1 && "s"}, {secondsToTimeFormat(totalPlayTime)}</p>
+            </div>
+        </header>
         <section>
             <HeaderRow>
                 <TrackNumber onClick={() => sortByColumn("trackNumber")}>#</TrackNumber>
