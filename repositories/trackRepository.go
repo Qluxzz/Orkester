@@ -39,6 +39,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			path,
 			date,
 			length,
+			mimetype,
 			albumid,
 			artistid,
 			genreid
@@ -48,19 +49,20 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			$3,
 			$4,
 			$5,
+			$6,
 			(
 				SELECT 
 					id 
 				FROM 
 					albums 
 				WHERE 
-					name = $6
+					name = $7
 					AND artistid = (
-						SELECT id FROM artists WHERE name = $7
+						SELECT id FROM artists WHERE name = $8
 					)
 			),
-			(SELECT id FROM artists WHERE name = $7),
-			(SELECT id from genres WHERE name = $8)
+			(SELECT id FROM artists WHERE name = $8),
+			(SELECT id from genres WHERE name = $9)
 		) ON CONFLICT DO NOTHING
 	`
 
@@ -91,6 +93,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			track.Path,
 			track.Date,
 			track.Length,
+			track.MimeType,
 			track.AlbumName,
 			track.ArtistName,
 			track.ArtistName,
