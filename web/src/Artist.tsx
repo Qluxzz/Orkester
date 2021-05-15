@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Link, Redirect, Switch, Route } from "react-router-dom"
+import { Redirect, Switch, Route } from "react-router-dom"
 import styled from "styled-components";
 
 import CenteredDotLoader from "CenteredDotLoader"
+import { AlbumLink } from "utilities/Links";
 
 interface IArtist {
     id: number
@@ -112,14 +113,14 @@ function ArtistView(artist: IArtist) {
             gridTemplateRows: "1fr"
         }}>
             {artist.albums.map(album =>
-                <Link to={`/album/${album.id}/${album.urlName}`} key={album.id}>
+                <AlbumLink {...album}>
                     <Album>
                         <picture>
                             <img src={`/api/v1/album/${album.id}/image`} alt={`Album cover for ${album.name} by ${artist.name}`} />
                         </picture>
                         <p>{album.name}</p>
                     </Album>
-                </Link>
+                </AlbumLink>
             )}
         </div>
     </>

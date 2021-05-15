@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react"
 import { usePlayerContext } from "Context"
-import { Link } from "react-router-dom"
 import styled from "styled-components"
 import { IArtist, IAlbum } from "types/track"
 import CenteredDotLoader from "CenteredDotLoader"
+import { AlbumLink, ArtistLink } from "utilities/Links"
 
 const Container = styled.div`
     display: flex;
@@ -92,13 +92,13 @@ export default function SearchResults({ query }: { query: string }) {
         {searchResults.albums.length > 0 && <div>
             <h1>Albums</h1>
             <UnorderedListWithNoDots>{searchResults.albums.map(album =>
-                <Link to={`/album/${album.id}`} key={album.id}><li>{album.name}</li></Link>
+                <AlbumLink {...album} key={album.id}><li>{album.name}</li></AlbumLink>
             )}</UnorderedListWithNoDots>
         </div>}
         {searchResults.artists.length > 0 && <div>
             <h1>Artists</h1>
             <UnorderedListWithNoDots>{searchResults.artists.map(artist =>
-                <Link to={`/artist/${artist.id}`} key={artist.id}><li>{artist.name}</li></Link>
+                <ArtistLink {...artist} key={artist.id}><li>{artist.name}</li></ArtistLink>
             )}</UnorderedListWithNoDots>
         </div>}
     </Container>
