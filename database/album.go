@@ -8,22 +8,37 @@ import (
 )
 
 type album struct {
-	Id      int            `db:"id"      json:"id"`
-	Name    string         `db:"name"    json:"name"`
-	UrlName string         `db:"urlname" json:"urlName"`
-	Tracks  []models.Track `db:"tracks"  json:"tracks"`
+	Id      int            `json:"id"`
+	Name    string         `json:"name"`
+	UrlName string         `json:"urlName"`
+	Tracks  []models.Track `json:"tracks"`
+	Artist  albumArtist    `json:"artist"`
+}
+
+type albumArtist struct {
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	UrlName string `json:"urlName"`
+}
+
+type dbAlbum struct {
+	Id       int    `db:"id"`
+	Name     string `db:"name"`
+	UrlName  string `db:"urlname"`
+	ArtistId int    `db:"artistid"`
 }
 
 func GetAlbum(albumId int, db *sqlx.DB) (*album, error) {
-	album := album{}
+	dbAlbum := dbAlbum{}
 
 	err := db.Get(
-		&album,
+		&dbAlbum,
 		`
 			SELECT
 				id,
 				name,
-				urlname
+				urlname,
+				artistid
 			FROM 
 				albums
 			WHERE
@@ -62,9 +77,26 @@ func GetAlbum(albumId int, db *sqlx.DB) (*album, error) {
 	// Sort by track number ascending
 	sort.SliceStable(tracks, func(i int, j int) bool { return tracks[i].TrackNumber < tracks[j].TrackNumber })
 
-	album.Tracks = tracks
+	artist, err := GetArtistById(dbAlbum.ArtistId, db)
+	if err != nil {
+		return nil, err
+	}
 
-	return &album, nil
+	return ToDomain(&dbAlbum, tracks, artist), nil
+}
+
+func ToDomain(dbAlbum *dbAlbum, tracks []models.Track, artist *artist) *album {
+	return &album{
+		Id:      dbAlbum.Id,
+		Name:    dbAlbum.Name,
+		UrlName: dbAlbum.UrlName,
+		Tracks:  tracks,
+		Artist: albumArtist{
+			Id:      artist.Id,
+			Name:    artist.Name,
+			UrlName: artist.UrlName,
+		},
+	}
 }
 
 type albumImage struct {
