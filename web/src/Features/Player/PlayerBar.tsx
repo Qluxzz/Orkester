@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom"
 import styled from "styled-components"
 import { usePlayerContext } from "Context"
 import { useEffect, useMemo, useRef } from "react"
 import ITrack from "types/track"
+import { AlbumLink, ArtistLink } from "utilities/Links"
 
 const Bar = styled.div`
   display: flex;
@@ -20,25 +20,19 @@ export default function PlayerBar() {
 
     return <Bar>
         <div style={{ display: "flex", marginBottom: 10 }}>
-            <Link
-                to={`/album/${track.album.id}/${track.album.urlName}`}
-            >
+            <AlbumLink {...track.album}>
                 <img key={track.id} width="72" height="72" src={`/api/v1/album/${track.album.id}/image`} alt={track.album.name} />
-            </Link>
+            </AlbumLink>
             <div style={{ marginLeft: 10, overflow: "hidden" }}>
                 <h1>{track.title}</h1>
                 <h2 style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                    <Link
-                        to={`/artist/${track.artist.id}/${track.artist.urlName}`}
-                    >
+                    <ArtistLink {...track.artist}>
                         {track.artist.name}
-                    </Link>
+                    </ArtistLink>
                     {" - "}
-                    <Link
-                        to={`/album/${track.album.id}/${track.album.urlName}`}
-                    >
+                    <AlbumLink {...track.album}>
                         {track.album.name}
-                    </Link>
+                    </AlbumLink>
                 </h2>
             </div>
         </div>
