@@ -45,7 +45,9 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 				case "albumartist":
 					track.AlbumArtist = CreateValidNullString(value)
 				case "tracknumber":
-					if trackNumber, err := strconv.Atoi(value); err == nil {
+					// Some tracknumbers are formatted as (tracknumber)/(amount of tracks)
+					slices := strings.Split(value, "/")
+					if trackNumber, err := strconv.Atoi(slices[0]); err == nil {
 						track.TrackNumber = CreateValidNullInt(trackNumber)
 					}
 				case "genre":

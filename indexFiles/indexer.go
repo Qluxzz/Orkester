@@ -40,8 +40,6 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 		track, err = ParseFlacFile(path)
 	case ".mp3":
 		track, err = ParseMp3File(path)
-	case ".m4a":
-		track, err = ParseM4aFile(path)
 	default:
 		return nil, nil
 	}
