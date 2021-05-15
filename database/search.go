@@ -22,16 +22,16 @@ func formatQuery(query string) (string, error) {
 	return query, nil
 }
 
-type IdNameAndUrlName struct {
+type idNameAndUrlName struct {
 	Id      int    `json:"id"`
 	Name    string `json:"name"`
 	Urlname string `json:"urlName"`
 }
 
 type SearchResults struct {
-	Tracks  []IdNameAndUrlName
-	Albums  []IdNameAndUrlName
-	Artists []IdNameAndUrlName
+	Tracks  []idNameAndUrlName
+	Albums  []idNameAndUrlName
+	Artists []idNameAndUrlName
 }
 
 func Search(query string, db *sqlx.DB) (*SearchResults, error) {
@@ -42,7 +42,7 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 
 	wildcardQuery := "%" + query + "%"
 
-	tracks := []IdNameAndUrlName{}
+	tracks := []idNameAndUrlName{}
 	err = db.Select(
 		&tracks,
 		`SELECT
@@ -61,7 +61,7 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 		return nil, err
 	}
 
-	albums := []IdNameAndUrlName{}
+	albums := []idNameAndUrlName{}
 	err = db.Select(
 		&albums,
 		`SELECT
@@ -82,7 +82,7 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 		return nil, err
 	}
 
-	artists := []IdNameAndUrlName{}
+	artists := []idNameAndUrlName{}
 	err = db.Select(
 		&artists,
 		`SELECT
