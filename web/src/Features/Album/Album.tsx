@@ -1,16 +1,22 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import ITrack from "types/track";
-import { secondsToTimeFormat } from "Utilities/secondsToTimeFormat";
+import { secondsToTimeFormat } from "utilities/secondsToTimeFormat";
 import { usePlayerContext } from "Context";
 import { Redirect, Route, Switch } from "react-router";
 import CenteredDotLoader from "CenteredDotLoader";
+import { ArtistLink } from "utilities/Links";
 
 interface IAlbum {
     id: number
     name: string
     urlName: string
+    artist: {
+        id: number
+        name: string
+        urlName: string
+    }
     tracks: ITrack[]
 }
 
@@ -156,6 +162,7 @@ function AlbumView(album: IAlbum) {
             <div style={{ padding: 10 }}>
                 <h1>{album.name}</h1>
                 <p>{album.tracks.length} track{album.tracks.length !== 1 && "s"}, {secondsToTimeFormat(totalPlayTime)}</p>
+                <ArtistLink {...album.artist}><p>{album.artist.name}</p></ArtistLink>
             </div>
         </header>
         <section>
