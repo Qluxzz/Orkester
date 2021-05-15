@@ -39,6 +39,7 @@ func createTables(db *sqlx.DB) error {
 		albumid INTEGER,
 		artistid INTEGER NOT NULL,
 		genreid INTEGER,
+		mimetype TEXT NOT NULL,
 		FOREIGN KEY (albumid) REFERENCES albums(id),
 		FOREIGN KEY (artistid) REFERENCES artists(id),
 		FOREIGN KEY (genreid) REFERENCES genres(id),

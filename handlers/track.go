@@ -32,17 +32,17 @@ func TrackStream(db *sqlx.DB) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		path, err := database.GetTrackPath(id, db)
+		pathAndMimeType, err := database.GetTrackPath(id, db)
 		if err != nil {
 			return err
 		}
 
-		stream, err := os.Open(*path)
+		stream, err := os.Open(pathAndMimeType.Path)
 		if err != nil {
 			return err
 		}
 
-		c.Response().Header.Add("content-type", "audio/flac")
+		c.Response().Header.Add("content-type", pathAndMimeType.MimeType)
 		return c.SendStream(stream)
 	}
 }
