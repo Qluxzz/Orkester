@@ -68,18 +68,18 @@ func GetTrackById(id int, db *sqlx.DB) (*models.Track, error) {
 	return &tracks[0], nil
 }
 
-type PathAndMimeType struct {
+type pathAndMimeType struct {
 	Path     string `db:"path"`
 	MimeType string `db:"mimetype"`
 }
 
-func GetTrackPath(id int, db *sqlx.DB) (*PathAndMimeType, error) {
-	pathAndMimeType := PathAndMimeType{}
+func GetTrackPath(id int, db *sqlx.DB) (*pathAndMimeType, error) {
+	data := pathAndMimeType{}
 
-	err := db.Get(&pathAndMimeType, "SELECT path, mimetype FROM tracks WHERE id=?", id)
+	err := db.Get(&data, "SELECT path, mimetype FROM tracks WHERE id=?", id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pathAndMimeType, nil
+	return &data, nil
 }
