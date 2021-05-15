@@ -51,41 +51,20 @@ func GetAlbum(albumId int, db *sqlx.DB) (*album, error) {
 		return nil, err
 	}
 
-	trackIds := []int{}
-
-	err = db.Select(
-		&trackIds,
-		`SELECT
-				id
-			FROM
-				tracks
-			WHERE
-				albumid = ?
-			`,
-		albumId,
-	)
-
+	tracks, err := getAlbumTracks(dbAlbum.Id, db)
 	if err != nil {
 		return nil, err
 	}
-
-	tracks, err := GetTracksByIds(trackIds, db)
-	if err != nil {
-		return nil, err
-	}
-
-	// Sort by track number ascending
-	sort.SliceStable(tracks, func(i int, j int) bool { return tracks[i].TrackNumber < tracks[j].TrackNumber })
 
 	artist, err := GetArtistById(dbAlbum.ArtistId, db)
 	if err != nil {
 		return nil, err
 	}
 
-	return ToDomain(&dbAlbum, tracks, artist), nil
+	return toDomain(&dbAlbum, tracks, artist), nil
 }
 
-func ToDomain(dbAlbum *dbAlbum, tracks []models.Track, artist *artist) *album {
+func toDomain(dbAlbum *dbAlbum, tracks []models.Track, artist *artist) *album {
 	return &album{
 		Id:      dbAlbum.Id,
 		Name:    dbAlbum.Name,
@@ -123,4 +102,34 @@ func GetAlbumCover(albumId int, db *sqlx.DB) (*albumImage, error) {
 	}
 
 	return &image, nil
+}
+
+func getAlbumTracks(albumId int, db *sqlx.DB) ([]models.Track, error) {
+	trackIds := []int{}
+
+	err := db.Select(
+		&trackIds,
+		`SELECT
+				id
+			FROM
+				tracks
+			WHERE
+				albumid = ?
+			`,
+		albumId,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tracks, err := GetTracksByIds(trackIds, db)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sort by track number ascending
+	sort.SliceStable(tracks, func(i int, j int) bool { return tracks[i].TrackNumber < tracks[j].TrackNumber })
+
+	return tracks, nil
 }
