@@ -75,9 +75,9 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 				(SELECT id FROM artists WHERE name = ?)
 			)`
 
-	tx := db.MustBegin()
-
 	for _, track := range tracks {
+		tx := db.MustBegin()
+
 		for _, artist := range track.Artists {
 			tx.MustExec(insertArtistStmt, artist, slug.Make(artist.String))
 		}
@@ -124,11 +124,13 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 		// this can be greatly improved
 		rowsAffected, err := result.RowsAffected()
 		if err != nil || rowsAffected == 0 {
+			tx.Rollback()
 			continue
 		}
 
 		id, err := result.LastInsertId()
 		if err != nil {
+			tx.Rollback()
 			continue
 		}
 
@@ -139,8 +141,12 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 				artist,
 			)
 		}
+
+		err = tx.Commit()
+		if err != nil {
+			return err
+		}
 	}
 
-	err := tx.Commit()
-	return err
+	return nil
 }
