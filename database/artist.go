@@ -32,16 +32,16 @@ func GetArtistById(artistId int, db *sqlx.DB) (*artist, error) {
 
 	err = db.Select(
 		&artist.Albums,
-		`SELECT
+		`SELECT DISTINCT
 				id,
 				name,
 				urlname
 			FROM
 				albums
 			WHERE
-				artistid = ?
+				id IN (SELECT albumid FROM tracks WHERE artistid = ?)
 		`,
-		artistId,
+		artist.Id,
 	)
 
 	if err != nil {

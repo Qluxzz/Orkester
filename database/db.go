@@ -36,7 +36,7 @@ func createTables(db *sqlx.DB) error {
 		path TEXT NOT NULL,
 		date TEXT NOT NULL,
 		length INT NOT NULL,
-		albumid INTEGER,
+		albumid INTEGER NOT NULL,
 		artistid INTEGER NOT NULL,
 		genreid INTEGER,
 		mimetype TEXT NOT NULL,

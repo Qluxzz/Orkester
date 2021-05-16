@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"goreact/indexFiles"
 
 	"github.com/gosimple/slug"
@@ -14,16 +15,16 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 
 	insertAlbumStmt := `
 		INSERT INTO albums (
-			name, 
-			urlname, 
-			image, 
-			imagemimetype, 
+			name,
+			urlname,
+			image,
+			imagemimetype,
 			artistid
 		) VALUES (
 			?,
-			?, 
-			?, 
-			?, 
+			?,
+			?,
+			?,
 			(SELECT id FROM artists WHERE name = ?)
 		) ON CONFLICT DO NOTHING
 	`
@@ -51,18 +52,18 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			$5,
 			$6,
 			(
-				SELECT 
-					id 
-				FROM 
-					albums 
-				WHERE 
+				SELECT
+					id
+				FROM
+					albums
+				WHERE
 					name = $7
 					AND artistid = (
 						SELECT id FROM artists WHERE name = $8
 					)
 			),
-			(SELECT id FROM artists WHERE name = $8),
-			(SELECT id from genres WHERE name = $9)
+			(SELECT id FROM artists WHERE name = $9),
+			(SELECT id from genres WHERE name = $10)
 		) ON CONFLICT DO NOTHING
 	`
 
@@ -71,6 +72,18 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 	for _, track := range tracks {
 		tx.MustExec(insertArtistStmt, track.ArtistName, slug.Make(track.ArtistName.String))
 
+		if track.AlbumArtist.Valid {
+			tx.MustExec(insertArtistStmt, track.AlbumArtist, slug.Make(track.AlbumArtist.String))
+		}
+
+		var albumArtist sql.NullString
+
+		if track.AlbumArtist.Valid {
+			albumArtist = track.AlbumArtist
+		} else {
+			albumArtist = track.ArtistName
+		}
+
 		if track.AlbumName.Valid {
 			tx.MustExec(
 				insertAlbumStmt,
@@ -78,7 +91,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 				slug.Make(track.AlbumName.String),
 				track.Image.Data,
 				track.Image.MimeType,
-				track.ArtistName,
+				albumArtist,
 			)
 		}
 
@@ -95,7 +108,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			track.Length,
 			track.MimeType,
 			track.AlbumName,
-			track.ArtistName,
+			albumArtist,
 			track.ArtistName,
 			track.Genre,
 		)
@@ -104,7 +117,3 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 	err := tx.Commit()
 	return err
 }
-
-type NotFoundError string
-
-func (e *NotFoundError) Error() string { return "Not Found" }
