@@ -39,7 +39,7 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 				case "title":
 					track.Title = CreateValidNullString(value)
 				case "artist":
-					track.ArtistName = CreateValidNullString(value)
+					track.Artists = append(track.Artists, CreateValidNullString(value))
 				case "album":
 					track.AlbumName = CreateValidNullString(value)
 				case "albumartist":
@@ -73,8 +73,9 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 		}
 	}
 
-	if !track.ArtistName.Valid {
-		return nil, errors.New("track was missing artist")
+	// Ignore tracks without any artist
+	if len(track.Artists) == 0 {
+		return nil, errors.New("track must have artist")
 	}
 
 	return track, nil

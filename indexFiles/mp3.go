@@ -50,11 +50,11 @@ func ParseMp3File(path string) (*IndexedTrack, error) {
 			MimeType: CreateValidNullString(imageFrame.MIMEType()),
 		}
 	}
-	track.ArtistName = CreateValidNullString(trimNullFromString(mp3File.Artist()))
+	track.Artists = append(track.Artists, CreateValidNullString(trimNullFromString(mp3File.Artist())))
 	track.Genre = CreateValidNullString(trimNullFromString(mp3File.Genre()))
 	track.Date = CreateValidNullString(trimNullFromString(mp3File.Year()))
 
-	if !track.ArtistName.Valid {
+	if len(track.Artists) == 0 {
 		return nil, errors.New("track was missing artist")
 	}
 

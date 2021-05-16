@@ -173,7 +173,9 @@ function AlbumView(album: IAlbum) {
             <AlbumInfo>
                 <h1>{album.name}</h1>
                 <p>{album.tracks.length} track{album.tracks.length !== 1 && "s"}, {secondsToTimeFormat(totalPlayTime)}</p>
-                <ArtistLink {...album.artist}><p>{album.artist.name}</p></ArtistLink>
+                <ArtistLink {...album.artist} key={album.artist.id}>
+                    <p>{album.artist.name}</p>
+                </ArtistLink>
                 <p>{album.date}</p>
             </AlbumInfo>
         </header>
@@ -191,7 +193,10 @@ function AlbumView(album: IAlbum) {
                     <TrackNumber>{track.trackNumber}</TrackNumber>
                     <TrackTitle>
                         <div>{track.title}</div>
-                        <ArtistLink {...track.artist}>{track.artist.name}</ArtistLink>
+                        {track.artists.map((artist, i, arr) => <>
+                            <ArtistLink {...artist}>{artist.name}</ArtistLink>
+                            {i !== arr.length - 1 && ", "}
+                        </>)}
                     </TrackTitle>
                     <TrackLength>{secondsToTimeFormat(track.length)}</TrackLength>
                 </TrackRow>

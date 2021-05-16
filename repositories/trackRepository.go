@@ -42,7 +42,6 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			length,
 			mimetype,
 			albumid,
-			artistid,
 			genreid
 		) VALUES(
 			$1,
@@ -62,26 +61,35 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 						SELECT id FROM artists WHERE name = $8
 					)
 			),
-			(SELECT id FROM artists WHERE name = $9),
-			(SELECT id from genres WHERE name = $10)
+			(SELECT id from genres WHERE name = $9)
 		) ON CONFLICT DO NOTHING
 	`
+
+	insertTrackArtist := `
+		INSERT INTO
+			trackArtists (
+				trackid,
+				artistid
+			) VALUES (
+				?,
+				(SELECT id FROM artists WHERE name = ?)
+			)`
 
 	tx := db.MustBegin()
 
 	for _, track := range tracks {
-		tx.MustExec(insertArtistStmt, track.ArtistName, slug.Make(track.ArtistName.String))
-
+		for _, artist := range track.Artists {
+			tx.MustExec(insertArtistStmt, artist, slug.Make(artist.String))
+		}
 		if track.AlbumArtist.Valid {
 			tx.MustExec(insertArtistStmt, track.AlbumArtist, slug.Make(track.AlbumArtist.String))
 		}
 
 		var albumArtist sql.NullString
-
 		if track.AlbumArtist.Valid {
 			albumArtist = track.AlbumArtist
 		} else {
-			albumArtist = track.ArtistName
+			albumArtist = track.Artists[0]
 		}
 
 		if track.AlbumName.Valid {
@@ -99,7 +107,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			tx.MustExec(insertGenreStmt, track.Genre, slug.Make(track.Genre.String))
 		}
 
-		tx.MustExec(
+		result := tx.MustExec(
 			insertTrackStmt,
 			track.Title,
 			track.TrackNumber,
@@ -109,9 +117,28 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			track.MimeType,
 			track.AlbumName,
 			albumArtist,
-			track.ArtistName,
 			track.Genre,
 		)
+
+		// When SQLite is updated so I can use RETURNING
+		// this can be greatly improved
+		rowsAffected, err := result.RowsAffected()
+		if err != nil || rowsAffected == 0 {
+			continue
+		}
+
+		id, err := result.LastInsertId()
+		if err != nil {
+			continue
+		}
+
+		for _, artist := range track.Artists {
+			tx.MustExec(
+				insertTrackArtist,
+				id,
+				artist,
+			)
+		}
 	}
 
 	err := tx.Commit()
