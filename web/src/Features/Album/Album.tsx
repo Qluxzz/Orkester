@@ -4,7 +4,7 @@ import styled from "styled-components";
 import ITrack from "types/track";
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat";
 import { usePlayerContext } from "Context";
-import { Redirect, Route, Switch } from "react-router";
+import { useHistory } from "react-router";
 import CenteredDotLoader from "CenteredDotLoader";
 import { ArtistLink } from "utilities/Links";
 
@@ -22,6 +22,7 @@ interface IAlbum {
 }
 
 export function GetAlbumWithId({ id }: { id: number }) {
+    const history = useHistory()
     const [album, setAlbum] = useState<IAlbum>()
 
     useEffect(() => {
@@ -33,6 +34,8 @@ export function GetAlbumWithId({ id }: { id: number }) {
                     return
 
                 setAlbum(album)
+                history.replace(`/album/${album.id}/${album.urlName}`)
+
             })
             .catch(error => {
                 console.error("Failed to get album info!", error)
@@ -44,14 +47,7 @@ export function GetAlbumWithId({ id }: { id: number }) {
     if (!album)
         return <CenteredDotLoader />
 
-    const completeUrl = `/album/${album.id}/${album.urlName}`
-
-    return <Switch>
-        <Route path={completeUrl}>
-            <AlbumView {...album} />
-        </Route>
-        <Redirect to={completeUrl} />
-    </Switch>
+    return <AlbumView {...album} />
 }
 
 const Row = styled.div`
