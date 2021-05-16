@@ -11,6 +11,7 @@ type album struct {
 	Id      int            `json:"id"`
 	Name    string         `json:"name"`
 	UrlName string         `json:"urlName"`
+	Date    string         `json:"date"`
 	Tracks  []models.Track `json:"tracks"`
 	Artist  albumArtist    `json:"artist"`
 }
@@ -25,6 +26,7 @@ type dbAlbum struct {
 	Id       int    `db:"id"`
 	Name     string `db:"name"`
 	UrlName  string `db:"urlname"`
+	Date     string `db:"date"`
 	ArtistId int    `db:"artistid"`
 }
 
@@ -38,11 +40,12 @@ func GetAlbum(albumId int, db *sqlx.DB) (*album, error) {
 				id,
 				name,
 				urlname,
+				(SELECT date FROM tracks WHERE albumid = $1 LIMIT 1) date,
 				artistid
 			FROM 
 				albums
 			WHERE
-				id = ?
+				id = $1
 			`,
 		albumId,
 	)
@@ -69,6 +72,7 @@ func toDomain(dbAlbum *dbAlbum, tracks []models.Track, artist *artist) *album {
 		Id:      dbAlbum.Id,
 		Name:    dbAlbum.Name,
 		UrlName: dbAlbum.UrlName,
+		Date:    dbAlbum.Date,
 		Tracks:  tracks,
 		Artist: albumArtist{
 			Id:      artist.Id,
