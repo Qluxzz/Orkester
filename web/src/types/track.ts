@@ -5,7 +5,7 @@ type ITrack = {
     date: string
     length: number
     album: IAlbum
-    artist: IArtist
+    artists: IArtist[]
     genre: string
 }
 

@@ -37,14 +37,20 @@ func createTables(db *sqlx.DB) error {
 		date TEXT NOT NULL,
 		length INT NOT NULL,
 		albumid INTEGER NOT NULL,
-		artistid INTEGER NOT NULL,
 		genreid INTEGER,
 		mimetype TEXT NOT NULL,
 		FOREIGN KEY (albumid) REFERENCES albums(id),
-		FOREIGN KEY (artistid) REFERENCES artists(id),
 		FOREIGN KEY (genreid) REFERENCES genres(id),
-		UNIQUE (tracknumber, title, albumid, artistid)
+		UNIQUE (tracknumber, title, albumid)
 	);`
+
+	trackArtistsSchema := `CREATE TABLE IF NOT EXISTS trackArtists(
+		trackid INTEGER NOT NULL,
+		artistid INTEGER NOT NULL,
+		FOREIGN KEY (trackid) REFERENCES tracks(id),
+		FOREIGN KEY (artistid) REFERENCES artists(id),
+		UNIQUE(trackid, artistid)
+	)`
 
 	tx := db.MustBegin()
 
@@ -52,6 +58,7 @@ func createTables(db *sqlx.DB) error {
 	tx.MustExec(albumSchema)
 	tx.MustExec(genreSchema)
 	tx.MustExec(trackSchema)
+	tx.MustExec(trackArtistsSchema)
 
 	err := tx.Commit()
 	return err

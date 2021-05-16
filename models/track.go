@@ -2,6 +2,12 @@ package models
 
 import "database/sql"
 
+type DBArtist struct {
+	Id      sql.NullInt32  `db:"id"`
+	Name    sql.NullString `db:"name"`
+	UrlName sql.NullString `db:"urlname"`
+}
+
 type DBTrack struct {
 	Id            int            `db:"id"`
 	Title         string         `db:"title"`
@@ -11,9 +17,6 @@ type DBTrack struct {
 	AlbumId       sql.NullInt32  `db:"albumid"`
 	AlbumName     sql.NullString `db:"albumname"`
 	AlbumUrlName  sql.NullString `db:"albumurlname"`
-	ArtistId      sql.NullInt32  `db:"artistid"`
-	ArtistName    sql.NullString `db:"artistname"`
-	ArtistUrlName sql.NullString `db:"artisturlname"`
 	GenreId       sql.NullInt32  `db:"genreid"`
 	GenreName     sql.NullString `db:"genrename"`
 	GenreUrlName  sql.NullString `db:"genreurlname"`
@@ -22,14 +25,14 @@ type DBTrack struct {
 }
 
 type Track struct {
-	Id          int     `json:"id"`
-	Title       string  `json:"title"`
-	TrackNumber int     `json:"trackNumber"`
-	Date        string  `json:"date"`
-	Length      int     `json:"length"`
-	Album       *Album  `json:"album"`
-	Artist      *Artist `json:"artist"`
-	Genre       *Genre  `json:"genre"`
+	Id          int       `json:"id"`
+	Title       string    `json:"title"`
+	TrackNumber int       `json:"trackNumber"`
+	Date        string    `json:"date"`
+	Length      int       `json:"length"`
+	Album       *Album    `json:"album"`
+	Artists     []*Artist `json:"artists"`
+	Genre       *Genre    `json:"genre"`
 }
 
 type IdNameAndUrlName struct {
@@ -42,17 +45,19 @@ type Album = IdNameAndUrlName
 type Artist = IdNameAndUrlName
 type Genre = IdNameAndUrlName
 
-func (track DBTrack) ToDomain() Track {
-	artist := func() *Artist {
-		if !track.ArtistId.Valid {
-			return nil
+func (track DBTrack) ToDomain(dbArtists []DBArtist) Track {
+	artists := func() []*Artist {
+		artists := []*Artist{}
+
+		for _, dbArtist := range dbArtists {
+			artists = append(artists, &Artist{
+				Id:      int(dbArtist.Id.Int32),
+				Name:    dbArtist.Name.String,
+				UrlName: dbArtist.UrlName.String,
+			})
 		}
 
-		return &Artist{
-			Id:      int(track.ArtistId.Int32),
-			Name:    track.ArtistName.String,
-			UrlName: track.ArtistUrlName.String,
-		}
+		return artists
 	}()
 
 	album := func() *Album {
@@ -87,6 +92,6 @@ func (track DBTrack) ToDomain() Track {
 		Length:      track.Length,
 		Genre:       genre,
 		Album:       album,
-		Artist:      artist,
+		Artists:     artists,
 	}
 }

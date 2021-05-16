@@ -17,16 +17,11 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 				albums.id albumid,
 				albums.name albumname,
 				albums.urlname albumurlname,
-				artists.id artistid,
-				artists.name artistname,
-				artists.urlname artisturlname,
 				genres.id genreid,
 				genres.name genrename,
 				genres.urlname genreurlname
 			FROM
 				tracks t
-			INNER JOIN artists
-				ON artists.id = t.artistid
 			LEFT JOIN albums
 				ON albums.id = t.albumid
 			LEFT JOIN genres
@@ -49,7 +44,13 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 	tracks := []models.Track{}
 
 	for _, dbTrack := range dbTracks {
-		tracks = append(tracks, dbTrack.ToDomain())
+		dbArtists := []models.DBArtist{}
+		err = db.Select(&dbArtists, "SELECT id, name, urlname FROM artists WHERE id IN (SELECT DISTINCT artistid FROM trackArtists WHERE trackid = ?)", dbTrack.Id)
+		if err != nil {
+			continue
+		}
+
+		tracks = append(tracks, dbTrack.ToDomain(dbArtists))
 	}
 
 	return tracks, nil

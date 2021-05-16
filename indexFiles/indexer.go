@@ -141,7 +141,7 @@ type Image struct {
 type IndexedTrack struct {
 	Path        sql.NullString
 	Title       sql.NullString
-	ArtistName  sql.NullString
+	Artists     []sql.NullString
 	AlbumName   sql.NullString
 	Image       *Image
 	AlbumArtist sql.NullString

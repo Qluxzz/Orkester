@@ -26,9 +26,12 @@ export default function PlayerBar() {
             <div style={{ marginLeft: 10, overflow: "hidden" }}>
                 <h1>{track.title}</h1>
                 <h2 style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                    <ArtistLink {...track.artist}>
-                        {track.artist.name}
-                    </ArtistLink>
+                    {track.artists.map((artist, i, arr) => <>
+                        <ArtistLink {...artist} key={artist.id}>
+                            {artist.name}
+                        </ArtistLink>
+                        {i !== arr.length - 1 && ", "}
+                    </>)}
                     {" - "}
                     <AlbumLink {...track.album}>
                         {track.album.name}
@@ -54,11 +57,15 @@ function Controls({ track }: { track: ITrack }) {
         }
     }, [channel])
 
+    useEffect(() => {
+        playerRef
+            .current?.play().then(_ => { })
+    }, [track])
+
     return <audio
         ref={playerRef}
         src={`/api/v1/track/${track.id}/stream`}
         controls
-        autoPlay
         onPlay={() => {
             window.localStorage.setItem("track", track.id.toString())
 

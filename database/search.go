@@ -14,11 +14,7 @@ func formatQuery(query string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	query = strings.ReplaceAll(
-		strings.TrimSpace(strings.ToLower(query)),
-		" ",
-		"",
-	)
+	query = strings.TrimSpace(strings.ToLower(query))
 	return query, nil
 }
 
@@ -53,7 +49,21 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 			WHERE
 				LOWER(title) LIKE $1
 				OR EXISTS(SELECT * FROM albums WHERE id = albumid AND LOWER(REPLACE(name, ' ', '')) LIKE $1)
-				OR EXISTS(SELECT * FROM artists WHERE id = artistid AND LOWER(REPLACE(name, ' ', '')) LIKE $1)
+				OR EXISTS(
+					SELECT
+						*
+					FROM
+						artists
+					WHERE
+						id IN (
+							SELECT
+								artistid
+							FROM
+								trackArtists
+							WHERE
+								trackid = tracks.id
+						) AND LOWER(REPLACE(name, ' ', '')) LIKE $1
+				)
 			`,
 		wildcardQuery,
 	)

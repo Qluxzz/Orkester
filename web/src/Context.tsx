@@ -54,7 +54,7 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
             .then(track => {
                 setTrack(track)
                 localStorage.setItem("trackId", track.id.toString())
-                document.title = `${track.title} - ${track.artist.name}`
+                document.title = `${track.title} - ${track.artists.map(artist => artist.name).join(", ")}`
             })
             .catch(error => {
                 console.error("Something went wrong while loading track info", error)

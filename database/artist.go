@@ -39,7 +39,30 @@ func GetArtistById(artistId int, db *sqlx.DB) (*artist, error) {
 			FROM
 				albums
 			WHERE
-				id IN (SELECT albumid FROM tracks WHERE artistid = ?)
+				id IN (
+					SELECT
+						albumid
+					FROM
+						tracks
+					WHERE
+						id IN (
+							SELECT
+								trackid
+							FROM
+								trackArtists
+							WHERE 
+								artistid = $1
+						)
+
+					UNION
+
+					SELECT
+						id
+					FROM
+						albums
+					WHERE
+						artistid = $1
+				)
 		`,
 		artist.Id,
 	)
