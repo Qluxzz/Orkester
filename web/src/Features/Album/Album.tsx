@@ -12,6 +12,7 @@ interface IAlbum {
     id: number
     name: string
     urlName: string
+    date: string
     artist: {
         id: number
         name: string
@@ -63,6 +64,12 @@ const HeaderRow = styled(Row)`
 `
 
 const TrackRow = styled(Row)`
+    align-items: center;
+
+    a {
+        font-size: 14px;
+    }
+
     :hover {
         background: #333;
     }
@@ -81,9 +88,17 @@ const TrackTitle = styled.div`
 `
 
 const TrackLength = styled.div`
-
+    font-variant-numeric: tabular-nums;
 `
 
+const AlbumInfo = styled.div`
+    padding: 10px;
+
+    *:not(:last-child) {
+        display: block;
+        margin-bottom: 10px;
+    }
+`
 
 
 type ISortColumn = "trackNumber" | "title" | "length"
@@ -159,11 +174,12 @@ function AlbumView(album: IAlbum) {
     >
         <header style={{ display: "flex", padding: 10 }}>
             <img src={`/api/v1/album/${album.id}/image`} style={{ width: 192 }} alt={`Album cover for ${album.name}`} />
-            <div style={{ padding: 10 }}>
+            <AlbumInfo>
                 <h1>{album.name}</h1>
                 <p>{album.tracks.length} track{album.tracks.length !== 1 && "s"}, {secondsToTimeFormat(totalPlayTime)}</p>
                 <ArtistLink {...album.artist}><p>{album.artist.name}</p></ArtistLink>
-            </div>
+                <p>{album.date}</p>
+            </AlbumInfo>
         </header>
         <section>
             <HeaderRow>
@@ -174,10 +190,13 @@ function AlbumView(album: IAlbum) {
             {sortedTracks.map(track =>
                 <TrackRow
                     key={track.id}
-                    onClick={() => play(track.id)}
+                    onDoubleClick={() => play(track.id)}
                 >
                     <TrackNumber>{track.trackNumber}</TrackNumber>
-                    <TrackTitle>{track.title}</TrackTitle>
+                    <TrackTitle>
+                        <div>{track.title}</div>
+                        <ArtistLink {...track.artist}>{track.artist.name}</ArtistLink>
+                    </TrackTitle>
                     <TrackLength>{secondsToTimeFormat(track.length)}</TrackLength>
                 </TrackRow>
             )}
