@@ -44,24 +44,24 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			albumid,
 			genreid
 		) VALUES(
-			$1,
-			$2,
-			$3,
-			$4,
-			$5,
-			$6,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
 			(
 				SELECT
 					id
 				FROM
 					albums
 				WHERE
-					name = $7
+					name = ?
 					AND artistid = (
-						SELECT id FROM artists WHERE name = $8
+						SELECT id FROM artists WHERE name = ?
 					)
 			),
-			(SELECT id from genres WHERE name = $9)
+			(SELECT id from genres WHERE name = ?)
 		) ON CONFLICT DO NOTHING
 	`
 
