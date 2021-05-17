@@ -15,6 +15,7 @@ import PlayerBar from "Features/Player/PlayerBar"
 import SearchBar from "Features/Search/SearchBar"
 import SearchResults from "Features/Search/SearchResults"
 import LikedTracks from "Features/Playlist/LikedTracks"
+import SideBar from "Features/SideBar/SideBar"
 
 const Container = styled.div`
   display: flex;
@@ -24,11 +25,17 @@ const Container = styled.div`
 `
 
 const Content = styled.div`
-  padding: 10px;
   overflow: auto;
   flex: 1 1 0;
   display: flex;
+  flex-direction: row;
+`
+
+const MainContent = styled.main`
+  display: flex;
   flex-direction: column;
+  flex: 1 1 0;
+  padding: 10px;
 `
 
 
@@ -36,14 +43,19 @@ function App() {
   return <PlayerContextProvider>
     <Container>
       <BrowserRouter>
-        <Route path={["/search/:query", "/"]} component={SearchBar} />
         <Content>
-          <Switch>
-            <Route path="/album/:id" component={AlbumViewWrapper} />
-            <Route path="/artist/:id" component={ArtistViewWrapper} />
-            <Route path="/search/:query" component={SearchViewWrapper} />
-            <Route path="/playlist/liked" component={LikedTracksViewWrapper} />
-          </Switch>
+          <SideBar />
+          <MainContent>
+            <Route path={["/search/:query", "/"]} component={SearchBar} />
+            <div style={{ marginTop: 10 }}>
+              <Switch>
+                <Route path="/album/:id" component={AlbumViewWrapper} />
+                <Route path="/artist/:id" component={ArtistViewWrapper} />
+                <Route path="/search/:query" component={SearchViewWrapper} />
+                <Route path="/playlist/liked" component={LikedTracksViewWrapper} />
+              </Switch>
+            </div>
+          </MainContent>
         </Content>
         <PlayerBar />
       </BrowserRouter>
