@@ -41,30 +41,15 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 	tracks := []idNameAndUrlName{}
 	err = db.Select(
 		&tracks,
-		`SELECT
+		`
+			SELECT
 				id,
-				title as name
+				title name
 			FROM
 				tracks
 			WHERE
 				LOWER(title) LIKE LOWER($1)
-				OR EXISTS(SELECT * FROM albums WHERE id = albumid AND LOWER(name) LIKE LOWER($1))
-				OR EXISTS(
-					SELECT
-						*
-					FROM
-						artists
-					WHERE
-						id IN (
-							SELECT
-								artistid
-							FROM
-								trackArtists
-							WHERE
-								trackid = tracks.id
-						) AND LOWER(name) LIKE LOWER($1)
-				)
-			`,
+		`,
 		wildcardQuery,
 	)
 	if err != nil {
@@ -81,7 +66,7 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 			FROM
 				albums
 			WHERE
-				LOWER(REPLACE(name, ' ', '')) LIKE ?
+				LOWER(name) LIKE LOWER(?)
 			ORDER BY
 				name
 			`,
@@ -102,7 +87,7 @@ func Search(query string, db *sqlx.DB) (*SearchResults, error) {
 			FROM
 				artists
 			WHERE
-				LOWER(REPLACE(name, ' ', '')) LIKE ?
+				LOWER(name) LIKE LOWER(?)
 			ORDER BY
 				name
 			`,
