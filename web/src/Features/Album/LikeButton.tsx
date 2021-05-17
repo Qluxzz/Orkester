@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import styled from "styled-components"
 import { ILikeStatus } from "types/track"
 
@@ -18,7 +18,7 @@ async function likeTrack(trackId: number): Promise<ILikeStatus> {
 }
 
 async function unlikeTrack(trackId: number): Promise<ILikeStatus> {
-    const response = await fetch(`/api/v1/track/${trackId}/like`)
+    const response = await fetch(`/api/v1/track/${trackId}/unlike`)
 
     if (!response.ok)
         throw new Error(`Http request was not successful, status code: ${response.status}`)
@@ -26,7 +26,13 @@ async function unlikeTrack(trackId: number): Promise<ILikeStatus> {
     return "notliked"
 }
 
-export default function LikeButton({ trackId, likeStatus: originalLikeStatus }: { trackId: number, likeStatus: ILikeStatus }) {
+interface ILikeButtonProps {
+    trackId: number
+    likeStatus: ILikeStatus
+    onLikeStatusChanged?: (status: ILikeStatus) => void
+}
+
+export default function LikeButton({ trackId, likeStatus: originalLikeStatus, onLikeStatusChanged }: ILikeButtonProps) {
     const [likeStatus, setLikeStatus] = useState<ILikeStatus>(originalLikeStatus)
 
     const onClickFn = (() => {
@@ -55,7 +61,12 @@ export default function LikeButton({ trackId, likeStatus: originalLikeStatus }: 
         onClick={e => {
             e.preventDefault()
             onClickFn(trackId)
-                .then(likeStatus => setLikeStatus(likeStatus))
+                .then(likeStatus => {
+                    setLikeStatus(likeStatus)
+
+                    if (typeof (onLikeStatusChanged) === "function")
+                        onLikeStatusChanged(likeStatus)
+                })
                 .catch(error => {
                     console.error(error)
                 })

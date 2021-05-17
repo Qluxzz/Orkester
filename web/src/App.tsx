@@ -14,6 +14,7 @@ import { PlayerContextProvider } from "Context"
 import PlayerBar from "Features/Player/PlayerBar"
 import SearchBar from "Features/Search/SearchBar"
 import SearchResults from "Features/Search/SearchResults"
+import LikedTracks from "Features/Playlist/LikedTracks"
 
 const Container = styled.div`
   display: flex;
@@ -41,6 +42,7 @@ function App() {
             <Route path="/album/:id" component={AlbumViewWrapper} />
             <Route path="/artist/:id" component={ArtistViewWrapper} />
             <Route path="/search/:query" component={SearchViewWrapper} />
+            <Route path="/playlist/liked" component={LikedTracksViewWrapper} />
           </Switch>
         </Content>
         <PlayerBar />
@@ -65,6 +67,10 @@ function SearchViewWrapper() {
   const { query } = useParams<{ query: string }>()
 
   return <SearchResults query={query} />
+}
+
+function LikedTracksViewWrapper() {
+  return <LikedTracks />
 }
 
 export default App;

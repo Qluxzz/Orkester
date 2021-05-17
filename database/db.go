@@ -53,7 +53,8 @@ func createTables(db *sqlx.DB) error {
 	)`
 
 	likedTracksSchema := `CREATE TABLE IF NOT EXISTS likedTracks(
-		trackid INTEGER NOT NULL	
+		trackid INTEGER NOT NULL,
+		date TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 	)`
 
 	tx := db.MustBegin()
