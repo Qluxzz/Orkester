@@ -120,8 +120,6 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
 			track.Genre,
 		)
 
-		// When SQLite is updated so I can use RETURNING
-		// this can be greatly improved
 		rowsAffected, err := result.RowsAffected()
 		if err != nil || rowsAffected == 0 {
 			tx.Rollback()
