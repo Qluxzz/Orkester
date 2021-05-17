@@ -6,7 +6,6 @@ import styled from "styled-components"
 const Bar = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 10px;
 `
 
 const Input = styled.input`
