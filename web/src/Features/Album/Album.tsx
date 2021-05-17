@@ -42,7 +42,7 @@ export function GetAlbumWithId({ id }: { id: number }) {
             })
 
         return () => { isCanceled = true }
-    }, [id])
+    }, [id, history])
 
     if (!album)
         return <CenteredDotLoader />
