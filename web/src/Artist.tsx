@@ -47,7 +47,7 @@ export function GetArtistWithId({ id }: { id: number }) {
             })
 
         return () => { isCanceled = true }
-    }, [id])
+    }, [id, history])
 
     if (!artist)
         return <CenteredDotLoader />
