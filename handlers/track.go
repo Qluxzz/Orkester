@@ -46,3 +46,29 @@ func TrackStream(db *sqlx.DB) fiber.Handler {
 		return c.SendStream(stream)
 	}
 }
+
+func LikeTrack(db *sqlx.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		database.LikeTrack(id, db)
+
+		return c.SendStatus(fiber.StatusOK)
+	}
+}
+
+func UnLikeTrack(db *sqlx.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		database.UnlikeTrack(id, db)
+
+		return c.SendStatus(fiber.StatusOK)
+	}
+}

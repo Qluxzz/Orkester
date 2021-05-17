@@ -19,13 +19,16 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 				albums.urlname albumurlname,
 				genres.id genreid,
 				genres.name genrename,
-				genres.urlname genreurlname
+				genres.urlname genreurlname,
+				IFNULL(likedTracks.trackid, 0) likeStatus
 			FROM
 				tracks t
 			LEFT JOIN albums
 				ON albums.id = t.albumid
 			LEFT JOIN genres
 				ON genres.id = t.genreid
+			LEFT JOIN likedTracks
+				ON likedTracks.trackid = t.id
 			WHERE t.id IN (?)
 		`,
 		ids,
@@ -83,4 +86,12 @@ func GetTrackPath(id int, db *sqlx.DB) (*pathAndMimeType, error) {
 	}
 
 	return &data, nil
+}
+
+func LikeTrack(id int, db *sqlx.DB) {
+	db.Exec("INSERT INTO likedTracks (trackid) VALUES (?)", id)
+}
+
+func UnlikeTrack(id int, db *sqlx.DB) {
+	db.Exec("DELETE FROM likedTracks WHERE trackid = ?", id)
 }
