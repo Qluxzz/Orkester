@@ -8,6 +8,8 @@ type DBArtist struct {
 	UrlName sql.NullString `db:"urlname"`
 }
 
+type DBLikeStatus = bool
+
 type DBTrack struct {
 	Id            int            `db:"id"`
 	Title         string         `db:"title"`
@@ -22,6 +24,7 @@ type DBTrack struct {
 	GenreUrlName  sql.NullString `db:"genreurlname"`
 	Image         []byte         `db:"image"`
 	ImageMimeType string         `db:"imagemimetype"`
+	LikeStatus    DBLikeStatus   `db:"likeStatus"`
 }
 
 type Track struct {
@@ -33,6 +36,7 @@ type Track struct {
 	Album       *Album    `json:"album"`
 	Artists     []*Artist `json:"artists"`
 	Genre       *Genre    `json:"genre"`
+	LikeStatus  string    `json:"likeStatus"`
 }
 
 type IdNameAndUrlName struct {
@@ -93,5 +97,14 @@ func (track DBTrack) ToDomain(dbArtists []DBArtist) Track {
 		Genre:       genre,
 		Album:       album,
 		Artists:     artists,
+		LikeStatus:  ToDomain(track.LikeStatus),
+	}
+}
+
+func ToDomain(likeStatus DBLikeStatus) string {
+	if likeStatus {
+		return "liked"
+	} else {
+		return "notliked"
 	}
 }

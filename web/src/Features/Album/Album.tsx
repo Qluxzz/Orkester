@@ -7,6 +7,7 @@ import { usePlayerContext } from "Context";
 import { useHistory } from "react-router";
 import CenteredDotLoader from "CenteredDotLoader";
 import { ArtistLink } from "utilities/Links";
+import LikeButton from "./LikeButton";
 
 interface IAlbum {
     id: number
@@ -198,6 +199,7 @@ function AlbumView(album: IAlbum) {
                             {i !== arr.length - 1 && ", "}
                         </>)}
                     </TrackTitle>
+                    <LikeButton trackId={track.id} likeStatus={track.likeStatus} />
                     <TrackLength>{secondsToTimeFormat(track.length)}</TrackLength>
                 </TrackRow>
             )}

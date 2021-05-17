@@ -1,3 +1,5 @@
+export type ILikeStatus = "liked" | "notliked"
+
 type ITrack = {
     id: number
     title: string
@@ -7,6 +9,7 @@ type ITrack = {
     album: IAlbum
     artists: IArtist[]
     genre: string
+    likeStatus: ILikeStatus
 }
 
 export type IArtist = {

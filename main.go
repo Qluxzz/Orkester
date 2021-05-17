@@ -52,6 +52,8 @@ func main() {
 	track := v1.Group("/track")
 	track.Get("/:id/stream", handlers.TrackStream(db))
 	track.Get("/:id", handlers.TrackInfo(db))
+	track.Get("/:id/like", handlers.LikeTrack(db))
+	track.Get("/:id/unlike", handlers.UnLikeTrack(db))
 
 	album := v1.Group("/album")
 	album.Get("/:id", handlers.GetAlbum(db))

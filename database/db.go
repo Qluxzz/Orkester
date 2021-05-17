@@ -52,6 +52,10 @@ func createTables(db *sqlx.DB) error {
 		UNIQUE(trackid, artistid)
 	)`
 
+	likedTracksSchema := `CREATE TABLE IF NOT EXISTS likedTracks(
+		trackid INTEGER NOT NULL	
+	)`
+
 	tx := db.MustBegin()
 
 	tx.MustExec(artistSchema)
@@ -59,6 +63,7 @@ func createTables(db *sqlx.DB) error {
 	tx.MustExec(genreSchema)
 	tx.MustExec(trackSchema)
 	tx.MustExec(trackArtistsSchema)
+	tx.MustExec(likedTracksSchema)
 
 	err := tx.Commit()
 	return err
