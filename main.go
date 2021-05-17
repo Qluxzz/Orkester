@@ -65,6 +65,9 @@ func main() {
 	search := v1.Group("/search")
 	search.Get("/:query", handlers.Search(db))
 
+	playlist := v1.Group("/playlist")
+	playlist.Get("/liked", handlers.GetLikedTracks(db))
+
 	// app.Static("/", "web/build")
 
 	// app.Get("/*", func(c *fiber.Ctx) error {

@@ -7,6 +7,10 @@ import (
 )
 
 func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
+	if len(ids) == 0 {
+		return []models.Track{}, nil
+	}
+
 	query, args, err := sqlx.In(`
 			SELECT
 				t.id,
@@ -20,15 +24,13 @@ func GetTracksByIds(ids []int, db *sqlx.DB) ([]models.Track, error) {
 				genres.id genreid,
 				genres.name genrename,
 				genres.urlname genreurlname,
-				IFNULL(likedTracks.trackid, 0) likeStatus
+				IIF(EXISTS(SELECT * FROM likedTracks WHERE trackid = t.id), 1, 0) likeStatus
 			FROM
 				tracks t
 			LEFT JOIN albums
 				ON albums.id = t.albumid
 			LEFT JOIN genres
 				ON genres.id = t.genreid
-			LEFT JOIN likedTracks
-				ON likedTracks.trackid = t.id
 			WHERE t.id IN (?)
 		`,
 		ids,
