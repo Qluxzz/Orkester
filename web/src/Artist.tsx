@@ -9,14 +9,13 @@ interface IArtist {
     id: number
     name: string
     urlName: string
-    albums: IAlbum[]
+    albums: {
+        id: number,
+        name: string,
+        urlName: string
+    }[]
 }
 
-interface IAlbum {
-    id: number
-    name: string
-    urlName: string
-}
 
 export function GetArtistWithId({ id }: { id: number }) {
     const history = useHistory()
@@ -92,7 +91,6 @@ const ArtistName = styled.h1`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 20px;
 `
 
 
