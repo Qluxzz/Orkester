@@ -25,9 +25,9 @@ type idNameAndUrlName struct {
 }
 
 type SearchResults struct {
-	Tracks  []idNameAndUrlName
-	Albums  []idNameAndUrlName
-	Artists []idNameAndUrlName
+	Tracks  []idNameAndUrlName `json:"tracks"`
+	Albums  []idNameAndUrlName `json:"albums"`
+	Artists []idNameAndUrlName `json:"artists"`
 }
 
 func Search(query string, db *sqlx.DB) (*SearchResults, error) {

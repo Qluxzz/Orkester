@@ -14,10 +14,6 @@ func Search(db *sqlx.DB) fiber.Handler {
 			return err
 		}
 
-		return c.JSON(&fiber.Map{
-			"tracks":  searchResults.Tracks,
-			"albums":  searchResults.Albums,
-			"artists": searchResults.Artists,
-		})
+		return c.JSON(searchResults)
 	}
 }
