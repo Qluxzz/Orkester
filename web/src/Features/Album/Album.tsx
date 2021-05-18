@@ -78,7 +78,7 @@ function AlbumView(album: IAlbum) {
     const totalPlayTime = album.tracks.reduce((acc, x) => (acc += x.length), 0)
 
     return <Container>
-        <header style={{ display: "flex", padding: 10 }}>
+        <header style={{ display: "flex" }}>
             <img src={`/api/v1/album/${album.id}/image`} style={{ width: 192 }} alt={`Album cover for ${album.name}`} />
             <AlbumInfo>
                 <h1>{album.name}</h1>

@@ -35,7 +35,8 @@ const MainContent = styled.main`
   display: flex;
   flex-direction: column;
   flex: 1 1 0;
-  padding: 10px;
+  padding: 20px;
+  gap: 20px;
 `
 
 
@@ -47,14 +48,12 @@ function App() {
           <SideBar />
           <MainContent>
             <Route path={["/search/:query", "/"]} component={SearchBar} />
-            <div style={{ marginTop: 10 }}>
-              <Switch>
-                <Route path="/album/:id" component={AlbumViewWrapper} />
-                <Route path="/artist/:id" component={ArtistViewWrapper} />
-                <Route path="/search/:query" component={SearchViewWrapper} />
-                <Route path="/playlist/liked" component={LikedTracksViewWrapper} />
-              </Switch>
-            </div>
+            <Switch>
+              <Route path="/album/:id" component={AlbumViewWrapper} />
+              <Route path="/artist/:id" component={ArtistViewWrapper} />
+              <Route path="/search/:query" component={SearchViewWrapper} />
+              <Route path="/playlist/liked" component={LikedTracksViewWrapper} />
+            </Switch>
           </MainContent>
         </Content>
         <PlayerBar />
