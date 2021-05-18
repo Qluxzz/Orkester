@@ -16,10 +16,12 @@ interface IArtist {
     }[]
 }
 
+type Artist = "loading" | "loading-failed" | IArtist
+
 
 export function GetArtistWithId({ id }: { id: number }) {
     const history = useHistory()
-    const [artist, setArtist] = useState<IArtist>()
+    const [artist, setArtist] = useState<Artist>("loading")
 
     useEffect(() => {
         let isCanceled = false
@@ -33,6 +35,8 @@ export function GetArtistWithId({ id }: { id: number }) {
             return await response.json()
         }
 
+        setArtist("loading")
+
         fetchArtistInfo()
             .then(artist => {
                 if (isCanceled)
@@ -42,14 +46,22 @@ export function GetArtistWithId({ id }: { id: number }) {
                 history.replace(`/artist/${artist.id}/${artist.urlName}`)
             })
             .catch(error => {
+                if (isCanceled)
+                    return
+
+                setArtist("loading-failed")
+
                 console.error("Failed to get artist info!", error)
             })
 
         return () => { isCanceled = true }
     }, [id, history])
 
-    if (!artist)
+    if (artist === "loading")
         return <CenteredDotLoader />
+
+    if (artist === "loading-failed")
+        return <p>Failed to load artist</p>
 
     return <ArtistView {...artist} />
 }
