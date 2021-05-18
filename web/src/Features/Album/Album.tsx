@@ -79,7 +79,11 @@ function AlbumView(album: IAlbum) {
 
     return <Container>
         <header style={{ display: "flex" }}>
-            <img src={`/api/v1/album/${album.id}/image`} style={{ width: 192 }} alt={`Album cover for ${album.name}`} />
+            <img
+                src={`/api/v1/album/${album.id}/image`}
+                style={{ width: 192, height: 192, alignSelf: "center" }}
+                alt={`Album cover for ${album.name}`}
+            />
             <AlbumInfo>
                 <h1>{album.name}</h1>
                 <p>{album.tracks.length} track{album.tracks.length !== 1 && "s"}, {secondsToTimeFormat(totalPlayTime)}</p>
