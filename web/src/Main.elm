@@ -306,6 +306,17 @@ controls { state, slider, progress, track } repeat =
                 []
             , div [] [ text (durationDisplay track.length) ]
             ]
+        , div [ css [ displayFlex ] ]
+            [ input
+                [ css [ width (pct 100) ]
+                , type_ "range"
+                , Html.Styled.Attributes.min "0"
+                , Html.Styled.Attributes.max "100"
+                , value (volume |> String.fromInt)
+                , onInput (\value -> OnDragVolumeSlider (Maybe.withDefault 0 (value |> toInt)))
+                ]
+                []
+            ]
         ]
 
 
@@ -362,6 +373,7 @@ type alias Model =
     , player : Maybe Player
     , queue : Queue Track
     , repeat : Repeat
+    , volume : Int
     }
 
 
@@ -403,6 +415,7 @@ init _ url navKey =
             , player = Nothing
             , queue = Queue.empty
             , repeat = RepeatOff
+            , volume = 50
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -490,8 +503,7 @@ type Msg
     | JSPlayer JSPlayer.Msg
     | TrackInfoRecieved (WebData Track)
       -- Controls
-    | OnDragSlider Int
-    | OnDragSliderEnd
+    | OnDragVolumeSlider Int
     | OnRepeatChange Repeat
     | PlayNext
     | PlayPrevious
@@ -739,7 +751,8 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | player = clearSliderValue model.player }, cmd )
+        ( OnDragVolumeSlider volume, _ ) ->
+            ( { model | volume = volume }, JSPlayer.setVolume volume )
 
         ( OnRepeatChange repeat, _ ) ->
             ( { model | repeat = repeat }, Cmd.none )

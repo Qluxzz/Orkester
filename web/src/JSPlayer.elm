@@ -1,4 +1,4 @@
-port module JSPlayer exposing (Msg(..), pause, play, playTrack, playbackFailed, progressUpdated, seek, stateChange)
+port module JSPlayer exposing (Msg(..), pause, play, playTrack, playbackFailed, progressUpdated, seek, setVolume, stateChange)
 
 
 type Msg
@@ -26,6 +26,9 @@ port play : () -> Cmd msg
 
 
 port pause : () -> Cmd msg
+
+
+port setVolume : Int -> Cmd msg
 
 
 

@@ -41,6 +41,10 @@
 		app.ports.progressUpdated.send(Math.floor(audio.currentTime))
 	})
 
+	app.ports.setVolume.subscribe(volume => {
+		audio.volume = volume / 100
+	})
+
 	app.ports.playTrack.subscribe(trackId => {
 		audio.src = `http://localhost:42000/api/v1/track/${trackId}/stream`
 		audio.play()
