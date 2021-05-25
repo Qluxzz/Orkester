@@ -1,4 +1,4 @@
-# Go(React)
+# Orkester (swedish for orchestra)
 WIP Web based music player for local music
 
 Built using Gofiber and React
