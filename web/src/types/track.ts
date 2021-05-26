@@ -1,27 +1,27 @@
 export type ILikeStatus = "liked" | "notliked"
 
 type ITrack = {
-    id: number
-    title: string
-    trackNumber: string
-    date: string
-    length: number
-    album: IAlbum
-    artists: IArtist[]
-    genre: string
-    likeStatus: ILikeStatus
+    readonly id: number
+    readonly title: string
+    readonly trackNumber: string
+    readonly date: string
+    readonly length: number
+    readonly album: IAlbum
+    readonly artists: IArtist[]
+    readonly genre: string
+    readonly likeStatus: ILikeStatus
 }
 
 export type IArtist = {
-    id: number
-    name: string
-    urlName: string
+    readonly id: number
+    readonly name: string
+    readonly urlName: string
 }
 
 export type IAlbum = {
-    id: number
-    name: string
-    urlName: string
+    readonly id: number
+    readonly name: string
+    readonly urlName: string
 }
 
 export default ITrack
