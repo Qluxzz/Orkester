@@ -47,7 +47,7 @@ function App() {
         <Content>
           <SideBar />
           <MainContent>
-            <Route path={["/search/:query", "/"]} component={SearchBar} />
+            <Route path="/search/:query" children={() => <SearchBar />} />
             <Switch>
               <Route path="/album/:id" component={AlbumViewWrapper} />
               <Route path="/artist/:id" component={ArtistViewWrapper} />
