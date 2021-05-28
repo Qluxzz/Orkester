@@ -81,7 +81,7 @@ function AlbumView(album: IAlbum) {
     const totalPlayTime = album.tracks.reduce((acc, x) => (acc += x.length), 0)
 
     return <Container>
-        <header style={{ display: "flex" }}>
+        <header style={{ display: "flex", marginBottom: 20 }}>
             <img
                 src={`/api/v1/album/${album.id}/image`}
                 style={{ width: 192, height: 192, alignSelf: "center" }}
