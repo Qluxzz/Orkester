@@ -57,11 +57,11 @@ function ProgressBar() {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const timestamp = player?.currentTime
-            const duration = player?.duration
-
-            if (!timestamp || !duration)
+            if (!player)
                 return
+
+            const timestamp = player.currentTime
+            const duration = player.duration
 
             setData({
                 duration,
