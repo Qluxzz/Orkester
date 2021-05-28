@@ -29,7 +29,7 @@ async function unlikeTrack(trackId: number): Promise<ILikeStatus> {
 interface ILikeButtonProps {
     trackId: number
     likeStatus: ILikeStatus
-    onLikeStatusChanged?: (status: ILikeStatus) => void
+    onLikeStatusChanged?: (status: ILikeStatus, trackId: number) => void
 }
 
 export default function LikeButton({ trackId, likeStatus: originalLikeStatus, onLikeStatusChanged }: ILikeButtonProps) {
@@ -65,7 +65,7 @@ export default function LikeButton({ trackId, likeStatus: originalLikeStatus, on
                     setLikeStatus(likeStatus)
 
                     if (typeof (onLikeStatusChanged) === "function")
-                        onLikeStatusChanged(likeStatus)
+                        onLikeStatusChanged(likeStatus, trackId)
                 })
                 .catch(error => {
                     console.error(error)
