@@ -1,8 +1,8 @@
 import styled from "styled-components"
 import { usePlayerContext } from "Context"
-import { useEffect, useMemo, useRef } from "react"
-import ITrack from "types/track"
 import { AlbumLink, ArtistLink } from "utilities/Links"
+import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
+import { useEffect, useState } from "react"
 
 const Bar = styled.div`
   display: flex;
@@ -13,7 +13,6 @@ const Bar = styled.div`
 
 export default function PlayerBar() {
     const { track } = usePlayerContext()
-
 
     if (!track)
         return <Bar>Nothing is currently playing...</Bar>
@@ -39,37 +38,44 @@ export default function PlayerBar() {
                 </h2>
             </div>
         </div>
-        <Controls track={track} />
+        <Controls />
     </Bar>
 }
 
-function Controls({ track }: { track: ITrack }) {
-    const playerRef = useRef<HTMLAudioElement>(null)
-    const channel = useMemo(() => new BroadcastChannel("currently_playing"), [])
+function Controls() {
+    const { togglePlayback, state } = usePlayerContext()
+
+    return <div>
+        <button onClick={togglePlayback}>{state === "paused" ? "play" : "pause"}</button>
+        <ProgressBar />
+    </div>
+}
+
+function ProgressBar() {
+    const [data, setData] = useState<{ duration: number, timestamp: number }>()
+    const { player } = usePlayerContext()
 
     useEffect(() => {
-        channel.onmessage = _ => {
-            playerRef.current?.pause()
-        }
+        const interval = setInterval(() => {
+            const timestamp = player?.currentTime
+            const duration = player?.duration
+
+            if (!timestamp || !duration)
+                return
+
+            setData({
+                duration,
+                timestamp
+            })
+        }, 1000)
 
         return () => {
-            channel.close()
+            clearInterval(interval)
         }
-    }, [channel])
+    }, [player])
 
-    useEffect(() => {
-        playerRef
-            .current?.play().then(_ => { })
-    }, [track])
+    if (!data || !data.timestamp || !data.duration)
+        return null
 
-    return <audio
-        ref={playerRef}
-        src={`/api/v1/track/${track.id}/stream`}
-        controls
-        onPlay={() => {
-            window.localStorage.setItem("track", track.id.toString())
-
-            channel.postMessage("playing")
-        }}
-    />
+    return <>{secondsToTimeFormat(data.timestamp)}/{secondsToTimeFormat(data.duration)}</>
 }
