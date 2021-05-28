@@ -25,6 +25,9 @@ export default function LikedTracks() {
 
                 setTracks(tracks)
             })
+            .catch(error => {
+                console.error("Failed to get liked tracks", error)
+            })
     }, [])
 
     if (!tracks)
@@ -34,7 +37,13 @@ export default function LikedTracks() {
         <h1>Liked tracks</h1>
         {tracks.length === 0
             ? <p>You have no liked tracks</p>
-            : <TrackList tracks={tracks} />
+            : <TrackList
+                tracks={tracks}
+                onLikeStatusChanged={(status, trackId) => {
+                    if (status === "notliked")
+                        setTracks(tracks.filter(x => x.id !== trackId))
+                }}
+            />
         }
     </div>
 }

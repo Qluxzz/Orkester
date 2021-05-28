@@ -2,7 +2,7 @@ import { usePlayerContext } from "Context"
 import LikeButton from "Features/Album/LikeButton"
 import React, { useState } from "react"
 import styled from "styled-components"
-import ITrack from "types/track"
+import ITrack, { ILikeStatus } from "types/track"
 import { ArtistLink } from "utilities/Links"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
 
@@ -52,9 +52,12 @@ interface ISortOptions {
     direction: ISortDirection
 }
 
-export default function TrackList({ tracks: initalTracks }: { tracks: ITrack[] }) {
-    const [tracks, setTracks] = useState(initalTracks)
+interface ITrackList {
+    tracks: ITrack[]
+    onLikeStatusChanged?: (status: ILikeStatus, trackId: number) => void
+}
 
+export default function TrackList({ tracks, onLikeStatusChanged }: ITrackList) {
     const { play } = usePlayerContext()
 
     const [sortOptions, setSortOptions] = useState<ISortOptions>({
@@ -134,10 +137,7 @@ export default function TrackList({ tracks: initalTracks }: { tracks: ITrack[] }
                 <LikeButton
                     trackId={track.id}
                     likeStatus={track.likeStatus}
-                    onLikeStatusChanged={newStatus => {
-                        if (newStatus === "notliked")
-                            setTracks(tracks.filter(x => x.id !== track.id))
-                    }}
+                    onLikeStatusChanged={onLikeStatusChanged}
                 />
                 <TrackLength>{secondsToTimeFormat(track.length)}</TrackLength>
             </TrackRow>
