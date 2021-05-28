@@ -60,12 +60,9 @@ function ProgressBar() {
             if (!player)
                 return
 
-            const timestamp = player.currentTime
-            const duration = player.duration
-
             setData({
-                duration,
-                timestamp
+                duration: player.duration,
+                timestamp: player.currentTime
             })
         }, 1000)
 
