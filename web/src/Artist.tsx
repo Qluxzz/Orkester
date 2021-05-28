@@ -103,14 +103,13 @@ const ArtistName = styled.h1`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 20px;
 `
 
 
 function ArtistView(artist: IArtist) {
     return <>
-        <div>
-            <ArtistName>{artist.name}</ArtistName>
-        </div>
+        <ArtistName>{artist.name}</ArtistName>
         <div style={{
             display: "grid",
             gap: 24,
