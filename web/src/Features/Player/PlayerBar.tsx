@@ -61,8 +61,8 @@ function ProgressBar() {
                 return
 
             setData({
-                duration: player.duration,
-                timestamp: player.currentTime
+                duration: Math.round(player.duration),
+                timestamp: Math.round(player.currentTime)
             })
         }, 1000)
 

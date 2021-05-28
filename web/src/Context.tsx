@@ -92,7 +92,13 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
 
         const interval = setInterval(
             () => {
-                localStorage.setItem("track", JSON.stringify({ id: track.id, timestamp: player.currentTime }))
+                localStorage.setItem(
+                    "track",
+                    JSON.stringify({
+                        id: track.id,
+                        timestamp: Math.round(player.currentTime)
+                    })
+                )
             },
             1000
         )
