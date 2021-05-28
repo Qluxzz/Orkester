@@ -37,6 +37,11 @@ const MainContent = styled.main`
   flex: 1 1 0;
   padding: 20px;
   gap: 20px;
+  overflow: hidden;
+`
+
+const ScrollableContent = styled.div`
+  overflow: auto;
 `
 
 
@@ -48,12 +53,14 @@ function App() {
           <SideBar />
           <MainContent>
             <Route path="/search/:query" children={() => <SearchBar />} />
-            <Switch>
-              <Route path="/album/:id" component={AlbumViewWrapper} />
-              <Route path="/artist/:id" component={ArtistViewWrapper} />
-              <Route path="/search/:query" component={SearchViewWrapper} />
-              <Route path="/playlist/liked" component={LikedTracksViewWrapper} />
-            </Switch>
+            <ScrollableContent>
+              <Switch>
+                <Route path="/album/:id" component={AlbumViewWrapper} />
+                <Route path="/artist/:id" component={ArtistViewWrapper} />
+                <Route path="/search/:query" component={SearchViewWrapper} />
+                <Route path="/playlist/liked" component={LikedTracksViewWrapper} />
+              </Switch>
+            </ScrollableContent>
           </MainContent>
         </Content>
         <PlayerBar />
