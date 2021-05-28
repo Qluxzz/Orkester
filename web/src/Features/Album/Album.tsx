@@ -35,6 +35,9 @@ export function GetAlbumWithId({ id }: { id: number }) {
     const [album, setAlbum] = useState<IAlbum>()
 
     useEffect(() => {
+        if (id === album?.id)
+            return
+
         let isCanceled = false
 
         fetchAlbumInfo(id)
@@ -51,7 +54,7 @@ export function GetAlbumWithId({ id }: { id: number }) {
             })
 
         return () => { isCanceled = true }
-    }, [id, history])
+    }, [id, history, album])
 
     if (!album)
         return <CenteredDotLoader />
