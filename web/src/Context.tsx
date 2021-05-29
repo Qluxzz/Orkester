@@ -5,6 +5,7 @@ import ITrack from "./types/track"
 interface IPlayerContext {
     track?: ITrack
     play: (id: number) => void
+    queueTrack: (id: number) => void
     togglePlayback: () => void
     state: IPlaybackState
     player?: HTMLAudioElement
@@ -13,6 +14,7 @@ interface IPlayerContext {
 const PlayerContext = React.createContext<IPlayerContext>({
     track: undefined,
     play: () => { },
+    queueTrack: () => { },
     togglePlayback: () => { },
     state: "paused",
     player: undefined
@@ -59,25 +61,35 @@ function writeTrackInfoToLocalStorage(trackInfo: ILocalStorageTrack) {
 
 
 export function PlayerContextProvider({ children }: { children: React.ReactNode }) {
-    const [track, setTrack] = useState<ITrack>()
+    const queue: ITrack[] = useMemo(() => [], [])
+    const [currentlyPlayingTrack, setCurrentlyPlayingTrack] = useState<ITrack>()
     const [state, setState] = useState<IPlaybackState>("paused")
 
     const playerRef = useRef(new Audio())
     const player = playerRef.current
 
-    const playTrack = useCallback((id: number) =>
+    const queueTrack = useCallback((id: number) =>
         fetchTrackDetails(id)
-            .then(track => {
-                setTrack(track)
-                writeTrackInfoToLocalStorage({ id: track.id, timestamp: 0 })
-                document.title = `${track.title} - ${track.artists.map(artist => artist.name).join(", ")}`
-                player.src = `/api/v1/track/${track.id}/stream`
-                player.play().then(() => setState("playing"))
-            })
+            .then(track => queue.push(track))
+            .catch(error => console.error("Failed to queue track", error)),
+        [queue]
+    )
+
+    const playTrack = useCallback((track: ITrack) => {
+        setCurrentlyPlayingTrack(track)
+        writeTrackInfoToLocalStorage({ id: track.id, timestamp: 0 })
+        document.title = `${track.title} - ${track.artists.map(artist => artist.name).join(", ")}`
+        player.src = `/api/v1/track/${track.id}/stream`
+        player.play().then(() => setState("playing"))
+    }, [player])
+
+    const playTrackById = useCallback((id: number) =>
+        fetchTrackDetails(id)
+            .then(track => playTrack(track))
             .catch(error => {
                 console.error("Something went wrong while loading track info", error)
             }),
-        [player]
+        [playTrack]
     )
 
     const togglePlayBack = useCallback(async () => {
@@ -96,7 +108,7 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
         if (!savedTrack)
             return
 
-        playTrack(savedTrack.id)
+        playTrackById(savedTrack.id)
             .then(_ => {
                 player.fastSeek(savedTrack.timestamp)
                 player.pause()
@@ -104,7 +116,7 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
     }
 
     function writePlaybackStatusToLocalStorageWhilePlaying() {
-        if (!track)
+        if (!currentlyPlayingTrack)
             return
 
         if (state !== "playing")
@@ -112,13 +124,10 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
 
         const interval = setInterval(
             () => {
-                localStorage.setItem(
-                    "track",
-                    JSON.stringify({
-                        id: track.id,
-                        timestamp: Math.round(player.currentTime)
-                    })
-                )
+                writeTrackInfoToLocalStorage({
+                    id: currentlyPlayingTrack.id,
+                    timestamp: Math.round(player.currentTime)
+                })
             },
             1000
         )
@@ -130,22 +139,39 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
 
     useEffect(
         writePlaybackStatusToLocalStorageWhilePlaying,
-        [track, state, player.currentTime]
+        [currentlyPlayingTrack, state, player.currentTime]
     )
 
     useEffect(
         loadInitalPlaybackState,
-        [playTrack, player]
+        [playTrackById, player]
     )
+
+    useEffect(() => {
+        const playNextTrackInQueue = () => {
+            const nextTrack = queue.shift()
+            if (!nextTrack)
+                return
+
+            playTrack(nextTrack)
+        }
+
+        player.addEventListener("ended", playNextTrackInQueue)
+
+        return () => {
+            player.removeEventListener("ended", playNextTrackInQueue)
+        }
+    })
 
 
     const memoValues = useMemo(() => ({
-        track: track,
-        play: playTrack,
+        track: currentlyPlayingTrack,
+        play: playTrackById,
+        queueTrack: queueTrack,
         togglePlayback: togglePlayBack,
         state: state,
         player: player
-    }), [playTrack, player, state, togglePlayBack, track])
+    }), [playTrackById, queueTrack, player, state, togglePlayBack, currentlyPlayingTrack])
 
     return <PlayerContext.Provider
         value={memoValues}
