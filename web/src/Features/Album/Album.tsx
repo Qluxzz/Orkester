@@ -7,6 +7,7 @@ import { useHistory } from "react-router";
 import CenteredDotLoader from "CenteredDotLoader";
 import { ArtistLink } from "utilities/Links";
 import TrackList from "TrackList";
+import AlbumImage from "utilities/AlbumImage";
 
 interface IAlbum {
     id: number
@@ -82,11 +83,7 @@ function AlbumView(album: IAlbum) {
 
     return <Container>
         <header style={{ display: "flex", marginBottom: 20 }}>
-            <img
-                src={`/api/v1/album/${album.id}/image`}
-                style={{ width: 192, height: 192, alignSelf: "center" }}
-                alt={`Album cover for ${album.name}`}
-            />
+            <AlbumImage album={album} size={192} />
             <AlbumInfo>
                 <h1>{album.name}</h1>
                 <p>{album.tracks.length} track{album.tracks.length !== 1 && "s"}, {secondsToTimeFormat(totalPlayTime)}</p>

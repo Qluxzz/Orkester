@@ -1,8 +1,10 @@
+import React, { useEffect, useState } from "react"
 import styled from "styled-components"
+
 import { usePlayerContext } from "Context"
 import { AlbumLink, ArtistLink } from "utilities/Links"
+import AlbumImage from "utilities/AlbumImage"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
-import { useEffect, useState } from "react"
 
 const Bar = styled.div`
   display: flex;
@@ -20,7 +22,7 @@ export default function PlayerBar() {
     return <Bar>
         <div style={{ display: "flex", marginBottom: 10 }}>
             <AlbumLink {...track.album}>
-                <img key={track.id} width="72" height="72" src={`/api/v1/album/${track.album.id}/image`} alt={track.album.name} />
+                <AlbumImage album={track.album} size={72} />
             </AlbumLink>
             <div style={{ marginLeft: 10, overflow: "hidden" }}>
                 <h1>{track.title}</h1>
