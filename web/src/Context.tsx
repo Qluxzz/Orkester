@@ -72,8 +72,7 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
                 writeTrackInfoToLocalStorage({ id: track.id, timestamp: 0 })
                 document.title = `${track.title} - ${track.artists.map(artist => artist.name).join(", ")}`
                 player.src = `/api/v1/track/${track.id}/stream`
-                player.play()
-                setState("playing")
+                player.play().then(() => setState("playing"))
             })
             .catch(error => {
                 console.error("Something went wrong while loading track info", error)
