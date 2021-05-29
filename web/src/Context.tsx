@@ -6,19 +6,25 @@ interface IPlayerContext {
     track?: ITrack
     play: (id: number) => void
     togglePlayback: () => void
-    state: IPlaybackState
+    state?: IPlaybackState
     player?: HTMLAudioElement
 }
 
 const PlayerContext = React.createContext<IPlayerContext>({
     track: undefined,
-    play: () => { throw new Error("Tried to access context outside of provider") },
-    togglePlayback: () => { throw new Error("Tried to access context outside of provider") },
-    state: "paused",
+    play: () => { },
+    togglePlayback: () => { },
+    state: undefined,
     player: undefined
 })
 
-export const usePlayerContext = () => useContext(PlayerContext)
+export const usePlayerContext = () => {
+    const context = useContext(PlayerContext)
+    if (!context)
+        throw new Error(`PlayerContext must be used inside of a PlayerContextProvider`)
+
+    return context
+}
 
 async function fetchTrackDetails(id: number) {
     const response = await fetch(`/api/v1/track/${id}`)
