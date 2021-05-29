@@ -57,7 +57,7 @@ function ProgressBar() {
     const [data, setData] = useState<{ duration: number, timestamp: number }>()
     const { player } = usePlayerContext()
 
-    useEffect(() => {
+    function updateCurrentTimeInterval() {
         const interval = setInterval(() => {
             if (!player)
                 return
@@ -71,7 +71,9 @@ function ProgressBar() {
         return () => {
             clearInterval(interval)
         }
-    }, [player])
+    }
+
+    useEffect(updateCurrentTimeInterval, [player])
 
     if (!data || !data.timestamp || !data.duration)
         return null

@@ -35,6 +35,22 @@ interface ILocalStorageTrack {
     timestamp: number
 }
 
+function readTrackInfoFromLocalStorage(): ILocalStorageTrack | undefined {
+    const savedTrackJson = localStorage.getItem("track")
+    if (!savedTrackJson)
+        return
+
+    const savedTrack: ILocalStorageTrack = JSON.parse(savedTrackJson)
+    if (!savedTrack)
+        return
+
+    return savedTrack
+}
+
+function writeTrackInfoToLocalStorage(trackInfo: ILocalStorageTrack) {
+    localStorage.setItem("track", JSON.stringify(trackInfo))
+}
+
 
 export function PlayerContextProvider({ children }: { children: React.ReactNode }) {
     const [track, setTrack] = useState<ITrack>()
@@ -43,11 +59,11 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
     const playerRef = useRef(new Audio())
     const player = playerRef.current
 
-    const loadTrack = useCallback((id: number) =>
+    const playTrack = useCallback((id: number) =>
         fetchTrackDetails(id)
             .then(track => {
                 setTrack(track)
-                localStorage.setItem("track", JSON.stringify({ id: track.id, timestamp: 0 }))
+                writeTrackInfoToLocalStorage({ id: track.id, timestamp: 0 })
                 document.title = `${track.title} - ${track.artists.map(artist => artist.name).join(", ")}`
                 player.src = `/api/v1/track/${track.id}/stream`
                 player.play()
@@ -55,8 +71,9 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
             })
             .catch(error => {
                 console.error("Something went wrong while loading track info", error)
-            })
-        , [player])
+            }),
+        [player]
+    )
 
     const togglePlayBack = useCallback(async () => {
         if (player.paused) {
@@ -68,22 +85,20 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
         }
     }, [player])
 
-    useEffect(() => {
-        const savedTrackJson = localStorage.getItem("track")
-        if (!savedTrackJson)
+    function loadInitalPlaybackState() {
+        const savedTrack = readTrackInfoFromLocalStorage()
+
+        if (!savedTrack)
             return
 
-        const { id, timestamp }: ILocalStorageTrack = JSON.parse(savedTrackJson)
-        if (!id)
-            return
-
-        loadTrack(id)
+        playTrack(savedTrack.id)
             .then(_ => {
-                player.fastSeek(timestamp)
+                player.fastSeek(savedTrack.timestamp)
+                player.pause()
             })
-    }, [loadTrack, player])
+    }
 
-    useEffect(() => {
+    function writePlaybackStatusToLocalStorageWhilePlaying() {
         if (!track)
             return
 
@@ -104,16 +119,28 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
         )
 
         return () => { clearInterval(interval) }
-    }, [track, state])
+    }
+
+    /* Effects */
+
+    useEffect(
+        writePlaybackStatusToLocalStorageWhilePlaying,
+        [track, state, player.currentTime]
+    )
+
+    useEffect(
+        loadInitalPlaybackState,
+        [playTrack, player]
+    )
 
 
     const memoValues = useMemo(() => ({
         track: track,
-        play: loadTrack,
+        play: playTrack,
         togglePlayback: togglePlayBack,
         state: state,
         player: player
-    }), [loadTrack, player, state, togglePlayBack, track])
+    }), [playTrack, player, state, togglePlayBack, track])
 
     return <PlayerContext.Provider
         value={memoValues}
