@@ -6,7 +6,7 @@ interface IPlayerContext {
     track?: ITrack
     play: (id: number) => void
     togglePlayback: () => void
-    state?: IPlaybackState
+    state: IPlaybackState
     player?: HTMLAudioElement
 }
 
@@ -14,7 +14,7 @@ const PlayerContext = React.createContext<IPlayerContext>({
     track: undefined,
     play: () => { },
     togglePlayback: () => { },
-    state: undefined,
+    state: "paused",
     player: undefined
 })
 
