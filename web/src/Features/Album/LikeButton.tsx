@@ -68,7 +68,7 @@ export default function LikeButton({ trackId, likeStatus: originalLikeStatus, on
                         onLikeStatusChanged(likeStatus, trackId)
                 })
                 .catch(error => {
-                    console.error(error)
+                    console.error("Failed to toggle like status", error)
                 })
         }}
     >
