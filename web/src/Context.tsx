@@ -6,6 +6,7 @@ interface IPlayerContext {
     track?: ITrack
     play: (id: number) => void
     queueTrack: (id: number) => void
+    queueTracks: (ids: number[]) => void
     togglePlayback: () => void
     state: IPlaybackState
     player?: HTMLAudioElement
@@ -15,6 +16,7 @@ const PlayerContext = React.createContext<IPlayerContext>({
     track: undefined,
     play: () => { },
     queueTrack: () => { },
+    queueTracks: () => { },
     togglePlayback: () => { },
     state: "paused",
     player: undefined
@@ -36,6 +38,23 @@ async function fetchTrackDetails(id: number) {
     const track: ITrack = await response.json()
 
     return track
+}
+
+async function fetchTracksDetails(ids: number[]) {
+    const response = await fetch(`/api/v1/tracks/ids`, {
+        method: "POST",
+        body: JSON.stringify(ids),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+
+    if (!response.ok)
+        throw new Error(`Http request failed with status code: ${response.status}`)
+
+    const tracks: ITrack[] = await response.json()
+
+    return tracks
 }
 
 interface ILocalStorageTrack {
@@ -68,16 +87,29 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
     const playerRef = useRef(new Audio())
     const player = playerRef.current
 
+    const queueTracks = useCallback((ids: number[]) => {
+        fetchTracksDetails(ids)
+            .then(tracks => {
+                const sortedTracks = ids.reduce<ITrack[]>((acc, id) => {
+                    const track = tracks.find(x => x.id === id)
+                    if (track)
+                        acc.push(track)
+
+                    return acc
+                }, [])
+
+                queue.push(...sortedTracks)
+            })
+            .catch(error => {
+                console.error("Failed to get track details", error)
+            })
+    }, [queue])
+
     const queueTrack = useCallback((id: number) =>
-        fetchTrackDetails(id)
-            .then(track => queue.push(track))
-            .catch(error => console.error("Failed to queue track", error)),
-        [queue]
-    )
+        queueTracks([id]), [queueTracks])
 
     const playTrack = useCallback((track: ITrack) => {
         setCurrentlyPlayingTrack(track)
-        writeTrackInfoToLocalStorage({ id: track.id, timestamp: 0 })
         document.title = `${track.title} - ${track.artists.map(artist => artist.name).join(", ")}`
         player.src = `/api/v1/track/${track.id}/stream`
         player.play().then(() => setState("playing"))
@@ -164,17 +196,18 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
     })
 
 
-    const memoValues = useMemo(() => ({
+    const values = {
         track: currentlyPlayingTrack,
         play: playTrackById,
         queueTrack: queueTrack,
+        queueTracks: queueTracks,
         togglePlayback: togglePlayBack,
         state: state,
         player: player
-    }), [playTrackById, queueTrack, player, state, togglePlayBack, currentlyPlayingTrack])
+    }
 
     return <PlayerContext.Provider
-        value={memoValues}
+        value={values}
     >
         {children}
     </PlayerContext.Provider>

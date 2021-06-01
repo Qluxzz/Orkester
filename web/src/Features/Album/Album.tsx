@@ -8,6 +8,7 @@ import CenteredDotLoader from "CenteredDotLoader";
 import { ArtistLink } from "utilities/Links";
 import TrackList from "TrackList";
 import AlbumImage from "utilities/AlbumImage";
+import { usePlayerContext } from "Context";
 
 interface IAlbum {
     id: number
@@ -79,11 +80,17 @@ const Container = styled.div`
 `
 
 function AlbumView(album: IAlbum) {
+    const { queueTracks } = usePlayerContext()
+
     const totalPlayTime = album.tracks.reduce((acc, x) => (acc += x.length), 0)
+
+    const trackIds = album.tracks.map(track => track.id)
 
     return <Container>
         <header style={{ display: "flex", marginBottom: 20 }}>
-            <AlbumImage album={album} size={192} />
+            <div onClick={() => queueTracks(trackIds)}>
+                <AlbumImage album={album} size={192} />
+            </div>
             <AlbumInfo>
                 <h1>{album.name}</h1>
                 <p>{album.tracks.length} track{album.tracks.length !== 1 && "s"}, {secondsToTimeFormat(totalPlayTime)}</p>
@@ -94,5 +101,5 @@ function AlbumView(album: IAlbum) {
             </AlbumInfo>
         </header>
         <TrackList tracks={album.tracks} />
-    </Container>
+    </Container >
 }

@@ -55,6 +55,8 @@ func main() {
 	track.Get("/:id/like", handlers.LikeTrack(db))
 	track.Get("/:id/unlike", handlers.UnLikeTrack(db))
 
+	v1.Post("/tracks/ids", handlers.TracksInfo(db))
+
 	album := v1.Group("/album")
 	album.Get("/:id", handlers.GetAlbum(db))
 	album.Get("/:id/image", handlers.GetAlbumCover(db))
