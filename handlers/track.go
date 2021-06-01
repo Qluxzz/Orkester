@@ -9,6 +9,23 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+func TracksInfo(db *sqlx.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ids := new([]int)
+
+		if err := c.BodyParser(ids); err != nil {
+			return err
+		}
+
+		tracks, err := database.GetTracksByIds(*ids, db)
+		if err != nil {
+			return nil
+		}
+
+		return c.JSON(tracks)
+	}
+}
+
 func TrackInfo(db *sqlx.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
