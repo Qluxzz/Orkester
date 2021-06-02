@@ -43,6 +43,7 @@ export default function LikedTracks() {
                     if (status === "notliked")
                         setTracks(tracks.filter(x => x.id !== trackId))
                 }}
+                showAlbumCover
             />
         }
     </div>

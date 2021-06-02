@@ -1,8 +1,9 @@
+import React, { useState } from "react"
 import { usePlayerContext } from "Context"
 import LikeButton from "Features/Album/LikeButton"
-import React, { useState } from "react"
 import styled from "styled-components"
 import ITrack, { ILikeStatus } from "types/track"
+import AlbumImage from "utilities/AlbumImage"
 import { ArtistLink } from "utilities/Links"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
 
@@ -37,10 +38,19 @@ const TrackTitle = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
     padding-right: 20px;
+
+    display: flex;
+    align-items: center;
 `
 
 const TrackLength = styled.div`
     font-variant-numeric: tabular-nums;
+`
+
+const TrackTitleAndArtists = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px;
 `
 
 
@@ -55,9 +65,10 @@ interface ISortOptions {
 interface ITrackList {
     tracks: ITrack[]
     onLikeStatusChanged?: (status: ILikeStatus, trackId: number) => void
+    showAlbumCover?: boolean
 }
 
-export default function TrackList({ tracks, onLikeStatusChanged }: ITrackList) {
+export default function TrackList({ tracks, onLikeStatusChanged, showAlbumCover = false }: ITrackList) {
     const { play } = usePlayerContext()
 
     const [sortOptions, setSortOptions] = useState<ISortOptions>({
@@ -126,13 +137,22 @@ export default function TrackList({ tracks, onLikeStatusChanged }: ITrackList) {
                 key={track.id}
                 onDoubleClick={() => play(track.id)}
             >
-                <TrackNumber>{track.trackNumber}</TrackNumber>
+                <TrackNumber>
+                    {track.trackNumber}
+                </TrackNumber>
                 <TrackTitle>
-                    <div>{track.title}</div>
-                    {track.artists.map((artist, i, arr) => <>
-                        <ArtistLink {...artist}>{artist.name}</ArtistLink>
-                        {i !== arr.length - 1 && ", "}
-                    </>)}
+                    {showAlbumCover &&
+                        <AlbumImage album={track.album} size={40} />
+                    }
+                    <TrackTitleAndArtists>
+                        {track.title}
+                        <div>
+                            {track.artists.map((artist, i, arr) => <>
+                                <ArtistLink {...artist}>{artist.name}</ArtistLink>
+                                {i !== arr.length - 1 && ", "}
+                            </>)}
+                        </div>
+                    </TrackTitleAndArtists>
                 </TrackTitle>
                 <LikeButton
                     trackId={track.id}
