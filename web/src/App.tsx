@@ -87,8 +87,4 @@ function SearchViewWrapper() {
   return <SearchResults query={query} />
 }
 
-function LikedTracksViewWrapper() {
-  return <LikedTracks />
-}
-
 export default App;
