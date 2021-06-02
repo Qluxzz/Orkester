@@ -27,12 +27,12 @@ export default function PlayerBar() {
             <div style={{ marginLeft: 10, overflow: "hidden" }}>
                 <h1>{track.title}</h1>
                 <h2 style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                    {track.artists.map((artist, i, arr) => <>
-                        <ArtistLink {...artist} key={artist.id}>
+                    {track.artists.map((artist, i, arr) => <React.Fragment key={artist.id}>
+                        <ArtistLink {...artist} >
                             {artist.name}
                         </ArtistLink>
                         {i !== arr.length - 1 && ", "}
-                    </>)}
+                    </React.Fragment>)}
                     {" - "}
                     <AlbumLink {...track.album}>
                         {track.album.name}
