@@ -15,6 +15,13 @@ async function getLikedTracks(): Promise<ITrack[]> {
 export default function LikedTracks() {
     const [tracks, setTracks] = useState<ITrack[]>()
 
+    function removeLikedTrack(trackId: number) {
+        if (!tracks)
+            throw new Error(`Can't remove track when has no tracks`)
+
+        setTracks(tracks.filter(x => x.id !== trackId))
+    }
+
     useEffect(() => {
         let isCanceled = false
 
@@ -41,7 +48,7 @@ export default function LikedTracks() {
                 tracks={tracks}
                 onLikeStatusChanged={(status, trackId) => {
                     if (status === "notliked")
-                        setTracks(tracks.filter(x => x.id !== trackId))
+                        removeLikedTrack(trackId)
                 }}
                 showAlbumCover
             />
