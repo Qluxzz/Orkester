@@ -58,7 +58,7 @@ function App() {
                 <Route path="/album/:id" component={AlbumViewWrapper} />
                 <Route path="/artist/:id" component={ArtistViewWrapper} />
                 <Route path="/search/:query" component={SearchViewWrapper} />
-                <Route path="/playlist/liked" component={LikedTracksViewWrapper} />
+                <Route path="/collection/tracks" component={LikedTracks} />
               </Switch>
             </ScrollableContent>
           </MainContent>
