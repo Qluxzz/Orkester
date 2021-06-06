@@ -1,4 +1,5 @@
-import React, { useState, useContext, useEffect, useRef, useCallback, useMemo } from "react"
+import useQueue from "Features/Queue/useQueue"
+import React, { useState, useContext, useEffect, useRef, useCallback } from "react"
 import IPlaybackState from "types/playbackState"
 import ITrack from "./types/track"
 
@@ -68,14 +69,14 @@ function writeTrackInfoToLocalStorage(trackInfo: ILocalStorageTrack) {
 
 
 export function PlayerContextProvider({ children }: { children: React.ReactNode }) {
-    const queue: ITrack[] = useMemo(() => [], [])
+    const { queue, queueTracks, getNextTrackInQueue } = useQueue()
     const [currentlyPlayingTrack, setCurrentlyPlayingTrack] = useState<ITrack>()
     const [state, setState] = useState<IPlaybackState>("paused")
 
     const playerRef = useRef(new Audio())
     const player = playerRef.current
 
-    const queueTracks = useCallback((ids: number[]) => {
+    const queueTracksByIds = useCallback((ids: number[]) => {
         fetchTracksDetails(ids)
             .then(tracks => {
                 const sortedTracks = ids.reduce<ITrack[]>((acc, id) => {
@@ -86,15 +87,15 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
                     return acc
                 }, [])
 
-                queue.push(...sortedTracks)
+                queueTracks(sortedTracks)
             })
             .catch(error => {
                 console.error("Failed to get track details", error)
             })
-    }, [queue])
+    }, [queueTracks])
 
-    const queueTrack = useCallback((id: number) =>
-        queueTracks([id]), [queueTracks])
+    const queueTrackById = useCallback((id: number) =>
+        queueTracksByIds([id]), [queueTracksByIds])
 
     const playTrack = useCallback((track: ITrack) => {
         setCurrentlyPlayingTrack(track)
@@ -169,7 +170,7 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
 
     useEffect(() => {
         const playNextTrackInQueue = () => {
-            const nextTrack = queue.shift()
+            const nextTrack = getNextTrackInQueue()
             if (!nextTrack)
                 return
 
@@ -187,11 +188,12 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
     const values = {
         track: currentlyPlayingTrack,
         play: playTrackById,
-        queueTrack: queueTrack,
-        queueTracks: queueTracks,
+        queueTrack: queueTrackById,
+        queueTracks: queueTracksByIds,
         togglePlayback: togglePlayBack,
         state: state,
-        player: player
+        player: player,
+        queue: queue
     }
 
     return <PlayerContext.Provider
