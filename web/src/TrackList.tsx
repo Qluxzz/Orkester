@@ -123,9 +123,6 @@ export default function TrackList({ tracks, onLikeStatusChanged, showAlbumCover 
         }
     })
 
-    if (tracks.length === 0)
-        return <div>No tracks</div>
-
     return <section>
         <HeaderRow>
             <TrackNumber onClick={() => sortByColumn("trackNumber")}>#</TrackNumber>
