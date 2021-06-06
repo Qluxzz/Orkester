@@ -24,13 +24,8 @@ export const usePlayerContext = () => {
 }
 
 async function fetchTrackDetails(id: number) {
-    const response = await fetch(`/api/v1/track/${id}`)
-    if (!response.ok)
-        throw new Error(`Http request failed with status code: ${response.status}`)
-
-    const track: ITrack = await response.json()
-
-    return track
+    return fetchTracksDetails([id])
+        .then(tracks => tracks[0])
 }
 
 async function fetchTracksDetails(ids: number[]) {
