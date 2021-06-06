@@ -3,6 +3,7 @@ module goreact
 go 1.15
 
 require (
+	entgo.io/ent v0.8.0
 	github.com/djimenez/iconv-go v0.0.0-20160305225143-8960e66bd3da // indirect
 	github.com/gabriel-vasile/mimetype v1.2.0
 	github.com/gofiber/fiber/v2 v2.6.0
@@ -15,5 +16,4 @@ require (
 	github.com/mikkyang/id3-go v0.0.0-20191012064224-2c6ab3bb1fbd
 	github.com/valyala/fasthttp v1.22.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/sys v0.0.0-20210319071255-635bc2c9138d // indirect
 )

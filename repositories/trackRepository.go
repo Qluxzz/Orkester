@@ -1,150 +1,116 @@
 package repositories
 
 import (
-	"database/sql"
+	"context"
+	"goreact/ent"
+	"goreact/ent/album"
+	"goreact/ent/artist"
 	"goreact/indexFiles"
+	"log"
+	"time"
 
 	"github.com/gosimple/slug"
-	"github.com/jmoiron/sqlx"
 )
 
-func AddTracks(tracks []*indexFiles.IndexedTrack, db *sqlx.DB) error {
-	insertArtistStmt := `
-		INSERT INTO artists (name, urlname) VALUES (?, ?) ON CONFLICT DO NOTHING
-	`
-
-	insertAlbumStmt := `
-		INSERT INTO albums (
-			name,
-			urlname,
-			image,
-			imagemimetype,
-			artistid
-		) VALUES (
-			?,
-			?,
-			?,
-			?,
-			(SELECT id FROM artists WHERE name = ?)
-		) ON CONFLICT DO NOTHING
-	`
-
-	insertGenreStmt := `
-		INSERT INTO genres (name, urlname) VALUES (?, ?) ON CONFLICT DO NOTHING
-	`
-
-	insertTrackStmt := `
-		INSERT INTO tracks (
-			title,
-			tracknumber,
-			path,
-			date,
-			length,
-			mimetype,
-			albumid,
-			genreid
-		) VALUES(
-			?,
-			?,
-			?,
-			?,
-			?,
-			?,
-			(
-				SELECT
-					id
-				FROM
-					albums
-				WHERE
-					name = ?
-					AND artistid = (
-						SELECT id FROM artists WHERE name = ?
-					)
-			),
-			(SELECT id from genres WHERE name = ?)
-		) ON CONFLICT DO NOTHING
-	`
-
-	insertTrackArtist := `
-		INSERT INTO
-			trackArtists (
-				trackid,
-				artistid
-			) VALUES (
-				?,
-				(SELECT id FROM artists WHERE name = ?)
-			)`
-
+func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) {
 	for _, track := range tracks {
-		tx := db.MustBegin()
+
+		artists := []*ent.Artist{}
 
 		for _, artist := range track.Artists {
-			tx.MustExec(insertArtistStmt, artist, slug.Make(artist.String))
-		}
-		if track.AlbumArtist.Valid {
-			tx.MustExec(insertArtistStmt, track.AlbumArtist, slug.Make(track.AlbumArtist.String))
+			a := GetOrCreateArtist(artist.String, context, client)
+
+			artists = append(artists, a)
 		}
 
-		var albumArtist sql.NullString
+		var albumArtist *ent.Artist
+
 		if track.AlbumArtist.Valid {
-			albumArtist = track.AlbumArtist
-		} else {
-			albumArtist = track.Artists[0]
+			albumArtist = GetOrCreateArtist(track.AlbumArtist.String, context, client)
 		}
+
+		if albumArtist == nil {
+			albumArtist = artists[0]
+		}
+
+		var album *ent.Album
 
 		if track.AlbumName.Valid {
-			tx.MustExec(
-				insertAlbumStmt,
-				track.AlbumName,
-				slug.Make(track.AlbumName.String),
-				track.Image.Data,
-				track.Image.MimeType,
-				albumArtist,
-			)
+			album = GetOrCreateAlbum(track, albumArtist, context, client)
 		}
 
-		if track.Genre.Valid {
-			tx.MustExec(insertGenreStmt, track.Genre, slug.Make(track.Genre.String))
-		}
+		_, err := client.
+			Track.
+			Create().
+			SetTitle(track.Title.String).
+			SetTrackNumber(int(track.TrackNumber.Int32)).
+			SetPath(track.Path.String).
+			SetDate(time.Now()).
+			SetLength(int(track.Length.Int32)).
+			SetMimetype(track.MimeType.String).
+			SetAlbum(album).
+			AddArtists(artists...).
+			Save(context)
 
-		result := tx.MustExec(
-			insertTrackStmt,
-			track.Title,
-			track.TrackNumber,
-			track.Path,
-			track.Date,
-			track.Length,
-			track.MimeType,
-			track.AlbumName,
-			albumArtist,
-			track.Genre,
-		)
-
-		rowsAffected, err := result.RowsAffected()
-		if err != nil || rowsAffected == 0 {
-			tx.Rollback()
-			continue
-		}
-
-		id, err := result.LastInsertId()
 		if err != nil {
-			tx.Rollback()
-			continue
+			log.Fatalf("failed to create track %v", err)
 		}
 
-		for _, artist := range track.Artists {
-			tx.MustExec(
-				insertTrackArtist,
-				id,
-				artist,
-			)
-		}
+	}
+}
 
-		err = tx.Commit()
-		if err != nil {
-			return err
-		}
+func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Client) *ent.Album {
+	a, err := client.
+		Album.
+		Query().
+		Where(
+			album.NameEQ(track.AlbumName.String),
+			album.HasArtistWith(artist.ID(albumArtist.ID)),
+		).Only(context)
+
+	if err == nil {
+		return a
 	}
 
-	return nil
+	if _, ok := err.(*ent.NotFoundError); ok {
+		a, err := client.Album.
+			Create().
+			SetName(track.AlbumName.String).
+			SetURLName(slug.Make(track.AlbumName.String)).
+			SetImage(track.Image.Data).
+			SetImageMimeType(track.Image.MimeType.String).
+			SetArtist(albumArtist).Save(context)
+
+		if err != nil {
+			log.Fatalf("failed to create album %v", err)
+		}
+
+		return a
+	}
+
+	panic("failed to find or create album")
+}
+
+func GetOrCreateArtist(name string, context context.Context, client *ent.Client) *ent.Artist {
+	a, err := client.Artist.Query().Where(artist.NameEQ(name)).Only(context)
+
+	if err == nil {
+		return a
+	}
+
+	if _, ok := err.(*ent.NotFoundError); ok {
+		a, err := client.Artist.
+			Create().
+			SetName(name).
+			SetURLName(slug.Make(name)).
+			Save(context)
+
+		if err != nil {
+			log.Fatalf("failed to create artist %v", err)
+		}
+
+		return a
+	}
+
+	panic("failed to find or create artist")
 }
