@@ -9,23 +9,16 @@ interface IPlayerContext {
     queueTracks: (ids: number[]) => void
     togglePlayback: () => void
     state: IPlaybackState
-    player?: HTMLAudioElement
+    player: HTMLAudioElement
+    queue: ITrack[]
 }
 
-const PlayerContext = React.createContext<IPlayerContext>({
-    track: undefined,
-    play: () => { },
-    queueTrack: () => { },
-    queueTracks: () => { },
-    togglePlayback: () => { },
-    state: "paused",
-    player: undefined
-})
+const PlayerContext = React.createContext<IPlayerContext>({} as IPlayerContext)
 
 export const usePlayerContext = () => {
     const context = useContext(PlayerContext)
     if (!context)
-        throw new Error(`PlayerContext must be used inside of a PlayerContextProvider`)
+        throw new Error("PlayerContext must be used inside of a PlayerContextProvider")
 
     return context
 }
