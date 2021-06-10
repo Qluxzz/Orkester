@@ -15,10 +15,10 @@ type Album struct {
 // Fields of the Album.
 func (Album) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name"),
-		field.String("url_name"),
-		field.Bytes("image"),
-		field.String("image_mime_type"),
+		field.String("name").Immutable(),
+		field.String("url_name").Immutable(),
+		field.Bytes("image").Immutable(),
+		field.String("image_mime_type").Immutable(),
 	}
 }
 

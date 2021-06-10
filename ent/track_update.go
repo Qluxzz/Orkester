@@ -9,7 +9,6 @@ import (
 	"goreact/ent/artist"
 	"goreact/ent/predicate"
 	"goreact/ent/track"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -26,56 +25,6 @@ type TrackUpdate struct {
 // Where adds a new predicate for the TrackUpdate builder.
 func (tu *TrackUpdate) Where(ps ...predicate.Track) *TrackUpdate {
 	tu.mutation.predicates = append(tu.mutation.predicates, ps...)
-	return tu
-}
-
-// SetTitle sets the "title" field.
-func (tu *TrackUpdate) SetTitle(s string) *TrackUpdate {
-	tu.mutation.SetTitle(s)
-	return tu
-}
-
-// SetTrackNumber sets the "track_number" field.
-func (tu *TrackUpdate) SetTrackNumber(i int) *TrackUpdate {
-	tu.mutation.ResetTrackNumber()
-	tu.mutation.SetTrackNumber(i)
-	return tu
-}
-
-// AddTrackNumber adds i to the "track_number" field.
-func (tu *TrackUpdate) AddTrackNumber(i int) *TrackUpdate {
-	tu.mutation.AddTrackNumber(i)
-	return tu
-}
-
-// SetPath sets the "path" field.
-func (tu *TrackUpdate) SetPath(s string) *TrackUpdate {
-	tu.mutation.SetPath(s)
-	return tu
-}
-
-// SetDate sets the "date" field.
-func (tu *TrackUpdate) SetDate(t time.Time) *TrackUpdate {
-	tu.mutation.SetDate(t)
-	return tu
-}
-
-// SetLength sets the "length" field.
-func (tu *TrackUpdate) SetLength(i int) *TrackUpdate {
-	tu.mutation.ResetLength()
-	tu.mutation.SetLength(i)
-	return tu
-}
-
-// AddLength adds i to the "length" field.
-func (tu *TrackUpdate) AddLength(i int) *TrackUpdate {
-	tu.mutation.AddLength(i)
-	return tu
-}
-
-// SetMimetype sets the "mimetype" field.
-func (tu *TrackUpdate) SetMimetype(s string) *TrackUpdate {
-	tu.mutation.SetMimetype(s)
 	return tu
 }
 
@@ -214,62 +163,6 @@ func (tu *TrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := tu.mutation.Title(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: track.FieldTitle,
-		})
-	}
-	if value, ok := tu.mutation.TrackNumber(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: track.FieldTrackNumber,
-		})
-	}
-	if value, ok := tu.mutation.AddedTrackNumber(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: track.FieldTrackNumber,
-		})
-	}
-	if value, ok := tu.mutation.Path(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: track.FieldPath,
-		})
-	}
-	if value, ok := tu.mutation.Date(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: track.FieldDate,
-		})
-	}
-	if value, ok := tu.mutation.Length(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: track.FieldLength,
-		})
-	}
-	if value, ok := tu.mutation.AddedLength(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: track.FieldLength,
-		})
-	}
-	if value, ok := tu.mutation.Mimetype(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: track.FieldMimetype,
-		})
-	}
 	if tu.mutation.ArtistsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -376,56 +269,6 @@ type TrackUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *TrackMutation
-}
-
-// SetTitle sets the "title" field.
-func (tuo *TrackUpdateOne) SetTitle(s string) *TrackUpdateOne {
-	tuo.mutation.SetTitle(s)
-	return tuo
-}
-
-// SetTrackNumber sets the "track_number" field.
-func (tuo *TrackUpdateOne) SetTrackNumber(i int) *TrackUpdateOne {
-	tuo.mutation.ResetTrackNumber()
-	tuo.mutation.SetTrackNumber(i)
-	return tuo
-}
-
-// AddTrackNumber adds i to the "track_number" field.
-func (tuo *TrackUpdateOne) AddTrackNumber(i int) *TrackUpdateOne {
-	tuo.mutation.AddTrackNumber(i)
-	return tuo
-}
-
-// SetPath sets the "path" field.
-func (tuo *TrackUpdateOne) SetPath(s string) *TrackUpdateOne {
-	tuo.mutation.SetPath(s)
-	return tuo
-}
-
-// SetDate sets the "date" field.
-func (tuo *TrackUpdateOne) SetDate(t time.Time) *TrackUpdateOne {
-	tuo.mutation.SetDate(t)
-	return tuo
-}
-
-// SetLength sets the "length" field.
-func (tuo *TrackUpdateOne) SetLength(i int) *TrackUpdateOne {
-	tuo.mutation.ResetLength()
-	tuo.mutation.SetLength(i)
-	return tuo
-}
-
-// AddLength adds i to the "length" field.
-func (tuo *TrackUpdateOne) AddLength(i int) *TrackUpdateOne {
-	tuo.mutation.AddLength(i)
-	return tuo
-}
-
-// SetMimetype sets the "mimetype" field.
-func (tuo *TrackUpdateOne) SetMimetype(s string) *TrackUpdateOne {
-	tuo.mutation.SetMimetype(s)
-	return tuo
 }
 
 // AddArtistIDs adds the "artists" edge to the Artist entity by IDs.
@@ -586,62 +429,6 @@ func (tuo *TrackUpdateOne) sqlSave(ctx context.Context) (_node *Track, err error
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := tuo.mutation.Title(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: track.FieldTitle,
-		})
-	}
-	if value, ok := tuo.mutation.TrackNumber(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: track.FieldTrackNumber,
-		})
-	}
-	if value, ok := tuo.mutation.AddedTrackNumber(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: track.FieldTrackNumber,
-		})
-	}
-	if value, ok := tuo.mutation.Path(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: track.FieldPath,
-		})
-	}
-	if value, ok := tuo.mutation.Date(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: track.FieldDate,
-		})
-	}
-	if value, ok := tuo.mutation.Length(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: track.FieldLength,
-		})
-	}
-	if value, ok := tuo.mutation.AddedLength(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: track.FieldLength,
-		})
-	}
-	if value, ok := tuo.mutation.Mimetype(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: track.FieldMimetype,
-		})
 	}
 	if tuo.mutation.ArtistsCleared() {
 		edge := &sqlgraph.EdgeSpec{

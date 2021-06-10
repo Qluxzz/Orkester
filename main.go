@@ -53,23 +53,23 @@ func main() {
 
 	v1 := app.Group("/api/v1")
 
-	// track := v1.Group("/track")
-	// track.Get("/:id/stream", handlers.TrackStream(db))
-	// track.Get("/:id", handlers.TrackInfo(db))
+	track := v1.Group("/track")
+	track.Get("/:id/stream", handlers.TrackStream(client, ctx))
+	track.Get("/:id", handlers.TrackInfo(client, ctx))
 	// track.Get("/:id/like", handlers.LikeTrack(db))
 	// track.Get("/:id/unlike", handlers.UnLikeTrack(db))
 
-	// v1.Post("/tracks/ids", handlers.TracksInfo(db))
+	v1.Post("/tracks/ids", handlers.TracksInfo(client, ctx))
 
 	album := v1.Group("/album")
-	album.Get("/:id", handlers.GetAlbum(ctx, client))
-	album.Get("/:id/image", handlers.GetAlbumCover(ctx, client))
+	album.Get("/:id", handlers.GetAlbum(client, ctx))
+	album.Get("/:id/image", handlers.GetAlbumCover(client, ctx))
 
-	// artist := v1.Group("/artist")
-	// artist.Get("/:id", handlers.GetArtist(db))
+	artist := v1.Group("/artist")
+	artist.Get("/:id", handlers.GetArtist(client, ctx))
 
-	// search := v1.Group("/search")
-	// search.Get("/:query", handlers.Search(db))
+	search := v1.Group("/search")
+	search.Get("/:query", handlers.Search(client, ctx))
 
 	// playlist := v1.Group("/playlist")
 	// playlist.Get("/liked", handlers.GetLikedTracks(db))

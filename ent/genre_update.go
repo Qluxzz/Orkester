@@ -26,18 +26,6 @@ func (gu *GenreUpdate) Where(ps ...predicate.Genre) *GenreUpdate {
 	return gu
 }
 
-// SetName sets the "name" field.
-func (gu *GenreUpdate) SetName(s string) *GenreUpdate {
-	gu.mutation.SetName(s)
-	return gu
-}
-
-// SetURLName sets the "url_name" field.
-func (gu *GenreUpdate) SetURLName(s string) *GenreUpdate {
-	gu.mutation.SetURLName(s)
-	return gu
-}
-
 // Mutation returns the GenreMutation object of the builder.
 func (gu *GenreUpdate) Mutation() *GenreMutation {
 	return gu.mutation
@@ -112,20 +100,6 @@ func (gu *GenreUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := gu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: genre.FieldName,
-		})
-	}
-	if value, ok := gu.mutation.URLName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: genre.FieldURLName,
-		})
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, gu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{genre.Label}
@@ -143,18 +117,6 @@ type GenreUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *GenreMutation
-}
-
-// SetName sets the "name" field.
-func (guo *GenreUpdateOne) SetName(s string) *GenreUpdateOne {
-	guo.mutation.SetName(s)
-	return guo
-}
-
-// SetURLName sets the "url_name" field.
-func (guo *GenreUpdateOne) SetURLName(s string) *GenreUpdateOne {
-	guo.mutation.SetURLName(s)
-	return guo
 }
 
 // Mutation returns the GenreMutation object of the builder.
@@ -254,20 +216,6 @@ func (guo *GenreUpdateOne) sqlSave(ctx context.Context) (_node *Genre, err error
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := guo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: genre.FieldName,
-		})
-	}
-	if value, ok := guo.mutation.URLName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: genre.FieldURLName,
-		})
 	}
 	_node = &Genre{config: guo.config}
 	_spec.Assign = _node.assignValues

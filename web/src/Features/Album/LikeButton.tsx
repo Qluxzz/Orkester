@@ -23,7 +23,7 @@ async function unlikeTrack(trackId: number): Promise<ILikeStatus> {
     if (!response.ok)
         throw new Error(`Http request was not successful, status code: ${response.status}`)
 
-    return "notliked"
+    return "unliked"
 }
 
 interface ILikeButtonProps {
@@ -39,7 +39,7 @@ export default function LikeButton({ trackId, likeStatus: originalLikeStatus, on
         switch (likeStatus) {
             case "liked":
                 return unlikeTrack
-            case "notliked":
+            case "unliked":
                 return likeTrack
             default:
                 throw new Error(`Unknown likestatus: ${likeStatus}`)
@@ -50,7 +50,7 @@ export default function LikeButton({ trackId, likeStatus: originalLikeStatus, on
         switch (likeStatus) {
             case "liked":
                 return "unlike"
-            case "notliked":
+            case "unliked":
                 return "like"
             default:
                 throw new Error(`Unknown likestatus: ${likeStatus}`)

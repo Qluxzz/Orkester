@@ -28,18 +28,6 @@ func (au *ArtistUpdate) Where(ps ...predicate.Artist) *ArtistUpdate {
 	return au
 }
 
-// SetName sets the "name" field.
-func (au *ArtistUpdate) SetName(s string) *ArtistUpdate {
-	au.mutation.SetName(s)
-	return au
-}
-
-// SetURLName sets the "url_name" field.
-func (au *ArtistUpdate) SetURLName(s string) *ArtistUpdate {
-	au.mutation.SetURLName(s)
-	return au
-}
-
 // AddAlbumIDs adds the "albums" edge to the Album entity by IDs.
 func (au *ArtistUpdate) AddAlbumIDs(ids ...int) *ArtistUpdate {
 	au.mutation.AddAlbumIDs(ids...)
@@ -186,20 +174,6 @@ func (au *ArtistUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := au.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: artist.FieldName,
-		})
-	}
-	if value, ok := au.mutation.URLName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: artist.FieldURLName,
-		})
-	}
 	if au.mutation.AlbumsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -325,18 +299,6 @@ type ArtistUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *ArtistMutation
-}
-
-// SetName sets the "name" field.
-func (auo *ArtistUpdateOne) SetName(s string) *ArtistUpdateOne {
-	auo.mutation.SetName(s)
-	return auo
-}
-
-// SetURLName sets the "url_name" field.
-func (auo *ArtistUpdateOne) SetURLName(s string) *ArtistUpdateOne {
-	auo.mutation.SetURLName(s)
-	return auo
 }
 
 // AddAlbumIDs adds the "albums" edge to the Album entity by IDs.
@@ -508,20 +470,6 @@ func (auo *ArtistUpdateOne) sqlSave(ctx context.Context) (_node *Artist, err err
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := auo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: artist.FieldName,
-		})
-	}
-	if value, ok := auo.mutation.URLName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: artist.FieldURLName,
-		})
 	}
 	if auo.mutation.AlbumsCleared() {
 		edge := &sqlgraph.EdgeSpec{

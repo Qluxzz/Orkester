@@ -13,8 +13,8 @@ type Genre struct {
 // Fields of the Genre.
 func (Genre) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name"),
-		field.String("url_name"),
+		field.String("name").Immutable(),
+		field.String("url_name").Immutable(),
 	}
 }
 

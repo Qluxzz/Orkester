@@ -4,12 +4,13 @@ import (
 	"context"
 	"goreact/ent"
 	"goreact/ent/album"
+	"goreact/models"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetAlbum(ctx context.Context, client *ent.Client) fiber.Handler {
+func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
@@ -19,6 +20,7 @@ func GetAlbum(ctx context.Context, client *ent.Client) fiber.Handler {
 		album, err := client.
 			Album.
 			Query().
+			Select(album.FieldID, album.FieldName, album.FieldURLName).
 			Where(album.ID(id)).
 			WithArtist().
 			WithTracks(func(q *ent.TrackQuery) {
@@ -29,17 +31,44 @@ func GetAlbum(ctx context.Context, client *ent.Client) fiber.Handler {
 			return err
 		}
 
+		tracks := []models.Track{}
+		for _, track := range album.Edges.Tracks {
+			t := models.Track{
+				Id:          track.ID,
+				TrackNumber: track.TrackNumber,
+				Title:       track.Title,
+				Length:      track.Length,
+				LikeStatus:  "unliked",
+			}
+
+			artists := []*models.Artist{}
+
+			for _, artist := range track.Edges.Artists {
+				a := &models.Artist{
+					Id:      artist.ID,
+					Name:    artist.Name,
+					UrlName: artist.URLName,
+				}
+
+				artists = append(artists, a)
+			}
+
+			t.Artists = artists
+
+			tracks = append(tracks, t)
+		}
+
 		return c.JSON(&fiber.Map{
 			"id":      album.ID,
 			"name":    album.Name,
 			"urlName": album.URLName,
-			"tracks":  album.Edges.Tracks,
+			"tracks":  tracks,
 			"artist":  album.Edges.Artist,
 		})
 	}
 }
 
-func GetAlbumCover(ctx context.Context, client *ent.Client) fiber.Handler {
+func GetAlbumCover(client *ent.Client, ctx context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {

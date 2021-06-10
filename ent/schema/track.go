@@ -14,12 +14,12 @@ type Track struct {
 // Fields of the Track.
 func (Track) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("title"),
-		field.Int("track_number"),
-		field.String("path"),
-		field.Time("date"),
-		field.Int("length"),
-		field.String("mimetype"),
+		field.String("title").Immutable(),
+		field.Int("track_number").Immutable(),
+		field.String("path").Immutable(),
+		field.Time("date").Immutable(),
+		field.Int("length").Immutable(),
+		field.String("mimetype").Immutable(),
 	}
 }
 

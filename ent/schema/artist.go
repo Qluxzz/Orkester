@@ -14,8 +14,8 @@ type Artist struct {
 // Fields of the Artist.
 func (Artist) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").Unique(),
-		field.String("url_name"),
+		field.String("name").Unique().Immutable(),
+		field.String("url_name").Immutable(),
 	}
 }
 

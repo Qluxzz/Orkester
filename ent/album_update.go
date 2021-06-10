@@ -29,30 +29,6 @@ func (au *AlbumUpdate) Where(ps ...predicate.Album) *AlbumUpdate {
 	return au
 }
 
-// SetName sets the "name" field.
-func (au *AlbumUpdate) SetName(s string) *AlbumUpdate {
-	au.mutation.SetName(s)
-	return au
-}
-
-// SetURLName sets the "url_name" field.
-func (au *AlbumUpdate) SetURLName(s string) *AlbumUpdate {
-	au.mutation.SetURLName(s)
-	return au
-}
-
-// SetImage sets the "image" field.
-func (au *AlbumUpdate) SetImage(b []byte) *AlbumUpdate {
-	au.mutation.SetImage(b)
-	return au
-}
-
-// SetImageMimeType sets the "image_mime_type" field.
-func (au *AlbumUpdate) SetImageMimeType(s string) *AlbumUpdate {
-	au.mutation.SetImageMimeType(s)
-	return au
-}
-
 // SetArtistID sets the "artist" edge to the Artist entity by ID.
 func (au *AlbumUpdate) SetArtistID(id int) *AlbumUpdate {
 	au.mutation.SetArtistID(id)
@@ -194,34 +170,6 @@ func (au *AlbumUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := au.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldName,
-		})
-	}
-	if value, ok := au.mutation.URLName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldURLName,
-		})
-	}
-	if value, ok := au.mutation.Image(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: album.FieldImage,
-		})
-	}
-	if value, ok := au.mutation.ImageMimeType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldImageMimeType,
-		})
-	}
 	if au.mutation.ArtistCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -328,30 +276,6 @@ type AlbumUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *AlbumMutation
-}
-
-// SetName sets the "name" field.
-func (auo *AlbumUpdateOne) SetName(s string) *AlbumUpdateOne {
-	auo.mutation.SetName(s)
-	return auo
-}
-
-// SetURLName sets the "url_name" field.
-func (auo *AlbumUpdateOne) SetURLName(s string) *AlbumUpdateOne {
-	auo.mutation.SetURLName(s)
-	return auo
-}
-
-// SetImage sets the "image" field.
-func (auo *AlbumUpdateOne) SetImage(b []byte) *AlbumUpdateOne {
-	auo.mutation.SetImage(b)
-	return auo
-}
-
-// SetImageMimeType sets the "image_mime_type" field.
-func (auo *AlbumUpdateOne) SetImageMimeType(s string) *AlbumUpdateOne {
-	auo.mutation.SetImageMimeType(s)
-	return auo
 }
 
 // SetArtistID sets the "artist" edge to the Artist entity by ID.
@@ -518,34 +442,6 @@ func (auo *AlbumUpdateOne) sqlSave(ctx context.Context) (_node *Album, err error
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := auo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldName,
-		})
-	}
-	if value, ok := auo.mutation.URLName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldURLName,
-		})
-	}
-	if value, ok := auo.mutation.Image(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: album.FieldImage,
-		})
-	}
-	if value, ok := auo.mutation.ImageMimeType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldImageMimeType,
-		})
 	}
 	if auo.mutation.ArtistCleared() {
 		edge := &sqlgraph.EdgeSpec{

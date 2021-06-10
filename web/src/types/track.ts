@@ -1,4 +1,4 @@
-export type ILikeStatus = "liked" | "notliked"
+export type ILikeStatus = "liked" | "unliked"
 
 type ITrack = {
     readonly id: number
