@@ -31,8 +31,13 @@ const UnorderedListWithNoDots = styled.ul`
     }
 `
 
+interface ITrack {
+    id: number
+    title: string
+}
+
 interface ISearchResults {
-    tracks: IArtist[]
+    tracks: ITrack[]
     artists: IArtist[]
     albums: IAlbum[]
 }
@@ -86,7 +91,7 @@ export default function SearchResults({ query }: { query: string }) {
         {searchResults.tracks.length > 0 && <div>
             <h1>Tracks</h1>
             <UnorderedListWithNoDots>{searchResults.tracks.map(track =>
-                <li onClick={() => play(track.id)} key={track.id}>{track.name}</li>
+                <li onClick={() => play(track.id)} key={track.id}>{track.title}</li>
             )}</UnorderedListWithNoDots>
         </div>}
         {searchResults.albums.length > 0 && <div>
