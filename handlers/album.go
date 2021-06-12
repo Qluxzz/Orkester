@@ -40,7 +40,7 @@ func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 				TrackNumber: track.TrackNumber,
 				Title:       track.Title,
 				Length:      track.Length,
-				LikeStatus:  "unliked",
+				Liked:       track.Liked,
 			}
 
 			artists := []*models.Artist{}

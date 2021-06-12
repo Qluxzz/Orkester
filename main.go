@@ -56,8 +56,8 @@ func main() {
 	track := v1.Group("/track")
 	track.Get("/:id/stream", handlers.TrackStream(client, ctx))
 	track.Get("/:id", handlers.TrackInfo(client, ctx))
-	// track.Get("/:id/like", handlers.LikeTrack(db))
-	// track.Get("/:id/unlike", handlers.UnLikeTrack(db))
+	track.Get("/:id/like", handlers.LikeTrack(client, ctx))
+	track.Get("/:id/unlike", handlers.UnLikeTrack(client, ctx))
 
 	v1.Post("/tracks/ids", handlers.TracksInfo(client, ctx))
 
@@ -71,8 +71,8 @@ func main() {
 	search := v1.Group("/search")
 	search.Get("/:query", handlers.Search(client, ctx))
 
-	// playlist := v1.Group("/playlist")
-	// playlist.Get("/liked", handlers.GetLikedTracks(db))
+	playlist := v1.Group("/playlist")
+	playlist.Get("/liked", handlers.GetLikedTracks(client, ctx))
 
 	// app.Static("/", "web/build")
 

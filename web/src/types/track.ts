@@ -1,5 +1,3 @@
-export type ILikeStatus = "liked" | "unliked"
-
 type ITrack = {
     readonly id: number
     readonly title: string
@@ -9,7 +7,7 @@ type ITrack = {
     readonly album: IAlbum
     readonly artists: IArtist[]
     readonly genre: string
-    readonly likeStatus: ILikeStatus
+    readonly liked: boolean
 }
 
 export type IArtist = {

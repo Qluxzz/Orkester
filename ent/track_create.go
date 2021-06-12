@@ -58,6 +58,20 @@ func (tc *TrackCreate) SetMimetype(s string) *TrackCreate {
 	return tc
 }
 
+// SetLiked sets the "liked" field.
+func (tc *TrackCreate) SetLiked(b bool) *TrackCreate {
+	tc.mutation.SetLiked(b)
+	return tc
+}
+
+// SetNillableLiked sets the "liked" field if the given value is not nil.
+func (tc *TrackCreate) SetNillableLiked(b *bool) *TrackCreate {
+	if b != nil {
+		tc.SetLiked(*b)
+	}
+	return tc
+}
+
 // AddArtistIDs adds the "artists" edge to the Artist entity by IDs.
 func (tc *TrackCreate) AddArtistIDs(ids ...int) *TrackCreate {
 	tc.mutation.AddArtistIDs(ids...)
@@ -103,6 +117,7 @@ func (tc *TrackCreate) Save(ctx context.Context) (*Track, error) {
 		err  error
 		node *Track
 	)
+	tc.defaults()
 	if len(tc.hooks) == 0 {
 		if err = tc.check(); err != nil {
 			return nil, err
@@ -141,6 +156,14 @@ func (tc *TrackCreate) SaveX(ctx context.Context) *Track {
 	return v
 }
 
+// defaults sets the default values of the builder before save.
+func (tc *TrackCreate) defaults() {
+	if _, ok := tc.mutation.Liked(); !ok {
+		v := track.DefaultLiked
+		tc.mutation.SetLiked(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (tc *TrackCreate) check() error {
 	if _, ok := tc.mutation.Title(); !ok {
@@ -160,6 +183,9 @@ func (tc *TrackCreate) check() error {
 	}
 	if _, ok := tc.mutation.Mimetype(); !ok {
 		return &ValidationError{Name: "mimetype", err: errors.New("ent: missing required field \"mimetype\"")}
+	}
+	if _, ok := tc.mutation.Liked(); !ok {
+		return &ValidationError{Name: "liked", err: errors.New("ent: missing required field \"liked\"")}
 	}
 	if len(tc.mutation.ArtistsIDs()) == 0 {
 		return &ValidationError{Name: "artists", err: errors.New("ent: missing required edge \"artists\"")}
@@ -239,6 +265,14 @@ func (tc *TrackCreate) createSpec() (*Track, *sqlgraph.CreateSpec) {
 		})
 		_node.Mimetype = value
 	}
+	if value, ok := tc.mutation.Liked(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: track.FieldLiked,
+		})
+		_node.Liked = value
+	}
 	if nodes := tc.mutation.ArtistsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -295,6 +329,7 @@ func (tcb *TrackCreateBulk) Save(ctx context.Context) ([]*Track, error) {
 	for i := range tcb.builders {
 		func(i int, root context.Context) {
 			builder := tcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TrackMutation)
 				if !ok {

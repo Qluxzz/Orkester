@@ -19,6 +19,8 @@ const (
 	FieldLength = "length"
 	// FieldMimetype holds the string denoting the mimetype field in the database.
 	FieldMimetype = "mimetype"
+	// FieldLiked holds the string denoting the liked field in the database.
+	FieldLiked = "liked"
 	// EdgeArtists holds the string denoting the artists edge name in mutations.
 	EdgeArtists = "artists"
 	// EdgeAlbum holds the string denoting the album edge name in mutations.
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldDate,
 	FieldLength,
 	FieldMimetype,
+	FieldLiked,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "tracks"
@@ -76,3 +79,8 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultLiked holds the default value on creation for the "liked" field.
+	DefaultLiked bool
+)

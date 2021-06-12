@@ -46,8 +46,8 @@ export default function LikedTracks() {
             ? <p>You have no liked tracks</p>
             : <TrackList
                 tracks={tracks}
-                onLikeStatusChanged={(status, trackId) => {
-                    if (status === "unliked")
+                onLikedChanged={(liked, trackId) => {
+                    if (!liked)
                         removeLikedTrack(trackId)
                 }}
                 showAlbumCover

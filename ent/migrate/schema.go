@@ -73,6 +73,7 @@ var (
 		{Name: "date", Type: field.TypeTime},
 		{Name: "length", Type: field.TypeInt},
 		{Name: "mimetype", Type: field.TypeString},
+		{Name: "liked", Type: field.TypeBool, Default: false},
 		{Name: "album_tracks", Type: field.TypeInt, Nullable: true},
 	}
 	// TracksTable holds the schema information for the "tracks" table.
@@ -83,7 +84,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "tracks_albums_tracks",
-				Columns:    []*schema.Column{TracksColumns[7]},
+				Columns:    []*schema.Column{TracksColumns[8]},
 				RefColumns: []*schema.Column{AlbumsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

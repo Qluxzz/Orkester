@@ -9,7 +9,7 @@ type Track struct {
 	Album       *Album    `json:"album"`
 	Artists     []*Artist `json:"artists"`
 	Genre       *Genre    `json:"genre"`
-	LikeStatus  string    `json:"likeStatus"`
+	Liked       bool      `json:"liked"`
 }
 
 type IdNameAndUrlName struct {

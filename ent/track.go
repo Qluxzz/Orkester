@@ -29,6 +29,8 @@ type Track struct {
 	Length int `json:"length,omitempty"`
 	// Mimetype holds the value of the "mimetype" field.
 	Mimetype string `json:"mimetype,omitempty"`
+	// Liked holds the value of the "liked" field.
+	Liked bool `json:"liked,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TrackQuery when eager-loading is set.
 	Edges        TrackEdges `json:"edges"`
@@ -74,6 +76,8 @@ func (*Track) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case track.FieldLiked:
+			values[i] = new(sql.NullBool)
 		case track.FieldID, track.FieldTrackNumber, track.FieldLength:
 			values[i] = new(sql.NullInt64)
 		case track.FieldTitle, track.FieldPath, track.FieldMimetype:
@@ -139,6 +143,12 @@ func (t *Track) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				t.Mimetype = value.String
 			}
+		case track.FieldLiked:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field liked", values[i])
+			} else if value.Valid {
+				t.Liked = value.Bool
+			}
 		case track.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field album_tracks", value)
@@ -196,6 +206,8 @@ func (t *Track) String() string {
 	builder.WriteString(fmt.Sprintf("%v", t.Length))
 	builder.WriteString(", mimetype=")
 	builder.WriteString(t.Mimetype)
+	builder.WriteString(", liked=")
+	builder.WriteString(fmt.Sprintf("%v", t.Liked))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -28,6 +28,20 @@ func (tu *TrackUpdate) Where(ps ...predicate.Track) *TrackUpdate {
 	return tu
 }
 
+// SetLiked sets the "liked" field.
+func (tu *TrackUpdate) SetLiked(b bool) *TrackUpdate {
+	tu.mutation.SetLiked(b)
+	return tu
+}
+
+// SetNillableLiked sets the "liked" field if the given value is not nil.
+func (tu *TrackUpdate) SetNillableLiked(b *bool) *TrackUpdate {
+	if b != nil {
+		tu.SetLiked(*b)
+	}
+	return tu
+}
+
 // AddArtistIDs adds the "artists" edge to the Artist entity by IDs.
 func (tu *TrackUpdate) AddArtistIDs(ids ...int) *TrackUpdate {
 	tu.mutation.AddArtistIDs(ids...)
@@ -163,6 +177,13 @@ func (tu *TrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := tu.mutation.Liked(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: track.FieldLiked,
+		})
+	}
 	if tu.mutation.ArtistsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -269,6 +290,20 @@ type TrackUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *TrackMutation
+}
+
+// SetLiked sets the "liked" field.
+func (tuo *TrackUpdateOne) SetLiked(b bool) *TrackUpdateOne {
+	tuo.mutation.SetLiked(b)
+	return tuo
+}
+
+// SetNillableLiked sets the "liked" field if the given value is not nil.
+func (tuo *TrackUpdateOne) SetNillableLiked(b *bool) *TrackUpdateOne {
+	if b != nil {
+		tuo.SetLiked(*b)
+	}
+	return tuo
 }
 
 // AddArtistIDs adds the "artists" edge to the Artist entity by IDs.
@@ -429,6 +464,13 @@ func (tuo *TrackUpdateOne) sqlSave(ctx context.Context) (_node *Track, err error
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tuo.mutation.Liked(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: track.FieldLiked,
+		})
 	}
 	if tuo.mutation.ArtistsCleared() {
 		edge := &sqlgraph.EdgeSpec{

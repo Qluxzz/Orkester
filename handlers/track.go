@@ -38,7 +38,7 @@ func TracksInfo(client *ent.Client, context context.Context) fiber.Handler {
 				TrackNumber: track.TrackNumber,
 				Title:       track.Title,
 				Length:      track.Length,
-				LikeStatus:  "unliked",
+				Liked:       track.Liked,
 				Album: &models.Album{
 					Id:      track.Edges.Album.ID,
 					Name:    track.Edges.Album.Name,
@@ -118,30 +118,34 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 	}
 }
 
-/*
-func LikeTrack(db *sqlx.DB) fiber.Handler {
+func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		database.LikeTrack(id, db)
+		_, err = client.Track.UpdateOneID(id).SetLiked(true).Save(context)
+		if err != nil {
+			return err
+		}
 
 		return c.SendStatus(fiber.StatusOK)
 	}
 }
 
-func UnLikeTrack(db *sqlx.DB) fiber.Handler {
+func UnLikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		database.UnlikeTrack(id, db)
+		_, err = client.Track.UpdateOneID(id).SetLiked(false).Save(context)
+		if err != nil {
+			return err
+		}
 
 		return c.SendStatus(fiber.StatusOK)
 	}
 }
-*/

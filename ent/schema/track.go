@@ -20,6 +20,7 @@ func (Track) Fields() []ent.Field {
 		field.Time("date").Immutable(),
 		field.Int("length").Immutable(),
 		field.String("mimetype").Immutable(),
+		field.Bool("liked").Default(false),
 	}
 }
 

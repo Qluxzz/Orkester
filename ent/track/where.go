@@ -135,6 +135,13 @@ func Mimetype(v string) predicate.Track {
 	})
 }
 
+// Liked applies equality check predicate on the "liked" field. It's identical to LikedEQ.
+func Liked(v bool) predicate.Track {
+	return predicate.Track(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLiked), v))
+	})
+}
+
 // TitleEQ applies the EQ predicate on the "title" field.
 func TitleEQ(v string) predicate.Track {
 	return predicate.Track(func(s *sql.Selector) {
@@ -693,6 +700,20 @@ func MimetypeEqualFold(v string) predicate.Track {
 func MimetypeContainsFold(v string) predicate.Track {
 	return predicate.Track(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldMimetype), v))
+	})
+}
+
+// LikedEQ applies the EQ predicate on the "liked" field.
+func LikedEQ(v bool) predicate.Track {
+	return predicate.Track(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLiked), v))
+	})
+}
+
+// LikedNEQ applies the NEQ predicate on the "liked" field.
+func LikedNEQ(v bool) predicate.Track {
+	return predicate.Track(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLiked), v))
 	})
 }
 
