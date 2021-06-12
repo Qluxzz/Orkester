@@ -14,10 +14,10 @@ func Search(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		query := c.Params("query")
 
-		var tracks []struct {
+		tracks := []struct {
 			Id    int    `json:"id"`
 			Title string `json:"title"`
-		}
+		}{}
 
 		err := client.
 			Track.
@@ -30,11 +30,11 @@ func Search(client *ent.Client, context context.Context) fiber.Handler {
 			return err
 		}
 
-		var albums []struct {
+		albums := []struct {
 			Id      int    `json:"id"`
 			Name    string `json:"name"`
 			URLName string `json:"urlName" sql:"url_name"`
-		}
+		}{}
 
 		err = client.
 			Album.
@@ -47,11 +47,11 @@ func Search(client *ent.Client, context context.Context) fiber.Handler {
 			return err
 		}
 
-		var artists []struct {
+		artists := []struct {
 			Id      int    `json:"id"`
 			Name    string `json:"name"`
 			URLName string `json:"urlName"  sql:"url_name"`
-		}
+		}{}
 
 		err = client.
 			Artist.
