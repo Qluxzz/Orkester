@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"goreact/ent"
 	"goreact/ent/album"
 	"goreact/models"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -75,13 +77,21 @@ func GetAlbumCover(client *ent.Client, ctx context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		albumCover, err := client.Album.Query().Where(album.ID(id)).Only(ctx)
+		albumCover, err := client.
+			Album.
+			Query().
+			Where(album.ID(id)).
+			Select(album.FieldImage, album.FieldImageMimeType).
+			Only(ctx)
+
 		if err != nil {
 			return err
 		}
 
+		secondsInAYear := int((24 * time.Hour * 365).Seconds())
+
 		c.Response().Header.Add("Content-Type", albumCover.ImageMimeType)
-		c.Response().Header.Add("Cache-Control", "max-age=31536000")
+		c.Response().Header.Add("Cache-Control", fmt.Sprintf("max-age=%d", secondsInAYear))
 		return c.Send(albumCover.Image)
 	}
 }
