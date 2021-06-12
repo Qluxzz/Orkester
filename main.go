@@ -1,19 +1,21 @@
 package main
 
 import (
+	"context"
 	"log"
 
-	"goreact/database"
+	"goreact/ent"
 	"goreact/handlers"
 	"goreact/indexFiles"
 	"goreact/repositories"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/jmoiron/sqlx"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func scanAndAddTracksToDb(db *sqlx.DB) {
+func scanAndAddTracksToDb(client *ent.Client, ctx context.Context) {
 	tracks, err := indexFiles.ScanPathForMusicFiles("./content")
 	if err != nil {
 		log.Fatalln(err)
@@ -21,23 +23,25 @@ func scanAndAddTracksToDb(db *sqlx.DB) {
 
 	log.Printf("%d tracks found", len(tracks))
 
-	err = repositories.AddTracks(tracks, db)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	repositories.AddTracks(tracks, client, ctx)
 
 	log.Print("Tracks has been added")
 }
 
 func main() {
-	db, err := database.GetInstance()
+	client, err := ent.Open("sqlite3", "file::memory:?cache=shared&_fk=1")
+
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("failed opening connection to sqlite: %v", err)
 	}
 
-	defer db.Close()
+	ctx := context.Background()
 
-	go scanAndAddTracksToDb(db)
+	if err := client.Schema.Create(ctx); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
+
+	go scanAndAddTracksToDb(client, ctx)
 
 	app := fiber.New()
 
@@ -50,25 +54,25 @@ func main() {
 	v1 := app.Group("/api/v1")
 
 	track := v1.Group("/track")
-	track.Get("/:id/stream", handlers.TrackStream(db))
-	track.Get("/:id", handlers.TrackInfo(db))
-	track.Get("/:id/like", handlers.LikeTrack(db))
-	track.Get("/:id/unlike", handlers.UnLikeTrack(db))
+	track.Get("/:id/stream", handlers.TrackStream(client, ctx))
+	track.Get("/:id", handlers.TrackInfo(client, ctx))
+	track.Get("/:id/like", handlers.LikeTrack(client, ctx))
+	track.Get("/:id/unlike", handlers.UnLikeTrack(client, ctx))
 
-	v1.Post("/tracks/ids", handlers.TracksInfo(db))
+	v1.Post("/tracks/ids", handlers.TracksInfo(client, ctx))
 
 	album := v1.Group("/album")
-	album.Get("/:id", handlers.GetAlbum(db))
-	album.Get("/:id/image", handlers.GetAlbumCover(db))
+	album.Get("/:id", handlers.GetAlbum(client, ctx))
+	album.Get("/:id/image", handlers.GetAlbumCover(client, ctx))
 
 	artist := v1.Group("/artist")
-	artist.Get("/:id", handlers.GetArtist(db))
+	artist.Get("/:id", handlers.GetArtist(client, ctx))
 
 	search := v1.Group("/search")
-	search.Get("/:query", handlers.Search(db))
+	search.Get("/:query", handlers.Search(client, ctx))
 
 	playlist := v1.Group("/playlist")
-	playlist.Get("/liked", handlers.GetLikedTracks(db))
+	playlist.Get("/liked", handlers.GetLikedTracks(client, ctx))
 
 	// app.Static("/", "web/build")
 
@@ -77,5 +81,6 @@ func main() {
 	// })
 
 	// Start app
+
 	log.Fatalln(app.Listen(":42000"))
 }
