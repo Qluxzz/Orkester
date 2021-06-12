@@ -96,7 +96,13 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		pathAndMimeType, err := client.Track.Query().Where(track.ID(id)).Select(track.FieldPath, track.FieldMimetype).Only(context)
+		pathAndMimeType, err := client.
+			Track.
+			Query().
+			Where(track.ID(id)).
+			Select(track.FieldPath, track.FieldMimetype).
+			Only(context)
+
 		if err != nil {
 			return err
 		}
@@ -105,6 +111,7 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 		if err != nil {
 			return err
 		}
+		defer stream.Close()
 
 		c.Response().Header.Add("content-type", pathAndMimeType.Mimetype)
 		return c.SendStream(stream)
