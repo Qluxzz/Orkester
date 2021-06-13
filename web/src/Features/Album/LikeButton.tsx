@@ -39,8 +39,10 @@ export default function LikeButton({ trackId, liked: originalLiked, onLikeChange
     const buttonText = liked ? "unlike" : "like"
 
     return <Button
+        onDoubleClick={e => e.stopPropagation()}
         onClick={e => {
             e.preventDefault()
+
             onClickFn(trackId)
                 .then(liked => {
                     setLiked(liked)
