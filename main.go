@@ -29,7 +29,7 @@ func scanAndAddTracksToDb(client *ent.Client, ctx context.Context) {
 }
 
 func main() {
-	client, err := ent.Open("sqlite3", "file::memory:?cache=shared&_fk=1")
+	client, err := ent.Open("sqlite3", "sqlite.db?cache=shared&_fk=1")
 
 	if err != nil {
 		log.Fatalf("failed opening connection to sqlite: %v", err)
