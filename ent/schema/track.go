@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Track holds the schema definition for the Track entity.
@@ -29,5 +30,11 @@ func (Track) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("artists", Artist.Type).Required(),
 		edge.From("album", Album.Type).Ref("tracks").Unique(),
+	}
+}
+
+func (Track) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("track_number", "title").Edges("album").Unique(),
 	}
 }

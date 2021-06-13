@@ -4,7 +4,7 @@
         {
             "label": "watch server",
             "type": "shell",
-            "command": "reflex -r '\\.go$' -s go run .",
+            "command": "reflex -r '\\.go$' -s -- go run -tags sqlite_icu .",
             "problemMatcher": [],
             "runOptions": {
                 "runOn": "folderOpen"

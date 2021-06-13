@@ -46,10 +46,9 @@ var (
 	}
 	// ArtistsTable holds the schema information for the "artists" table.
 	ArtistsTable = &schema.Table{
-		Name:        "artists",
-		Columns:     ArtistsColumns,
-		PrimaryKey:  []*schema.Column{ArtistsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "artists",
+		Columns:    ArtistsColumns,
+		PrimaryKey: []*schema.Column{ArtistsColumns[0]},
 	}
 	// GenresColumns holds the columns for the "genres" table.
 	GenresColumns = []*schema.Column{
@@ -59,10 +58,9 @@ var (
 	}
 	// GenresTable holds the schema information for the "genres" table.
 	GenresTable = &schema.Table{
-		Name:        "genres",
-		Columns:     GenresColumns,
-		PrimaryKey:  []*schema.Column{GenresColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "genres",
+		Columns:    GenresColumns,
+		PrimaryKey: []*schema.Column{GenresColumns[0]},
 	}
 	// TracksColumns holds the columns for the "tracks" table.
 	TracksColumns = []*schema.Column{
@@ -87,6 +85,13 @@ var (
 				Columns:    []*schema.Column{TracksColumns[8]},
 				RefColumns: []*schema.Column{AlbumsColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "track_track_number_title_album_tracks",
+				Unique:  true,
+				Columns: []*schema.Column{TracksColumns[2], TracksColumns[1], TracksColumns[8]},
 			},
 		},
 	}

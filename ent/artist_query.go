@@ -462,7 +462,7 @@ func (aq *ArtistQuery) sqlAll(ctx context.Context) ([]*Artist, error) {
 				s.Where(sql.InValues(artist.TrackPrimaryKey[1], fks...))
 			},
 			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+				return [2]interface{}{new(sql.NullInt64), new(sql.NullInt64)}
 			},
 			Assign: func(out, in interface{}) error {
 				eout, ok := out.(*sql.NullInt64)
@@ -572,10 +572,14 @@ func (aq *ArtistQuery) querySpec() *sqlgraph.QuerySpec {
 func (aq *ArtistQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(aq.driver.Dialect())
 	t1 := builder.Table(artist.Table)
-	selector := builder.Select(t1.Columns(artist.Columns...)...).From(t1)
+	columns := aq.fields
+	if len(columns) == 0 {
+		columns = artist.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if aq.sql != nil {
 		selector = aq.sql
-		selector.Select(selector.Columns(artist.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range aq.predicates {
 		p(selector)
@@ -843,13 +847,24 @@ func (agb *ArtistGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (agb *ArtistGroupBy) sqlQuery() *sql.Selector {
-	selector := agb.sql
-	columns := make([]string, 0, len(agb.fields)+len(agb.fns))
-	columns = append(columns, agb.fields...)
+	selector := agb.sql.Select()
+	aggregation := make([]string, 0, len(agb.fns))
 	for _, fn := range agb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(agb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(agb.fields)+len(agb.fns))
+		for _, f := range agb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(agb.fields...)...)
 }
 
 // ArtistSelect is the builder for selecting fields of Artist entities.
@@ -1065,16 +1080,10 @@ func (as *ArtistSelect) BoolX(ctx context.Context) bool {
 
 func (as *ArtistSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := as.sqlQuery().Query()
+	query, args := as.sql.Query()
 	if err := as.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (as *ArtistSelect) sqlQuery() sql.Querier {
-	selector := as.sql
-	selector.Select(selector.Columns(as.fields...)...)
-	return selector
 }

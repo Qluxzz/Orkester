@@ -12,7 +12,9 @@ import (
 	"github.com/gosimple/slug"
 )
 
-func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) {
+func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) int {
+	tracks_added := 0
+
 	for _, track := range tracks {
 
 		artists := []*ent.Artist{}
@@ -53,10 +55,17 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 			Save(context)
 
 		if err != nil {
-			log.Fatalf("failed to create track %v", err)
+			_, ok := err.(*ent.ConstraintError)
+			if !ok {
+				log.Fatalf("failed to create track %v", err)
+			}
+		} else {
+			tracks_added += 1
 		}
 
 	}
+
+	return tracks_added
 }
 
 func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Client) *ent.Album {
@@ -64,7 +73,7 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 		Album.
 		Query().
 		Where(
-			album.NameEQ(track.AlbumName.String),
+			album.NameEqualFold(track.AlbumName.String),
 			album.HasArtistWith(artist.ID(albumArtist.ID)),
 		).Only(context)
 
@@ -92,7 +101,7 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 }
 
 func GetOrCreateArtist(name string, context context.Context, client *ent.Client) *ent.Artist {
-	a, err := client.Artist.Query().Where(artist.NameEQ(name)).Only(context)
+	a, err := client.Artist.Query().Where(artist.NameEqualFold(name)).Only(context)
 
 	if err == nil {
 		return a

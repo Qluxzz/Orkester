@@ -122,8 +122,8 @@ func (m AlbumMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *AlbumMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -721,8 +721,8 @@ func (m ArtistMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *ArtistMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -1230,8 +1230,8 @@ func (m GenreMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *GenreMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -1583,8 +1583,8 @@ func (m TrackMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *TrackMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
