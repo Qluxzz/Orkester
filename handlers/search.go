@@ -6,20 +6,24 @@ import (
 	"goreact/ent/album"
 	"goreact/ent/artist"
 	"goreact/ent/track"
+	"net/url"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func Search(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		query := c.Params("query")
+		query, err := url.QueryUnescape(c.Params("query"))
+		if err != nil {
+			return err
+		}
 
 		tracks := []struct {
 			Id    int    `json:"id"`
 			Title string `json:"title"`
 		}{}
 
-		err := client.
+		err = client.
 			Track.
 			Query().
 			Where(track.TitleContains(query)).
