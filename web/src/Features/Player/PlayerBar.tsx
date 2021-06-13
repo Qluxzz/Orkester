@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import styled from "styled-components"
 
-import { usePlayerContext } from "Context"
 import { AlbumLink, ArtistLink } from "utilities/Links"
 import AlbumImage from "utilities/AlbumImage"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
+import { useTrackContext } from "Contexts/TrackContext"
+import { usePlaybackContext } from "Contexts/PlaybackContext"
 
 const Bar = styled.div`
   display: flex;
@@ -14,7 +15,7 @@ const Bar = styled.div`
 `
 
 export default function PlayerBar() {
-    const { track } = usePlayerContext()
+    const { track } = useTrackContext()
 
     if (!track)
         return <Bar>Nothing is currently playing...</Bar>
@@ -45,38 +46,16 @@ export default function PlayerBar() {
 }
 
 function Controls() {
-    const { togglePlayback, state } = usePlayerContext()
+    const { play, pause, playbackState: state } = usePlaybackContext()
 
     return <div>
-        <button onClick={togglePlayback}>{state === "paused" ? "play" : "pause"}</button>
+        <button onClick={state === "paused" ? play : pause}>{state === "paused" ? "play" : "pause"}</button>
         <ProgressBar />
     </div>
 }
 
 function ProgressBar() {
-    const [data, setData] = useState<{ duration: number, timestamp: number }>()
-    const { player } = usePlayerContext()
+    const { currentTime, duration } = usePlaybackContext()
 
-    function updateCurrentTimeInterval() {
-        const interval = setInterval(() => {
-            if (!player)
-                return
-
-            setData({
-                duration: Math.round(player.duration),
-                timestamp: Math.round(player.currentTime)
-            })
-        }, 1000)
-
-        return () => {
-            clearInterval(interval)
-        }
-    }
-
-    useEffect(updateCurrentTimeInterval, [player])
-
-    if (!data || !data.timestamp || !data.duration)
-        return null
-
-    return <>{secondsToTimeFormat(data.timestamp)}/{secondsToTimeFormat(data.duration)}</>
+    return <>{secondsToTimeFormat(currentTime)}/{secondsToTimeFormat(duration)}</>
 }
