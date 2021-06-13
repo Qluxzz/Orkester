@@ -89,7 +89,10 @@ func (ac *ArtistCreate) Save(ctx context.Context) (*Artist, error) {
 				return nil, err
 			}
 			ac.mutation = mutation
-			node, err = ac.sqlSave(ctx)
+			if node, err = ac.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -239,10 +242,11 @@ func (acb *ArtistCreateBulk) Save(ctx context.Context) ([]*Artist, error) {
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil
