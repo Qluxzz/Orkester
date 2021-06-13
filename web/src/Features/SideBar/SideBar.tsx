@@ -17,6 +17,5 @@ const Container = styled.ul`
 export default function SideBar() {
     return <Container>
         <Link to="/collection/tracks"><li>Liked tracks</li></Link>
-        <Link to="/queue"><li>Queue</li></Link>
     </Container>
 }
