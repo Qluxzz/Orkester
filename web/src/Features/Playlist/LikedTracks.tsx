@@ -58,6 +58,7 @@ export default function LikedTracks() {
                     { display: "", key: "liked", width: 50 },
                     { display: "🕒", key: "length", width: 60, centered: true }
                 ]}
+                initalSortColumn="date"
             />
         }
     </div>
