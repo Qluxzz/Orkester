@@ -1,6 +1,6 @@
 interface IAlbumImage {
     album: { id: number, name: string }
-    size: string | number
+    size?: string | number
 }
 
 export default function AlbumImage({ album: { id, name }, size }: IAlbumImage) {

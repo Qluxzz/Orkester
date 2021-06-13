@@ -4,6 +4,7 @@ import styled from "styled-components";
 
 import CenteredDotLoader from "CenteredDotLoader"
 import { AlbumLink } from "utilities/Links";
+import AlbumImage from "utilities/AlbumImage";
 
 interface IArtist {
     id: number
@@ -119,9 +120,7 @@ function ArtistView(artist: IArtist) {
             {artist.albums.map(album =>
                 <AlbumLink {...album}>
                     <Album>
-                        <picture>
-                            <img src={`/api/v1/album/${album.id}/image`} alt={`Album cover for ${album.name} by ${artist.name}`} />
-                        </picture>
+                        <AlbumImage album={album} />
                         <p>{album.name}</p>
                     </Album>
                 </AlbumLink>
