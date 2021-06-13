@@ -47,7 +47,10 @@ export default function TrackListBase({
         direction: "ascending"
     })
 
-    function sortByColumn(column: ITrackKeys) {
+    function sortByColumn(column: IColumnKey) {
+        if (column === "albumCover")
+            return
+
         const sortDirection = (
             sortOptions.column === column
             && sortOptions.direction === "ascending"
@@ -73,7 +76,23 @@ export default function TrackListBase({
             }
         })()
 
-        return comparison(a[sortOptions.column], b[sortOptions.column])
+        const [colA, colB] = (() => {
+            switch (sortOptions.column) {
+                case "date":
+                    return [new Date(Date.parse(a.date)), new Date(Date.parse(b.date))]
+                case "album":
+                    return [a.album.name.toLowerCase(), b.album.name.toLowerCase()]
+                case "artists":
+                    return [
+                        a.artists.map(x => x.urlName).join(","),
+                        b.artists.map(x => x.urlName).join(",")
+                    ]
+                default:
+                    return [a[sortOptions.column], b[sortOptions.column]]
+            }
+        })()
+
+        return comparison(colA, colB)
     })
 
     return <div>
@@ -91,7 +110,7 @@ export default function TrackListBase({
                     style.textAlign = "center"
                 }
 
-                return <div style={style}>{column.display}</div>
+                return <div style={style} onClick={() => sortByColumn(column.key)}>{column.display}</div>
             })}
         </header>
         <StyledList>
@@ -115,6 +134,10 @@ const StyledList = styled.ul`
         background-color: #333;
     }
 `
+
+function formatDate(d: Date): string {
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString(10).padStart(2, "0")}-${d.getDate()}`
+}
 
 interface ITrackRow {
     columns: IColumn[]
@@ -146,6 +169,8 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
                         />
                     case "length":
                         return secondsToTimeFormat(track.length)
+                    case "date":
+                        return formatDate(new Date(Date.parse(track.date)))
                     default:
                         return track[column.key]
                 }
@@ -175,7 +200,7 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
 }
 
 function sortDirection(direction: ISortDirection) {
-    return function <Type extends number | string | boolean | IAlbum | IArtist[]>(a: Type, b: Type) {
+    return function <Type extends number | string | boolean | Date>(a: Type, b: Type) {
         if (a === b)
             return 0
 
