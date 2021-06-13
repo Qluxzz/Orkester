@@ -23,9 +23,9 @@ func scanAndAddTracksToDb(client *ent.Client, ctx context.Context) {
 
 	log.Printf("%d tracks found", len(tracks))
 
-	repositories.AddTracks(tracks, client, ctx)
+	tracks_added := repositories.AddTracks(tracks, client, ctx)
 
-	log.Print("Tracks has been added")
+	log.Printf("%d new tracks has been added", tracks_added)
 }
 
 func main() {
