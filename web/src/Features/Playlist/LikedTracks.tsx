@@ -13,11 +13,11 @@ async function getLikedTracks(): Promise<ITrack[]> {
 }
 
 export default function LikedTracks() {
-    const [tracks, setTracks] = useState<ITrack[]>()
+    const [tracks, setTracks] = useState<ITrack[] | "loading">("loading")
 
     function removeLikedTrack(trackId: number) {
-        if (!tracks)
-            throw new Error(`Can't remove track when has no tracks`)
+        if (tracks === "loading")
+            return
 
         setTracks(tracks.filter(x => x.id !== trackId))
     }
@@ -37,7 +37,7 @@ export default function LikedTracks() {
             })
     }, [])
 
-    if (!tracks)
+    if (tracks === "loading")
         return <CenteredDotLoader />
 
     return <div>
