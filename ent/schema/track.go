@@ -21,7 +21,6 @@ func (Track) Fields() []ent.Field {
 		field.Time("date").Immutable(),
 		field.Int("length").Immutable(),
 		field.String("mimetype").Immutable(),
-		field.Bool("liked").Default(false),
 	}
 }
 
@@ -29,7 +28,8 @@ func (Track) Fields() []ent.Field {
 func (Track) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("artists", Artist.Type).Required(),
-		edge.From("album", Album.Type).Ref("tracks").Unique(),
+		edge.From("album", Album.Type).Ref("tracks").Unique().Required(),
+		edge.To("liked", LikedTrack.Type).Unique(),
 	}
 }
 

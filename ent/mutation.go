@@ -8,6 +8,7 @@ import (
 	"goreact/ent/album"
 	"goreact/ent/artist"
 	"goreact/ent/genre"
+	"goreact/ent/likedtrack"
 	"goreact/ent/predicate"
 	"goreact/ent/track"
 	"sync"
@@ -25,10 +26,11 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAlbum  = "Album"
-	TypeArtist = "Artist"
-	TypeGenre  = "Genre"
-	TypeTrack  = "Track"
+	TypeAlbum      = "Album"
+	TypeArtist     = "Artist"
+	TypeGenre      = "Genre"
+	TypeLikedTrack = "LikedTrack"
+	TypeTrack      = "Track"
 )
 
 // AlbumMutation represents an operation that mutates the Album nodes in the graph.
@@ -1487,6 +1489,293 @@ func (m *GenreMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Genre edge %s", name)
 }
 
+// LikedTrackMutation represents an operation that mutates the LikedTrack nodes in the graph.
+type LikedTrackMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	date_added    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*LikedTrack, error)
+	predicates    []predicate.LikedTrack
+}
+
+var _ ent.Mutation = (*LikedTrackMutation)(nil)
+
+// likedtrackOption allows management of the mutation configuration using functional options.
+type likedtrackOption func(*LikedTrackMutation)
+
+// newLikedTrackMutation creates new mutation for the LikedTrack entity.
+func newLikedTrackMutation(c config, op Op, opts ...likedtrackOption) *LikedTrackMutation {
+	m := &LikedTrackMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLikedTrack,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLikedTrackID sets the ID field of the mutation.
+func withLikedTrackID(id int) likedtrackOption {
+	return func(m *LikedTrackMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LikedTrack
+		)
+		m.oldValue = func(ctx context.Context) (*LikedTrack, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LikedTrack.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLikedTrack sets the old LikedTrack of the mutation.
+func withLikedTrack(node *LikedTrack) likedtrackOption {
+	return func(m *LikedTrackMutation) {
+		m.oldValue = func(context.Context) (*LikedTrack, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LikedTrackMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LikedTrackMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LikedTrackMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetDateAdded sets the "date_added" field.
+func (m *LikedTrackMutation) SetDateAdded(t time.Time) {
+	m.date_added = &t
+}
+
+// DateAdded returns the value of the "date_added" field in the mutation.
+func (m *LikedTrackMutation) DateAdded() (r time.Time, exists bool) {
+	v := m.date_added
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDateAdded returns the old "date_added" field's value of the LikedTrack entity.
+// If the LikedTrack object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LikedTrackMutation) OldDateAdded(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDateAdded is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDateAdded requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDateAdded: %w", err)
+	}
+	return oldValue.DateAdded, nil
+}
+
+// ResetDateAdded resets all changes to the "date_added" field.
+func (m *LikedTrackMutation) ResetDateAdded() {
+	m.date_added = nil
+}
+
+// Op returns the operation name.
+func (m *LikedTrackMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (LikedTrack).
+func (m *LikedTrackMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LikedTrackMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.date_added != nil {
+		fields = append(fields, likedtrack.FieldDateAdded)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LikedTrackMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case likedtrack.FieldDateAdded:
+		return m.DateAdded()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LikedTrackMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case likedtrack.FieldDateAdded:
+		return m.OldDateAdded(ctx)
+	}
+	return nil, fmt.Errorf("unknown LikedTrack field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LikedTrackMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case likedtrack.FieldDateAdded:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDateAdded(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LikedTrack field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LikedTrackMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LikedTrackMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LikedTrackMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LikedTrack numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LikedTrackMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LikedTrackMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LikedTrackMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LikedTrack nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LikedTrackMutation) ResetField(name string) error {
+	switch name {
+	case likedtrack.FieldDateAdded:
+		m.ResetDateAdded()
+		return nil
+	}
+	return fmt.Errorf("unknown LikedTrack field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LikedTrackMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LikedTrackMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LikedTrackMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LikedTrackMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LikedTrackMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LikedTrackMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LikedTrackMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LikedTrack unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LikedTrackMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LikedTrack edge %s", name)
+}
+
 // TrackMutation represents an operation that mutates the Track nodes in the graph.
 type TrackMutation struct {
 	config
@@ -1501,13 +1790,14 @@ type TrackMutation struct {
 	length          *int
 	addlength       *int
 	mimetype        *string
-	liked           *bool
 	clearedFields   map[string]struct{}
 	artists         map[int]struct{}
 	removedartists  map[int]struct{}
 	clearedartists  bool
 	album           *int
 	clearedalbum    bool
+	liked           *int
+	clearedliked    bool
 	done            bool
 	oldValue        func(context.Context) (*Track, error)
 	predicates      []predicate.Track
@@ -1848,42 +2138,6 @@ func (m *TrackMutation) ResetMimetype() {
 	m.mimetype = nil
 }
 
-// SetLiked sets the "liked" field.
-func (m *TrackMutation) SetLiked(b bool) {
-	m.liked = &b
-}
-
-// Liked returns the value of the "liked" field in the mutation.
-func (m *TrackMutation) Liked() (r bool, exists bool) {
-	v := m.liked
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLiked returns the old "liked" field's value of the Track entity.
-// If the Track object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TrackMutation) OldLiked(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldLiked is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldLiked requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLiked: %w", err)
-	}
-	return oldValue.Liked, nil
-}
-
-// ResetLiked resets all changes to the "liked" field.
-func (m *TrackMutation) ResetLiked() {
-	m.liked = nil
-}
-
 // AddArtistIDs adds the "artists" edge to the Artist entity by ids.
 func (m *TrackMutation) AddArtistIDs(ids ...int) {
 	if m.artists == nil {
@@ -1976,6 +2230,45 @@ func (m *TrackMutation) ResetAlbum() {
 	m.clearedalbum = false
 }
 
+// SetLikedID sets the "liked" edge to the LikedTrack entity by id.
+func (m *TrackMutation) SetLikedID(id int) {
+	m.liked = &id
+}
+
+// ClearLiked clears the "liked" edge to the LikedTrack entity.
+func (m *TrackMutation) ClearLiked() {
+	m.clearedliked = true
+}
+
+// LikedCleared reports if the "liked" edge to the LikedTrack entity was cleared.
+func (m *TrackMutation) LikedCleared() bool {
+	return m.clearedliked
+}
+
+// LikedID returns the "liked" edge ID in the mutation.
+func (m *TrackMutation) LikedID() (id int, exists bool) {
+	if m.liked != nil {
+		return *m.liked, true
+	}
+	return
+}
+
+// LikedIDs returns the "liked" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LikedID instead. It exists only for internal usage by the builders.
+func (m *TrackMutation) LikedIDs() (ids []int) {
+	if id := m.liked; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLiked resets all changes to the "liked" edge.
+func (m *TrackMutation) ResetLiked() {
+	m.liked = nil
+	m.clearedliked = false
+}
+
 // Op returns the operation name.
 func (m *TrackMutation) Op() Op {
 	return m.op
@@ -1990,7 +2283,7 @@ func (m *TrackMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TrackMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.title != nil {
 		fields = append(fields, track.FieldTitle)
 	}
@@ -2008,9 +2301,6 @@ func (m *TrackMutation) Fields() []string {
 	}
 	if m.mimetype != nil {
 		fields = append(fields, track.FieldMimetype)
-	}
-	if m.liked != nil {
-		fields = append(fields, track.FieldLiked)
 	}
 	return fields
 }
@@ -2032,8 +2322,6 @@ func (m *TrackMutation) Field(name string) (ent.Value, bool) {
 		return m.Length()
 	case track.FieldMimetype:
 		return m.Mimetype()
-	case track.FieldLiked:
-		return m.Liked()
 	}
 	return nil, false
 }
@@ -2055,8 +2343,6 @@ func (m *TrackMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldLength(ctx)
 	case track.FieldMimetype:
 		return m.OldMimetype(ctx)
-	case track.FieldLiked:
-		return m.OldLiked(ctx)
 	}
 	return nil, fmt.Errorf("unknown Track field %s", name)
 }
@@ -2107,13 +2393,6 @@ func (m *TrackMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMimetype(v)
-		return nil
-	case track.FieldLiked:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLiked(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Track field %s", name)
@@ -2209,21 +2488,21 @@ func (m *TrackMutation) ResetField(name string) error {
 	case track.FieldMimetype:
 		m.ResetMimetype()
 		return nil
-	case track.FieldLiked:
-		m.ResetLiked()
-		return nil
 	}
 	return fmt.Errorf("unknown Track field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TrackMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.artists != nil {
 		edges = append(edges, track.EdgeArtists)
 	}
 	if m.album != nil {
 		edges = append(edges, track.EdgeAlbum)
+	}
+	if m.liked != nil {
+		edges = append(edges, track.EdgeLiked)
 	}
 	return edges
 }
@@ -2242,13 +2521,17 @@ func (m *TrackMutation) AddedIDs(name string) []ent.Value {
 		if id := m.album; id != nil {
 			return []ent.Value{*id}
 		}
+	case track.EdgeLiked:
+		if id := m.liked; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TrackMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedartists != nil {
 		edges = append(edges, track.EdgeArtists)
 	}
@@ -2271,12 +2554,15 @@ func (m *TrackMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TrackMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedartists {
 		edges = append(edges, track.EdgeArtists)
 	}
 	if m.clearedalbum {
 		edges = append(edges, track.EdgeAlbum)
+	}
+	if m.clearedliked {
+		edges = append(edges, track.EdgeLiked)
 	}
 	return edges
 }
@@ -2289,6 +2575,8 @@ func (m *TrackMutation) EdgeCleared(name string) bool {
 		return m.clearedartists
 	case track.EdgeAlbum:
 		return m.clearedalbum
+	case track.EdgeLiked:
+		return m.clearedliked
 	}
 	return false
 }
@@ -2299,6 +2587,9 @@ func (m *TrackMutation) ClearEdge(name string) error {
 	switch name {
 	case track.EdgeAlbum:
 		m.ClearAlbum()
+		return nil
+	case track.EdgeLiked:
+		m.ClearLiked()
 		return nil
 	}
 	return fmt.Errorf("unknown Track unique edge %s", name)
@@ -2313,6 +2604,9 @@ func (m *TrackMutation) ResetEdge(name string) error {
 		return nil
 	case track.EdgeAlbum:
 		m.ResetAlbum()
+		return nil
+	case track.EdgeLiked:
+		m.ResetLiked()
 		return nil
 	}
 	return fmt.Errorf("unknown Track edge %s", name)

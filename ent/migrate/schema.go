@@ -62,6 +62,17 @@ var (
 		Columns:    GenresColumns,
 		PrimaryKey: []*schema.Column{GenresColumns[0]},
 	}
+	// LikedTracksColumns holds the columns for the "liked_tracks" table.
+	LikedTracksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "date_added", Type: field.TypeTime},
+	}
+	// LikedTracksTable holds the schema information for the "liked_tracks" table.
+	LikedTracksTable = &schema.Table{
+		Name:       "liked_tracks",
+		Columns:    LikedTracksColumns,
+		PrimaryKey: []*schema.Column{LikedTracksColumns[0]},
+	}
 	// TracksColumns holds the columns for the "tracks" table.
 	TracksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -71,8 +82,8 @@ var (
 		{Name: "date", Type: field.TypeTime},
 		{Name: "length", Type: field.TypeInt},
 		{Name: "mimetype", Type: field.TypeString},
-		{Name: "liked", Type: field.TypeBool, Default: false},
 		{Name: "album_tracks", Type: field.TypeInt, Nullable: true},
+		{Name: "track_liked", Type: field.TypeInt, Nullable: true},
 	}
 	// TracksTable holds the schema information for the "tracks" table.
 	TracksTable = &schema.Table{
@@ -82,8 +93,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "tracks_albums_tracks",
-				Columns:    []*schema.Column{TracksColumns[8]},
+				Columns:    []*schema.Column{TracksColumns[7]},
 				RefColumns: []*schema.Column{AlbumsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "tracks_liked_tracks_liked",
+				Columns:    []*schema.Column{TracksColumns[8]},
+				RefColumns: []*schema.Column{LikedTracksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -91,7 +108,7 @@ var (
 			{
 				Name:    "track_track_number_title_album_tracks",
 				Unique:  true,
-				Columns: []*schema.Column{TracksColumns[2], TracksColumns[1], TracksColumns[8]},
+				Columns: []*schema.Column{TracksColumns[2], TracksColumns[1], TracksColumns[7]},
 			},
 		},
 	}
@@ -125,6 +142,7 @@ var (
 		AlbumsTable,
 		ArtistsTable,
 		GenresTable,
+		LikedTracksTable,
 		TracksTable,
 		TrackArtistsTable,
 	}
@@ -133,6 +151,7 @@ var (
 func init() {
 	AlbumsTable.ForeignKeys[0].RefTable = ArtistsTable
 	TracksTable.ForeignKeys[0].RefTable = AlbumsTable
+	TracksTable.ForeignKeys[1].RefTable = LikedTracksTable
 	TrackArtistsTable.ForeignKeys[0].RefTable = TracksTable
 	TrackArtistsTable.ForeignKeys[1].RefTable = ArtistsTable
 }

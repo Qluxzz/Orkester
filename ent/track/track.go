@@ -19,12 +19,12 @@ const (
 	FieldLength = "length"
 	// FieldMimetype holds the string denoting the mimetype field in the database.
 	FieldMimetype = "mimetype"
-	// FieldLiked holds the string denoting the liked field in the database.
-	FieldLiked = "liked"
 	// EdgeArtists holds the string denoting the artists edge name in mutations.
 	EdgeArtists = "artists"
 	// EdgeAlbum holds the string denoting the album edge name in mutations.
 	EdgeAlbum = "album"
+	// EdgeLiked holds the string denoting the liked edge name in mutations.
+	EdgeLiked = "liked"
 	// Table holds the table name of the track in the database.
 	Table = "tracks"
 	// ArtistsTable is the table the holds the artists relation/edge. The primary key declared below.
@@ -39,6 +39,13 @@ const (
 	AlbumInverseTable = "albums"
 	// AlbumColumn is the table column denoting the album relation/edge.
 	AlbumColumn = "album_tracks"
+	// LikedTable is the table the holds the liked relation/edge.
+	LikedTable = "tracks"
+	// LikedInverseTable is the table name for the LikedTrack entity.
+	// It exists in this package in order to avoid circular dependency with the "likedtrack" package.
+	LikedInverseTable = "liked_tracks"
+	// LikedColumn is the table column denoting the liked relation/edge.
+	LikedColumn = "track_liked"
 )
 
 // Columns holds all SQL columns for track fields.
@@ -50,13 +57,13 @@ var Columns = []string{
 	FieldDate,
 	FieldLength,
 	FieldMimetype,
-	FieldLiked,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "tracks"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"album_tracks",
+	"track_liked",
 }
 
 var (
@@ -79,8 +86,3 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
-
-var (
-	// DefaultLiked holds the default value on creation for the "liked" field.
-	DefaultLiked bool
-)

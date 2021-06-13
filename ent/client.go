@@ -12,6 +12,7 @@ import (
 	"goreact/ent/album"
 	"goreact/ent/artist"
 	"goreact/ent/genre"
+	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 
 	"entgo.io/ent/dialect"
@@ -30,6 +31,8 @@ type Client struct {
 	Artist *ArtistClient
 	// Genre is the client for interacting with the Genre builders.
 	Genre *GenreClient
+	// LikedTrack is the client for interacting with the LikedTrack builders.
+	LikedTrack *LikedTrackClient
 	// Track is the client for interacting with the Track builders.
 	Track *TrackClient
 }
@@ -48,6 +51,7 @@ func (c *Client) init() {
 	c.Album = NewAlbumClient(c.config)
 	c.Artist = NewArtistClient(c.config)
 	c.Genre = NewGenreClient(c.config)
+	c.LikedTrack = NewLikedTrackClient(c.config)
 	c.Track = NewTrackClient(c.config)
 }
 
@@ -80,12 +84,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Album:  NewAlbumClient(cfg),
-		Artist: NewArtistClient(cfg),
-		Genre:  NewGenreClient(cfg),
-		Track:  NewTrackClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Album:      NewAlbumClient(cfg),
+		Artist:     NewArtistClient(cfg),
+		Genre:      NewGenreClient(cfg),
+		LikedTrack: NewLikedTrackClient(cfg),
+		Track:      NewTrackClient(cfg),
 	}, nil
 }
 
@@ -103,11 +108,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		config: cfg,
-		Album:  NewAlbumClient(cfg),
-		Artist: NewArtistClient(cfg),
-		Genre:  NewGenreClient(cfg),
-		Track:  NewTrackClient(cfg),
+		config:     cfg,
+		Album:      NewAlbumClient(cfg),
+		Artist:     NewArtistClient(cfg),
+		Genre:      NewGenreClient(cfg),
+		LikedTrack: NewLikedTrackClient(cfg),
+		Track:      NewTrackClient(cfg),
 	}, nil
 }
 
@@ -140,6 +146,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Album.Use(hooks...)
 	c.Artist.Use(hooks...)
 	c.Genre.Use(hooks...)
+	c.LikedTrack.Use(hooks...)
 	c.Track.Use(hooks...)
 }
 
@@ -477,6 +484,96 @@ func (c *GenreClient) Hooks() []Hook {
 	return c.hooks.Genre
 }
 
+// LikedTrackClient is a client for the LikedTrack schema.
+type LikedTrackClient struct {
+	config
+}
+
+// NewLikedTrackClient returns a client for the LikedTrack from the given config.
+func NewLikedTrackClient(c config) *LikedTrackClient {
+	return &LikedTrackClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `likedtrack.Hooks(f(g(h())))`.
+func (c *LikedTrackClient) Use(hooks ...Hook) {
+	c.hooks.LikedTrack = append(c.hooks.LikedTrack, hooks...)
+}
+
+// Create returns a create builder for LikedTrack.
+func (c *LikedTrackClient) Create() *LikedTrackCreate {
+	mutation := newLikedTrackMutation(c.config, OpCreate)
+	return &LikedTrackCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LikedTrack entities.
+func (c *LikedTrackClient) CreateBulk(builders ...*LikedTrackCreate) *LikedTrackCreateBulk {
+	return &LikedTrackCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LikedTrack.
+func (c *LikedTrackClient) Update() *LikedTrackUpdate {
+	mutation := newLikedTrackMutation(c.config, OpUpdate)
+	return &LikedTrackUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LikedTrackClient) UpdateOne(lt *LikedTrack) *LikedTrackUpdateOne {
+	mutation := newLikedTrackMutation(c.config, OpUpdateOne, withLikedTrack(lt))
+	return &LikedTrackUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LikedTrackClient) UpdateOneID(id int) *LikedTrackUpdateOne {
+	mutation := newLikedTrackMutation(c.config, OpUpdateOne, withLikedTrackID(id))
+	return &LikedTrackUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LikedTrack.
+func (c *LikedTrackClient) Delete() *LikedTrackDelete {
+	mutation := newLikedTrackMutation(c.config, OpDelete)
+	return &LikedTrackDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *LikedTrackClient) DeleteOne(lt *LikedTrack) *LikedTrackDeleteOne {
+	return c.DeleteOneID(lt.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *LikedTrackClient) DeleteOneID(id int) *LikedTrackDeleteOne {
+	builder := c.Delete().Where(likedtrack.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LikedTrackDeleteOne{builder}
+}
+
+// Query returns a query builder for LikedTrack.
+func (c *LikedTrackClient) Query() *LikedTrackQuery {
+	return &LikedTrackQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a LikedTrack entity by its id.
+func (c *LikedTrackClient) Get(ctx context.Context, id int) (*LikedTrack, error) {
+	return c.Query().Where(likedtrack.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LikedTrackClient) GetX(ctx context.Context, id int) *LikedTrack {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LikedTrackClient) Hooks() []Hook {
+	return c.hooks.LikedTrack
+}
+
 // TrackClient is a client for the Track schema.
 type TrackClient struct {
 	config
@@ -587,6 +684,22 @@ func (c *TrackClient) QueryAlbum(t *Track) *AlbumQuery {
 			sqlgraph.From(track.Table, track.FieldID, id),
 			sqlgraph.To(album.Table, album.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, track.AlbumTable, track.AlbumColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLiked queries the liked edge of a Track.
+func (c *TrackClient) QueryLiked(t *Track) *LikedTrackQuery {
+	query := &LikedTrackQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(track.Table, track.FieldID, id),
+			sqlgraph.To(likedtrack.Table, likedtrack.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, track.LikedTable, track.LikedColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

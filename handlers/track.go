@@ -25,6 +25,7 @@ func TracksInfo(client *ent.Client, context context.Context) fiber.Handler {
 			Where(track.IDIn(*ids...)).
 			WithAlbum().
 			WithArtists().
+			WithLiked().
 			All(context)
 
 		if err != nil {
@@ -33,12 +34,14 @@ func TracksInfo(client *ent.Client, context context.Context) fiber.Handler {
 
 		t2 := []models.Track{}
 		for _, track := range tracks {
+			liked := track.Edges.Liked
+
 			t := models.Track{
 				Id:          track.ID,
 				TrackNumber: track.TrackNumber,
 				Title:       track.Title,
 				Length:      track.Length,
-				Liked:       track.Liked,
+				Liked:       liked != nil,
 				Album: &models.Album{
 					Id:      track.Edges.Album.ID,
 					Name:    track.Edges.Album.Name,
@@ -125,7 +128,12 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		_, err = client.Track.UpdateOneID(id).SetLiked(true).Save(context)
+		liked, err := client.LikedTrack.Create().Save(context)
+		if err != nil {
+			return err
+		}
+
+		_, err = client.Track.UpdateOneID(id).SetLiked(liked).Save(context)
 		if err != nil {
 			return err
 		}
@@ -141,7 +149,7 @@ func UnLikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		_, err = client.Track.UpdateOneID(id).SetLiked(false).Save(context)
+		_, err = client.Track.UpdateOneID(id).ClearLiked().Save(context)
 		if err != nil {
 			return err
 		}

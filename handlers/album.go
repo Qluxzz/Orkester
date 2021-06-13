@@ -6,6 +6,7 @@ import (
 	"goreact/ent"
 	"goreact/ent/album"
 	"goreact/models"
+	"sort"
 	"strconv"
 	"time"
 
@@ -27,6 +28,7 @@ func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 			WithArtist().
 			WithTracks(func(q *ent.TrackQuery) {
 				q.WithArtists()
+				q.WithLiked()
 			}).
 			Only(ctx)
 		if err != nil {
@@ -40,7 +42,7 @@ func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 				TrackNumber: track.TrackNumber,
 				Title:       track.Title,
 				Length:      track.Length,
-				Liked:       track.Liked,
+				Liked:       track.Edges.Liked != nil,
 			}
 
 			artists := []*models.Artist{}
@@ -59,6 +61,10 @@ func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 
 			tracks = append(tracks, t)
 		}
+
+		sort.SliceStable(tracks, func(i, j int) bool {
+			return tracks[i].TrackNumber < tracks[j].TrackNumber
+		})
 
 		return c.JSON(&fiber.Map{
 			"id":      album.ID,

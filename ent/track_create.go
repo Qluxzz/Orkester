@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"goreact/ent/album"
 	"goreact/ent/artist"
+	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 	"time"
 
@@ -58,20 +59,6 @@ func (tc *TrackCreate) SetMimetype(s string) *TrackCreate {
 	return tc
 }
 
-// SetLiked sets the "liked" field.
-func (tc *TrackCreate) SetLiked(b bool) *TrackCreate {
-	tc.mutation.SetLiked(b)
-	return tc
-}
-
-// SetNillableLiked sets the "liked" field if the given value is not nil.
-func (tc *TrackCreate) SetNillableLiked(b *bool) *TrackCreate {
-	if b != nil {
-		tc.SetLiked(*b)
-	}
-	return tc
-}
-
 // AddArtistIDs adds the "artists" edge to the Artist entity by IDs.
 func (tc *TrackCreate) AddArtistIDs(ids ...int) *TrackCreate {
 	tc.mutation.AddArtistIDs(ids...)
@@ -93,17 +80,28 @@ func (tc *TrackCreate) SetAlbumID(id int) *TrackCreate {
 	return tc
 }
 
-// SetNillableAlbumID sets the "album" edge to the Album entity by ID if the given value is not nil.
-func (tc *TrackCreate) SetNillableAlbumID(id *int) *TrackCreate {
+// SetAlbum sets the "album" edge to the Album entity.
+func (tc *TrackCreate) SetAlbum(a *Album) *TrackCreate {
+	return tc.SetAlbumID(a.ID)
+}
+
+// SetLikedID sets the "liked" edge to the LikedTrack entity by ID.
+func (tc *TrackCreate) SetLikedID(id int) *TrackCreate {
+	tc.mutation.SetLikedID(id)
+	return tc
+}
+
+// SetNillableLikedID sets the "liked" edge to the LikedTrack entity by ID if the given value is not nil.
+func (tc *TrackCreate) SetNillableLikedID(id *int) *TrackCreate {
 	if id != nil {
-		tc = tc.SetAlbumID(*id)
+		tc = tc.SetLikedID(*id)
 	}
 	return tc
 }
 
-// SetAlbum sets the "album" edge to the Album entity.
-func (tc *TrackCreate) SetAlbum(a *Album) *TrackCreate {
-	return tc.SetAlbumID(a.ID)
+// SetLiked sets the "liked" edge to the LikedTrack entity.
+func (tc *TrackCreate) SetLiked(l *LikedTrack) *TrackCreate {
+	return tc.SetLikedID(l.ID)
 }
 
 // Mutation returns the TrackMutation object of the builder.
@@ -117,7 +115,6 @@ func (tc *TrackCreate) Save(ctx context.Context) (*Track, error) {
 		err  error
 		node *Track
 	)
-	tc.defaults()
 	if len(tc.hooks) == 0 {
 		if err = tc.check(); err != nil {
 			return nil, err
@@ -159,14 +156,6 @@ func (tc *TrackCreate) SaveX(ctx context.Context) *Track {
 	return v
 }
 
-// defaults sets the default values of the builder before save.
-func (tc *TrackCreate) defaults() {
-	if _, ok := tc.mutation.Liked(); !ok {
-		v := track.DefaultLiked
-		tc.mutation.SetLiked(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (tc *TrackCreate) check() error {
 	if _, ok := tc.mutation.Title(); !ok {
@@ -187,11 +176,11 @@ func (tc *TrackCreate) check() error {
 	if _, ok := tc.mutation.Mimetype(); !ok {
 		return &ValidationError{Name: "mimetype", err: errors.New("ent: missing required field \"mimetype\"")}
 	}
-	if _, ok := tc.mutation.Liked(); !ok {
-		return &ValidationError{Name: "liked", err: errors.New("ent: missing required field \"liked\"")}
-	}
 	if len(tc.mutation.ArtistsIDs()) == 0 {
 		return &ValidationError{Name: "artists", err: errors.New("ent: missing required edge \"artists\"")}
+	}
+	if _, ok := tc.mutation.AlbumID(); !ok {
+		return &ValidationError{Name: "album", err: errors.New("ent: missing required edge \"album\"")}
 	}
 	return nil
 }
@@ -268,14 +257,6 @@ func (tc *TrackCreate) createSpec() (*Track, *sqlgraph.CreateSpec) {
 		})
 		_node.Mimetype = value
 	}
-	if value, ok := tc.mutation.Liked(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: track.FieldLiked,
-		})
-		_node.Liked = value
-	}
 	if nodes := tc.mutation.ArtistsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -315,6 +296,26 @@ func (tc *TrackCreate) createSpec() (*Track, *sqlgraph.CreateSpec) {
 		_node.album_tracks = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := tc.mutation.LikedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.LikedTable,
+			Columns: []string{track.LikedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: likedtrack.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.track_liked = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -332,7 +333,6 @@ func (tcb *TrackCreateBulk) Save(ctx context.Context) ([]*Track, error) {
 	for i := range tcb.builders {
 		func(i int, root context.Context) {
 			builder := tcb.builders[i]
-			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TrackMutation)
 				if !ok {

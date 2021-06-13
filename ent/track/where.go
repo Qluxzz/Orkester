@@ -135,13 +135,6 @@ func Mimetype(v string) predicate.Track {
 	})
 }
 
-// Liked applies equality check predicate on the "liked" field. It's identical to LikedEQ.
-func Liked(v bool) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLiked), v))
-	})
-}
-
 // TitleEQ applies the EQ predicate on the "title" field.
 func TitleEQ(v string) predicate.Track {
 	return predicate.Track(func(s *sql.Selector) {
@@ -703,20 +696,6 @@ func MimetypeContainsFold(v string) predicate.Track {
 	})
 }
 
-// LikedEQ applies the EQ predicate on the "liked" field.
-func LikedEQ(v bool) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLiked), v))
-	})
-}
-
-// LikedNEQ applies the NEQ predicate on the "liked" field.
-func LikedNEQ(v bool) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldLiked), v))
-	})
-}
-
 // HasArtists applies the HasEdge predicate on the "artists" edge.
 func HasArtists() predicate.Track {
 	return predicate.Track(func(s *sql.Selector) {
@@ -764,6 +743,34 @@ func HasAlbumWith(preds ...predicate.Album) predicate.Track {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(AlbumInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, AlbumTable, AlbumColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLiked applies the HasEdge predicate on the "liked" edge.
+func HasLiked() predicate.Track {
+	return predicate.Track(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LikedTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, LikedTable, LikedColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLikedWith applies the HasEdge predicate on the "liked" edge with a given conditions (other predicates).
+func HasLikedWith(preds ...predicate.LikedTrack) predicate.Track {
+	return predicate.Track(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LikedInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, LikedTable, LikedColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
