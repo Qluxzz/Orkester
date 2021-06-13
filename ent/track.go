@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"goreact/ent/album"
+	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 	"strings"
 	"time"
@@ -29,12 +30,11 @@ type Track struct {
 	Length int `json:"length,omitempty"`
 	// Mimetype holds the value of the "mimetype" field.
 	Mimetype string `json:"mimetype,omitempty"`
-	// Liked holds the value of the "liked" field.
-	Liked bool `json:"liked,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TrackQuery when eager-loading is set.
 	Edges        TrackEdges `json:"edges"`
 	album_tracks *int
+	track_liked  *int
 }
 
 // TrackEdges holds the relations/edges for other nodes in the graph.
@@ -43,9 +43,11 @@ type TrackEdges struct {
 	Artists []*Artist `json:"artists,omitempty"`
 	// Album holds the value of the album edge.
 	Album *Album `json:"album,omitempty"`
+	// Liked holds the value of the liked edge.
+	Liked *LikedTrack `json:"liked,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // ArtistsOrErr returns the Artists value or an error if the edge
@@ -71,13 +73,25 @@ func (e TrackEdges) AlbumOrErr() (*Album, error) {
 	return nil, &NotLoadedError{edge: "album"}
 }
 
+// LikedOrErr returns the Liked value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TrackEdges) LikedOrErr() (*LikedTrack, error) {
+	if e.loadedTypes[2] {
+		if e.Liked == nil {
+			// The edge liked was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: likedtrack.Label}
+		}
+		return e.Liked, nil
+	}
+	return nil, &NotLoadedError{edge: "liked"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Track) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case track.FieldLiked:
-			values[i] = new(sql.NullBool)
 		case track.FieldID, track.FieldTrackNumber, track.FieldLength:
 			values[i] = new(sql.NullInt64)
 		case track.FieldTitle, track.FieldPath, track.FieldMimetype:
@@ -85,6 +99,8 @@ func (*Track) scanValues(columns []string) ([]interface{}, error) {
 		case track.FieldDate:
 			values[i] = new(sql.NullTime)
 		case track.ForeignKeys[0]: // album_tracks
+			values[i] = new(sql.NullInt64)
+		case track.ForeignKeys[1]: // track_liked
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Track", columns[i])
@@ -143,18 +159,19 @@ func (t *Track) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				t.Mimetype = value.String
 			}
-		case track.FieldLiked:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field liked", values[i])
-			} else if value.Valid {
-				t.Liked = value.Bool
-			}
 		case track.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field album_tracks", value)
 			} else if value.Valid {
 				t.album_tracks = new(int)
 				*t.album_tracks = int(value.Int64)
+			}
+		case track.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field track_liked", value)
+			} else if value.Valid {
+				t.track_liked = new(int)
+				*t.track_liked = int(value.Int64)
 			}
 		}
 	}
@@ -169,6 +186,11 @@ func (t *Track) QueryArtists() *ArtistQuery {
 // QueryAlbum queries the "album" edge of the Track entity.
 func (t *Track) QueryAlbum() *AlbumQuery {
 	return (&TrackClient{config: t.config}).QueryAlbum(t)
+}
+
+// QueryLiked queries the "liked" edge of the Track entity.
+func (t *Track) QueryLiked() *LikedTrackQuery {
+	return (&TrackClient{config: t.config}).QueryLiked(t)
 }
 
 // Update returns a builder for updating this Track.
@@ -206,8 +228,6 @@ func (t *Track) String() string {
 	builder.WriteString(fmt.Sprintf("%v", t.Length))
 	builder.WriteString(", mimetype=")
 	builder.WriteString(t.Mimetype)
-	builder.WriteString(", liked=")
-	builder.WriteString(fmt.Sprintf("%v", t.Liked))
 	builder.WriteByte(')')
 	return builder.String()
 }

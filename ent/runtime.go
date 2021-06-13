@@ -3,18 +3,19 @@
 package ent
 
 import (
+	"goreact/ent/likedtrack"
 	"goreact/ent/schema"
-	"goreact/ent/track"
+	"time"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	trackFields := schema.Track{}.Fields()
-	_ = trackFields
-	// trackDescLiked is the schema descriptor for liked field.
-	trackDescLiked := trackFields[6].Descriptor()
-	// track.DefaultLiked holds the default value on creation for the liked field.
-	track.DefaultLiked = trackDescLiked.Default.(bool)
+	likedtrackFields := schema.LikedTrack{}.Fields()
+	_ = likedtrackFields
+	// likedtrackDescDateAdded is the schema descriptor for date_added field.
+	likedtrackDescDateAdded := likedtrackFields[0].Descriptor()
+	// likedtrack.DefaultDateAdded holds the default value on creation for the date_added field.
+	likedtrack.DefaultDateAdded = likedtrackDescDateAdded.Default.(func() time.Time)
 }

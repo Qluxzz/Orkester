@@ -24,10 +24,11 @@ type config struct {
 
 // hooks per client, for fast access.
 type hooks struct {
-	Album  []ent.Hook
-	Artist []ent.Hook
-	Genre  []ent.Hook
-	Track  []ent.Hook
+	Album      []ent.Hook
+	Artist     []ent.Hook
+	Genre      []ent.Hook
+	LikedTrack []ent.Hook
+	Track      []ent.Hook
 }
 
 // Options applies the options on the config object.

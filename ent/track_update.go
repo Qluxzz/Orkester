@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"goreact/ent/album"
 	"goreact/ent/artist"
+	"goreact/ent/likedtrack"
 	"goreact/ent/predicate"
 	"goreact/ent/track"
 
@@ -25,20 +27,6 @@ type TrackUpdate struct {
 // Where adds a new predicate for the TrackUpdate builder.
 func (tu *TrackUpdate) Where(ps ...predicate.Track) *TrackUpdate {
 	tu.mutation.predicates = append(tu.mutation.predicates, ps...)
-	return tu
-}
-
-// SetLiked sets the "liked" field.
-func (tu *TrackUpdate) SetLiked(b bool) *TrackUpdate {
-	tu.mutation.SetLiked(b)
-	return tu
-}
-
-// SetNillableLiked sets the "liked" field if the given value is not nil.
-func (tu *TrackUpdate) SetNillableLiked(b *bool) *TrackUpdate {
-	if b != nil {
-		tu.SetLiked(*b)
-	}
 	return tu
 }
 
@@ -63,17 +51,28 @@ func (tu *TrackUpdate) SetAlbumID(id int) *TrackUpdate {
 	return tu
 }
 
-// SetNillableAlbumID sets the "album" edge to the Album entity by ID if the given value is not nil.
-func (tu *TrackUpdate) SetNillableAlbumID(id *int) *TrackUpdate {
+// SetAlbum sets the "album" edge to the Album entity.
+func (tu *TrackUpdate) SetAlbum(a *Album) *TrackUpdate {
+	return tu.SetAlbumID(a.ID)
+}
+
+// SetLikedID sets the "liked" edge to the LikedTrack entity by ID.
+func (tu *TrackUpdate) SetLikedID(id int) *TrackUpdate {
+	tu.mutation.SetLikedID(id)
+	return tu
+}
+
+// SetNillableLikedID sets the "liked" edge to the LikedTrack entity by ID if the given value is not nil.
+func (tu *TrackUpdate) SetNillableLikedID(id *int) *TrackUpdate {
 	if id != nil {
-		tu = tu.SetAlbumID(*id)
+		tu = tu.SetLikedID(*id)
 	}
 	return tu
 }
 
-// SetAlbum sets the "album" edge to the Album entity.
-func (tu *TrackUpdate) SetAlbum(a *Album) *TrackUpdate {
-	return tu.SetAlbumID(a.ID)
+// SetLiked sets the "liked" edge to the LikedTrack entity.
+func (tu *TrackUpdate) SetLiked(l *LikedTrack) *TrackUpdate {
+	return tu.SetLikedID(l.ID)
 }
 
 // Mutation returns the TrackMutation object of the builder.
@@ -108,6 +107,12 @@ func (tu *TrackUpdate) ClearAlbum() *TrackUpdate {
 	return tu
 }
 
+// ClearLiked clears the "liked" edge to the LikedTrack entity.
+func (tu *TrackUpdate) ClearLiked() *TrackUpdate {
+	tu.mutation.ClearLiked()
+	return tu
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TrackUpdate) Save(ctx context.Context) (int, error) {
 	var (
@@ -115,12 +120,18 @@ func (tu *TrackUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(tu.hooks) == 0 {
+		if err = tu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = tu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*TrackMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = tu.check(); err != nil {
+				return 0, err
 			}
 			tu.mutation = mutation
 			affected, err = tu.sqlSave(ctx)
@@ -159,6 +170,14 @@ func (tu *TrackUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (tu *TrackUpdate) check() error {
+	if _, ok := tu.mutation.AlbumID(); tu.mutation.AlbumCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"album\"")
+	}
+	return nil
+}
+
 func (tu *TrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -176,13 +195,6 @@ func (tu *TrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := tu.mutation.Liked(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: track.FieldLiked,
-		})
 	}
 	if tu.mutation.ArtistsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -273,6 +285,41 @@ func (tu *TrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.LikedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.LikedTable,
+			Columns: []string{track.LikedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: likedtrack.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.LikedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.LikedTable,
+			Columns: []string{track.LikedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: likedtrack.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{track.Label}
@@ -290,20 +337,6 @@ type TrackUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *TrackMutation
-}
-
-// SetLiked sets the "liked" field.
-func (tuo *TrackUpdateOne) SetLiked(b bool) *TrackUpdateOne {
-	tuo.mutation.SetLiked(b)
-	return tuo
-}
-
-// SetNillableLiked sets the "liked" field if the given value is not nil.
-func (tuo *TrackUpdateOne) SetNillableLiked(b *bool) *TrackUpdateOne {
-	if b != nil {
-		tuo.SetLiked(*b)
-	}
-	return tuo
 }
 
 // AddArtistIDs adds the "artists" edge to the Artist entity by IDs.
@@ -327,17 +360,28 @@ func (tuo *TrackUpdateOne) SetAlbumID(id int) *TrackUpdateOne {
 	return tuo
 }
 
-// SetNillableAlbumID sets the "album" edge to the Album entity by ID if the given value is not nil.
-func (tuo *TrackUpdateOne) SetNillableAlbumID(id *int) *TrackUpdateOne {
+// SetAlbum sets the "album" edge to the Album entity.
+func (tuo *TrackUpdateOne) SetAlbum(a *Album) *TrackUpdateOne {
+	return tuo.SetAlbumID(a.ID)
+}
+
+// SetLikedID sets the "liked" edge to the LikedTrack entity by ID.
+func (tuo *TrackUpdateOne) SetLikedID(id int) *TrackUpdateOne {
+	tuo.mutation.SetLikedID(id)
+	return tuo
+}
+
+// SetNillableLikedID sets the "liked" edge to the LikedTrack entity by ID if the given value is not nil.
+func (tuo *TrackUpdateOne) SetNillableLikedID(id *int) *TrackUpdateOne {
 	if id != nil {
-		tuo = tuo.SetAlbumID(*id)
+		tuo = tuo.SetLikedID(*id)
 	}
 	return tuo
 }
 
-// SetAlbum sets the "album" edge to the Album entity.
-func (tuo *TrackUpdateOne) SetAlbum(a *Album) *TrackUpdateOne {
-	return tuo.SetAlbumID(a.ID)
+// SetLiked sets the "liked" edge to the LikedTrack entity.
+func (tuo *TrackUpdateOne) SetLiked(l *LikedTrack) *TrackUpdateOne {
+	return tuo.SetLikedID(l.ID)
 }
 
 // Mutation returns the TrackMutation object of the builder.
@@ -372,6 +416,12 @@ func (tuo *TrackUpdateOne) ClearAlbum() *TrackUpdateOne {
 	return tuo
 }
 
+// ClearLiked clears the "liked" edge to the LikedTrack entity.
+func (tuo *TrackUpdateOne) ClearLiked() *TrackUpdateOne {
+	tuo.mutation.ClearLiked()
+	return tuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (tuo *TrackUpdateOne) Select(field string, fields ...string) *TrackUpdateOne {
@@ -386,12 +436,18 @@ func (tuo *TrackUpdateOne) Save(ctx context.Context) (*Track, error) {
 		node *Track
 	)
 	if len(tuo.hooks) == 0 {
+		if err = tuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = tuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*TrackMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = tuo.check(); err != nil {
+				return nil, err
 			}
 			tuo.mutation = mutation
 			node, err = tuo.sqlSave(ctx)
@@ -430,6 +486,14 @@ func (tuo *TrackUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (tuo *TrackUpdateOne) check() error {
+	if _, ok := tuo.mutation.AlbumID(); tuo.mutation.AlbumCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"album\"")
+	}
+	return nil
+}
+
 func (tuo *TrackUpdateOne) sqlSave(ctx context.Context) (_node *Track, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -464,13 +528,6 @@ func (tuo *TrackUpdateOne) sqlSave(ctx context.Context) (_node *Track, err error
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := tuo.mutation.Liked(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: track.FieldLiked,
-		})
 	}
 	if tuo.mutation.ArtistsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -553,6 +610,41 @@ func (tuo *TrackUpdateOne) sqlSave(ctx context.Context) (_node *Track, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: album.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.LikedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.LikedTable,
+			Columns: []string{track.LikedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: likedtrack.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.LikedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.LikedTable,
+			Columns: []string{track.LikedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: likedtrack.FieldID,
 				},
 			},
 		}

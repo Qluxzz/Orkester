@@ -18,6 +18,8 @@ type Tx struct {
 	Artist *ArtistClient
 	// Genre is the client for interacting with the Genre builders.
 	Genre *GenreClient
+	// LikedTrack is the client for interacting with the LikedTrack builders.
+	LikedTrack *LikedTrackClient
 	// Track is the client for interacting with the Track builders.
 	Track *TrackClient
 
@@ -158,6 +160,7 @@ func (tx *Tx) init() {
 	tx.Album = NewAlbumClient(tx.config)
 	tx.Artist = NewArtistClient(tx.config)
 	tx.Genre = NewGenreClient(tx.config)
+	tx.LikedTrack = NewLikedTrackClient(tx.config)
 	tx.Track = NewTrackClient(tx.config)
 }
 

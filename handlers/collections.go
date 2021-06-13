@@ -6,6 +6,7 @@ import (
 	"goreact/ent/album"
 	"goreact/ent/track"
 	"goreact/models"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,21 +16,28 @@ func GetLikedTracks(client *ent.Client, context context.Context) fiber.Handler {
 		dbTracks, err := client.
 			Track.
 			Query().
-			Where(track.Liked(true)).
+			Where(track.HasLiked()).
 			WithAlbum(func(aq *ent.AlbumQuery) {
 				aq.Select(album.FieldID, album.FieldName, album.FieldURLName).Only(context)
 			}).
 			WithArtists().
+			WithLiked().
 			All(context)
 
 		tracks := []models.Track{}
 		for _, track := range dbTracks {
+			liked, err := track.Edges.LikedOrErr()
+			if err != nil {
+				log.Fatalf("Liked track was not liked! %v", err)
+			}
+
 			t := models.Track{
 				Id:          track.ID,
 				TrackNumber: track.TrackNumber,
 				Title:       track.Title,
 				Length:      track.Length,
-				Liked:       track.Liked,
+				Liked:       true,
+				Date:        liked.DateAdded,
 			}
 
 			artists := []*models.Artist{}

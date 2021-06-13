@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"goreact/ent/album"
 	"goreact/ent/artist"
+	"goreact/ent/likedtrack"
 	"goreact/ent/predicate"
 	"goreact/ent/track"
 	"math"
@@ -30,6 +31,7 @@ type TrackQuery struct {
 	// eager-loading edges.
 	withArtists *ArtistQuery
 	withAlbum   *AlbumQuery
+	withLiked   *LikedTrackQuery
 	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -104,6 +106,28 @@ func (tq *TrackQuery) QueryAlbum() *AlbumQuery {
 			sqlgraph.From(track.Table, track.FieldID, selector),
 			sqlgraph.To(album.Table, album.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, track.AlbumTable, track.AlbumColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLiked chains the current query on the "liked" edge.
+func (tq *TrackQuery) QueryLiked() *LikedTrackQuery {
+	query := &LikedTrackQuery{config: tq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(track.Table, track.FieldID, selector),
+			sqlgraph.To(likedtrack.Table, likedtrack.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, track.LikedTable, track.LikedColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -294,6 +318,7 @@ func (tq *TrackQuery) Clone() *TrackQuery {
 		predicates:  append([]predicate.Track{}, tq.predicates...),
 		withArtists: tq.withArtists.Clone(),
 		withAlbum:   tq.withAlbum.Clone(),
+		withLiked:   tq.withLiked.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -319,6 +344,17 @@ func (tq *TrackQuery) WithAlbum(opts ...func(*AlbumQuery)) *TrackQuery {
 		opt(query)
 	}
 	tq.withAlbum = query
+	return tq
+}
+
+// WithLiked tells the query-builder to eager-load the nodes that are connected to
+// the "liked" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TrackQuery) WithLiked(opts ...func(*LikedTrackQuery)) *TrackQuery {
+	query := &LikedTrackQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withLiked = query
 	return tq
 }
 
@@ -388,12 +424,13 @@ func (tq *TrackQuery) sqlAll(ctx context.Context) ([]*Track, error) {
 		nodes       = []*Track{}
 		withFKs     = tq.withFKs
 		_spec       = tq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			tq.withArtists != nil,
 			tq.withAlbum != nil,
+			tq.withLiked != nil,
 		}
 	)
-	if tq.withAlbum != nil {
+	if tq.withAlbum != nil || tq.withLiked != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -509,6 +546,35 @@ func (tq *TrackQuery) sqlAll(ctx context.Context) ([]*Track, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Album = n
+			}
+		}
+	}
+
+	if query := tq.withLiked; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Track)
+		for i := range nodes {
+			if nodes[i].track_liked == nil {
+				continue
+			}
+			fk := *nodes[i].track_liked
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(likedtrack.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "track_liked" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Liked = n
 			}
 		}
 	}

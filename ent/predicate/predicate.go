@@ -15,5 +15,8 @@ type Artist func(*sql.Selector)
 // Genre is the predicate function for genre builders.
 type Genre func(*sql.Selector)
 
+// LikedTrack is the predicate function for likedtrack builders.
+type LikedTrack func(*sql.Selector)
+
 // Track is the predicate function for track builders.
 type Track func(*sql.Selector)

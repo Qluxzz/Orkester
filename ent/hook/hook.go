@@ -47,6 +47,19 @@ func (f GenreFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return f(ctx, mv)
 }
 
+// The LikedTrackFunc type is an adapter to allow the use of ordinary
+// function as LikedTrack mutator.
+type LikedTrackFunc func(context.Context, *ent.LikedTrackMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LikedTrackFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.LikedTrackMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LikedTrackMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The TrackFunc type is an adapter to allow the use of ordinary
 // function as Track mutator.
 type TrackFunc func(context.Context, *ent.TrackMutation) (ent.Value, error)
