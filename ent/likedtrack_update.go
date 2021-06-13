@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"goreact/ent/likedtrack"
 	"goreact/ent/predicate"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -24,20 +23,6 @@ type LikedTrackUpdate struct {
 // Where adds a new predicate for the LikedTrackUpdate builder.
 func (ltu *LikedTrackUpdate) Where(ps ...predicate.LikedTrack) *LikedTrackUpdate {
 	ltu.mutation.predicates = append(ltu.mutation.predicates, ps...)
-	return ltu
-}
-
-// SetDateAdded sets the "date_added" field.
-func (ltu *LikedTrackUpdate) SetDateAdded(t time.Time) *LikedTrackUpdate {
-	ltu.mutation.SetDateAdded(t)
-	return ltu
-}
-
-// SetNillableDateAdded sets the "date_added" field if the given value is not nil.
-func (ltu *LikedTrackUpdate) SetNillableDateAdded(t *time.Time) *LikedTrackUpdate {
-	if t != nil {
-		ltu.SetDateAdded(*t)
-	}
 	return ltu
 }
 
@@ -115,13 +100,6 @@ func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ltu.mutation.DateAdded(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: likedtrack.FieldDateAdded,
-		})
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ltu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{likedtrack.Label}
@@ -139,20 +117,6 @@ type LikedTrackUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *LikedTrackMutation
-}
-
-// SetDateAdded sets the "date_added" field.
-func (ltuo *LikedTrackUpdateOne) SetDateAdded(t time.Time) *LikedTrackUpdateOne {
-	ltuo.mutation.SetDateAdded(t)
-	return ltuo
-}
-
-// SetNillableDateAdded sets the "date_added" field if the given value is not nil.
-func (ltuo *LikedTrackUpdateOne) SetNillableDateAdded(t *time.Time) *LikedTrackUpdateOne {
-	if t != nil {
-		ltuo.SetDateAdded(*t)
-	}
-	return ltuo
 }
 
 // Mutation returns the LikedTrackMutation object of the builder.
@@ -252,13 +216,6 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := ltuo.mutation.DateAdded(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: likedtrack.FieldDateAdded,
-		})
 	}
 	_node = &LikedTrack{config: ltuo.config}
 	_spec.Assign = _node.assignValues

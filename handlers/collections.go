@@ -7,6 +7,7 @@ import (
 	"goreact/ent/track"
 	"goreact/models"
 	"log"
+	"sort"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,6 +24,10 @@ func GetLikedTracks(client *ent.Client, context context.Context) fiber.Handler {
 			WithArtists().
 			WithLiked().
 			All(context)
+
+		if err != nil {
+			return err
+		}
 
 		tracks := []models.Track{}
 		for _, track := range dbTracks {
@@ -62,9 +67,9 @@ func GetLikedTracks(client *ent.Client, context context.Context) fiber.Handler {
 			tracks = append(tracks, t)
 		}
 
-		if err != nil {
-			return err
-		}
+		sort.SliceStable(tracks, func(i, j int) bool {
+			return tracks[i].Date.After(tracks[j].Date)
+		})
 
 		return c.JSON(tracks)
 	}

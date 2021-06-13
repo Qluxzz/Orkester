@@ -15,7 +15,7 @@ type LikedTrack struct {
 // Fields of the LikedTrack.
 func (LikedTrack) Fields() []ent.Field {
 	return []ent.Field{
-		field.Time("date_added").Default(time.Now().UTC),
+		field.Time("date_added").Default(time.Now().UTC).Immutable(),
 	}
 }
 
