@@ -1,6 +1,6 @@
 import CenteredDotLoader from "CenteredDotLoader";
 import { useEffect, useState } from "react";
-import TrackList from "TrackList";
+import TrackListBase from "TrackListBase";
 import ITrack from "types/track";
 
 async function getLikedTracks(): Promise<ITrack[]> {
@@ -44,13 +44,20 @@ export default function LikedTracks() {
         <h1>Liked tracks</h1>
         {tracks.length === 0
             ? <p>You have no liked tracks</p>
-            : <TrackList
+            : <TrackListBase
                 tracks={tracks}
                 onLikedChanged={(liked, trackId) => {
                     if (!liked)
                         removeLikedTrack(trackId)
                 }}
-                showAlbumCover
+                columns={[
+                    { display: "#", key: "trackNumber", width: 50 },
+                    { display: "", key: "albumCover" },
+                    { display: "TITLE", key: "title", width: "grow" },
+                    { display: "DATE ADDED", key: "date", width: 150, centered: true },
+                    { display: "", key: "liked", width: 50 },
+                    { display: "🕒", key: "length", width: 60, centered: true }
+                ]}
             />
         }
     </div>
