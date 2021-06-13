@@ -34,14 +34,12 @@ func TracksInfo(client *ent.Client, context context.Context) fiber.Handler {
 
 		t2 := []models.Track{}
 		for _, track := range tracks {
-			liked := track.Edges.Liked
-
 			t := models.Track{
 				Id:          track.ID,
 				TrackNumber: track.TrackNumber,
 				Title:       track.Title,
 				Length:      track.Length,
-				Liked:       liked != nil,
+				Liked:       track.Edges.Liked != nil,
 				Album: &models.Album{
 					Id:      track.Edges.Album.ID,
 					Name:    track.Edges.Album.Name,
@@ -149,7 +147,20 @@ func UnLikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		_, err = client.Track.UpdateOneID(id).ClearLiked().Save(context)
+		track, err := client.Track.Query().Where(track.ID(id)).WithLiked().Only(context)
+
+		if err != nil {
+			return err
+		}
+
+		if err = client.LikedTrack.DeleteOne(track.Edges.Liked).Exec(context); err != nil {
+			return err
+		}
+
+		if err = track.Update().ClearLiked().Exec(context); err != nil {
+			return err
+		}
+
 		if err != nil {
 			return err
 		}
