@@ -80,13 +80,18 @@ export default function usePlayer() {
 
     useEffect(updateProgress, [player])
 
+    function seekToMs(time: number) {
+        player.fastSeek(time)
+    }
+
     const values = useMemo(() => ({
         playTrack: playTrackAtMs,
         playbackState,
         play,
         pause,
-        progress
-    }), [playTrackAtMs, playbackState, play, pause, progress])
+        progress,
+        seekToMs
+    }), [playTrackAtMs, playbackState, play, pause, progress, seekToMs])
 
     return values
 }

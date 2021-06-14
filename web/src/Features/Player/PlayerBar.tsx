@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import styled from "styled-components"
 
 import { AlbumLink, ArtistLink } from "utilities/Links"
@@ -6,6 +6,7 @@ import AlbumImage from "utilities/AlbumImage"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
 import { useTrackContext } from "Contexts/TrackContext"
 import { usePlaybackContext } from "Contexts/PlaybackContext"
+import { useEffect } from "react"
 
 const Bar = styled.div`
   display: flex;
@@ -46,16 +47,66 @@ export default function PlayerBar() {
 }
 
 function Controls() {
-    const { play, pause, playbackState: state } = usePlaybackContext()
+    const { play, pause, playbackState, currentTime, duration } = usePlaybackContext()
 
     return <div>
-        <button onClick={state === "paused" ? play : pause}>{state === "paused" ? "play" : "pause"}</button>
-        <ProgressBar />
+        <button
+            onClick={playbackState === "paused"
+                ? play
+                : pause
+            }
+        >
+            {playbackState === "paused" ? "play" : "pause"}
+        </button>
+        <Slider duration={duration} currentTime={currentTime} />
     </div>
 }
 
-function ProgressBar() {
-    const { currentTime, duration } = usePlaybackContext()
+function Slider({ currentTime, duration }: { currentTime: number, duration: number }) {
+    const { seekToMs } = usePlaybackContext()
+    const [value, setValue] = useState(currentTime)
+    const [interacting, setInteracting] = useState(false)
 
-    return <>{secondsToTimeFormat(currentTime)}/{secondsToTimeFormat(duration)}</>
+    useEffect(() => {
+        setValue(currentTime)
+    }, [currentTime])
+
+    return <div style={{ display: "flex", alignItems: "center" }}>
+        <div style={{ padding: "0 10px" }}>{secondsToTimeFormat(value)}</div>
+        <input
+            style={{ width: "100%" }}
+            type="range"
+            min={0}
+            max={duration}
+            value={!interacting ? value : undefined}
+            defaultValue={interacting ? value : undefined}
+            onMouseUp={e => {
+                seekToMs(e.currentTarget.valueAsNumber)
+                setInteracting(false)
+            }}
+            onMouseDown={() => setInteracting(true)}
+            onMouseMove={e => {
+                setValue(e.currentTarget.valueAsNumber)
+            }}
+        />
+        <DurationOrRemainingTime
+            duration={duration}
+            currentTime={currentTime}
+        />
+    </div>
+}
+
+function DurationOrRemainingTime({ duration, currentTime }: { duration: number, currentTime: number }) {
+    const [inversed, setInversed] = useState(false)
+
+    const time = inversed
+        ? `-${secondsToTimeFormat(duration - currentTime)}`
+        : secondsToTimeFormat(duration)
+
+    return <div
+        style={{ padding: "0 10px", width: "6ch" }}
+        onClick={() => setInversed(!inversed)}
+    >
+        {time}
+    </div>
 }
