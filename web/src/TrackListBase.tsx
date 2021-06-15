@@ -148,7 +148,15 @@ interface ITrackRow {
 function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
     const { play } = usePlayerContext()
 
-    return <li style={{ display: "flex", padding: 10, alignItems: "center" }}>
+    return <li
+        style={{
+            display: "flex",
+            padding: 10,
+            alignItems: "center",
+            cursor: "default"
+        }}
+        onClick={() => play(track.id)}
+    >
         {columns.map(column => {
 
             const children = (() => {
@@ -191,7 +199,6 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
             return <div
                 key={column.key}
                 style={style}
-                onClick={() => play(track.id)}
             >
                 {children}
             </div>
