@@ -12,6 +12,8 @@ export default function usePlayer() {
 
     const playTrackAtMs = useCallback((id: number, timeStamp: number = 0) => {
         player.src = `/api/v1/track/${id}/stream`
+        player.preload = timeStamp.toString()
+
         player
             .play()
             .then(() => player.fastSeek(timeStamp))
@@ -80,7 +82,7 @@ export default function usePlayer() {
 
     useEffect(updateProgress, [player])
 
-    function seekToMs(time: number) {
+    function seek(time: number) {
         player.fastSeek(time)
     }
 
@@ -90,8 +92,8 @@ export default function usePlayer() {
         play,
         pause,
         progress,
-        seekToMs
-    }), [playTrackAtMs, playbackState, play, pause, progress, seekToMs])
+        seek
+    }), [playTrackAtMs, playbackState, play, pause, progress, seek])
 
     return values
 }
