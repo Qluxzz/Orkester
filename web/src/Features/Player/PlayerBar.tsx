@@ -49,7 +49,7 @@ export default function PlayerBar() {
 function Controls() {
     const { play, pause, playbackState, currentTime, duration } = usePlaybackContext()
 
-    return <div>
+    return <div style={{ display: "flex" }}>
         <button
             onClick={playbackState === "paused"
                 ? play
@@ -71,7 +71,7 @@ function Slider({ currentTime, duration }: { currentTime: number, duration: numb
         setValue(currentTime)
     }, [currentTime])
 
-    return <div style={{ display: "flex", alignItems: "center" }}>
+    return <div style={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
         <div style={{ padding: "0 10px" }}>{secondsToTimeFormat(value)}</div>
         <input
             style={{ width: "100%" }}
