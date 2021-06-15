@@ -7,7 +7,7 @@ interface IPlaybackContext {
     duration: number
     play: () => void
     pause: () => void
-    seekToMs: (time: number) => void
+    seek: (time: number) => void
     playbackState: IPlaybackState
 }
 

@@ -63,7 +63,7 @@ function Controls() {
 }
 
 function Slider({ currentTime, duration }: { currentTime: number, duration: number }) {
-    const { seekToMs } = usePlaybackContext()
+    const { seek } = usePlaybackContext()
     const [value, setValue] = useState(currentTime)
     const [interacting, setInteracting] = useState(false)
 
@@ -81,7 +81,7 @@ function Slider({ currentTime, duration }: { currentTime: number, duration: numb
             value={!interacting ? value : undefined}
             defaultValue={interacting ? value : undefined}
             onMouseUp={e => {
-                seekToMs(e.currentTarget.valueAsNumber)
+                seek(e.currentTarget.valueAsNumber)
                 setInteracting(false)
             }}
             onMouseDown={() => setInteracting(true)}
