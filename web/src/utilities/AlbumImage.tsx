@@ -4,5 +4,10 @@ interface IAlbumImage {
 }
 
 export default function AlbumImage({ album: { id, name }, size }: IAlbumImage) {
-    return <img width={size} height={size} src={`/api/v1/album/${id}/image`} alt={name} />
+    return <img
+        width={size}
+        height={size}
+        src={`/api/v1/album/${id}/image`}
+        alt={`Album cover for album titled ${name}`}
+    />
 }
