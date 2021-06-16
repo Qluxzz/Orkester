@@ -13,7 +13,7 @@ import (
 	"github.com/gosimple/slug"
 )
 
-func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) int {
+func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) {
 	tracks_added := 0
 
 	for _, track := range tracks {
@@ -65,7 +65,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 
 	}
 
-	return tracks_added
+	log.Printf("Added %d tracks", tracks_added)
 }
 
 func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Client) *ent.Album {
@@ -124,7 +124,7 @@ func GetOrCreateArtist(name string, context context.Context, client *ent.Client)
 	panic("failed to find or create artist")
 }
 
-func RemoveDeletedTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) (int, error) {
+func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) error {
 	existing_tracks, err := client.
 		Track.
 		Query().
@@ -135,7 +135,7 @@ func RemoveDeletedTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, 
 		All(context)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	removed_tracks := 0
@@ -155,12 +155,29 @@ func RemoveDeletedTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, 
 		if !exists {
 			err := client.Track.DeleteOneID(dbTrack.ID).Exec(context)
 			if err != nil {
-				return 0, err
+				return err
 			}
-
 			removed_tracks += 1
 		}
 	}
 
-	return removed_tracks, nil
+	log.Printf("Removed %d tracks", removed_tracks)
+
+	// Remove albums without tracks
+	removed_albums, err := client.Album.Delete().Where(album.Not(album.HasTracks())).Exec(context)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Removed %d albums", removed_albums)
+
+	// Remove artists without albums
+	removed_artists, err := client.Artist.Delete().Where(artist.Not(artist.HasAlbums())).Exec(context)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Removed %d artists", removed_artists)
+
+	return nil
 }
