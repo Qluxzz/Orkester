@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import styled from "styled-components"
 
 import LikeButton from "Features/Album/LikeButton"
-import ITrack, { IAlbum, IArtist } from "types/track"
+import ITrack from "types/track"
 import AlbumImage from "utilities/AlbumImage"
 import { AlbumLink, ArtistLink } from "utilities/Links"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
