@@ -356,25 +356,25 @@ func HasAlbumsWith(preds ...predicate.Album) predicate.Artist {
 	})
 }
 
-// HasTrack applies the HasEdge predicate on the "track" edge.
-func HasTrack() predicate.Artist {
+// HasTracks applies the HasEdge predicate on the "tracks" edge.
+func HasTracks() predicate.Artist {
 	return predicate.Artist(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TrackTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, TrackTable, TrackPrimaryKey...),
+			sqlgraph.To(TracksTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, TracksTable, TracksPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasTrackWith applies the HasEdge predicate on the "track" edge with a given conditions (other predicates).
-func HasTrackWith(preds ...predicate.Track) predicate.Artist {
+// HasTracksWith applies the HasEdge predicate on the "tracks" edge with a given conditions (other predicates).
+func HasTracksWith(preds ...predicate.Track) predicate.Artist {
 	return predicate.Artist(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TrackInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, TrackTable, TrackPrimaryKey...),
+			sqlgraph.To(TracksInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, TracksTable, TracksPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

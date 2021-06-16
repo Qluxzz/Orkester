@@ -28,8 +28,8 @@ type Artist struct {
 type ArtistEdges struct {
 	// Albums holds the value of the albums edge.
 	Albums []*Album `json:"albums,omitempty"`
-	// Track holds the value of the track edge.
-	Track []*Track `json:"track,omitempty"`
+	// Tracks holds the value of the tracks edge.
+	Tracks []*Track `json:"tracks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -44,13 +44,13 @@ func (e ArtistEdges) AlbumsOrErr() ([]*Album, error) {
 	return nil, &NotLoadedError{edge: "albums"}
 }
 
-// TrackOrErr returns the Track value or an error if the edge
+// TracksOrErr returns the Tracks value or an error if the edge
 // was not loaded in eager-loading.
-func (e ArtistEdges) TrackOrErr() ([]*Track, error) {
+func (e ArtistEdges) TracksOrErr() ([]*Track, error) {
 	if e.loadedTypes[1] {
-		return e.Track, nil
+		return e.Tracks, nil
 	}
-	return nil, &NotLoadedError{edge: "track"}
+	return nil, &NotLoadedError{edge: "tracks"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -105,9 +105,9 @@ func (a *Artist) QueryAlbums() *AlbumQuery {
 	return (&ArtistClient{config: a.config}).QueryAlbums(a)
 }
 
-// QueryTrack queries the "track" edge of the Artist entity.
-func (a *Artist) QueryTrack() *TrackQuery {
-	return (&ArtistClient{config: a.config}).QueryTrack(a)
+// QueryTracks queries the "tracks" edge of the Artist entity.
+func (a *Artist) QueryTracks() *TrackQuery {
+	return (&ArtistClient{config: a.config}).QueryTracks(a)
 }
 
 // Update returns a builder for updating this Artist.

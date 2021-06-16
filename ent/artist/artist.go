@@ -13,8 +13,8 @@ const (
 	FieldURLName = "url_name"
 	// EdgeAlbums holds the string denoting the albums edge name in mutations.
 	EdgeAlbums = "albums"
-	// EdgeTrack holds the string denoting the track edge name in mutations.
-	EdgeTrack = "track"
+	// EdgeTracks holds the string denoting the tracks edge name in mutations.
+	EdgeTracks = "tracks"
 	// Table holds the table name of the artist in the database.
 	Table = "artists"
 	// AlbumsTable is the table the holds the albums relation/edge.
@@ -24,11 +24,11 @@ const (
 	AlbumsInverseTable = "albums"
 	// AlbumsColumn is the table column denoting the albums relation/edge.
 	AlbumsColumn = "artist_albums"
-	// TrackTable is the table the holds the track relation/edge. The primary key declared below.
-	TrackTable = "track_artists"
-	// TrackInverseTable is the table name for the Track entity.
+	// TracksTable is the table the holds the tracks relation/edge. The primary key declared below.
+	TracksTable = "track_artists"
+	// TracksInverseTable is the table name for the Track entity.
 	// It exists in this package in order to avoid circular dependency with the "track" package.
-	TrackInverseTable = "tracks"
+	TracksInverseTable = "tracks"
 )
 
 // Columns holds all SQL columns for artist fields.
@@ -39,9 +39,9 @@ var Columns = []string{
 }
 
 var (
-	// TrackPrimaryKey and TrackColumn2 are the table columns denoting the
-	// primary key for the track relation (M2M).
-	TrackPrimaryKey = []string{"track_id", "artist_id"}
+	// TracksPrimaryKey and TracksColumn2 are the table columns denoting the
+	// primary key for the tracks relation (M2M).
+	TracksPrimaryKey = []string{"track_id", "artist_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
