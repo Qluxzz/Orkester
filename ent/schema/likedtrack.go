@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -21,5 +22,7 @@ func (LikedTrack) Fields() []ent.Field {
 
 // Edges of the LikedTrack.
 func (LikedTrack) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("track", Track.Type).Unique().Required(),
+	}
 }

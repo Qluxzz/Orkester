@@ -66,12 +66,21 @@ var (
 	LikedTracksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "date_added", Type: field.TypeTime},
+		{Name: "liked_track_track", Type: field.TypeInt, Nullable: true},
 	}
 	// LikedTracksTable holds the schema information for the "liked_tracks" table.
 	LikedTracksTable = &schema.Table{
 		Name:       "liked_tracks",
 		Columns:    LikedTracksColumns,
 		PrimaryKey: []*schema.Column{LikedTracksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "liked_tracks_tracks_track",
+				Columns:    []*schema.Column{LikedTracksColumns[2]},
+				RefColumns: []*schema.Column{TracksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// TracksColumns holds the columns for the "tracks" table.
 	TracksColumns = []*schema.Column{
@@ -150,6 +159,7 @@ var (
 
 func init() {
 	AlbumsTable.ForeignKeys[0].RefTable = ArtistsTable
+	LikedTracksTable.ForeignKeys[0].RefTable = TracksTable
 	TracksTable.ForeignKeys[0].RefTable = AlbumsTable
 	TracksTable.ForeignKeys[1].RefTable = LikedTracksTable
 	TrackArtistsTable.ForeignKeys[0].RefTable = TracksTable

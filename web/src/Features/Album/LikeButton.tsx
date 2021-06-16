@@ -8,7 +8,7 @@ const Button = styled.button`
 `
 
 async function likeTrack(trackId: number): Promise<boolean> {
-    const response = await fetch(`/api/v1/track/${trackId}/like`)
+    const response = await fetch(`/api/v1/track/${trackId}/like`, { method: "PUT" })
 
     if (!response.ok)
         throw new Error(`Http request was not successful, status code: ${response.status}`)
@@ -17,7 +17,7 @@ async function likeTrack(trackId: number): Promise<boolean> {
 }
 
 async function unlikeTrack(trackId: number): Promise<boolean> {
-    const response = await fetch(`/api/v1/track/${trackId}/unlike`)
+    const response = await fetch(`/api/v1/track/${trackId}/like`, { method: "DELETE" })
 
     if (!response.ok)
         throw new Error(`Http request was not successful, status code: ${response.status}`)

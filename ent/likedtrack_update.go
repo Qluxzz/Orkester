@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"goreact/ent/likedtrack"
 	"goreact/ent/predicate"
+	"goreact/ent/track"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -26,9 +28,26 @@ func (ltu *LikedTrackUpdate) Where(ps ...predicate.LikedTrack) *LikedTrackUpdate
 	return ltu
 }
 
+// SetTrackID sets the "track" edge to the Track entity by ID.
+func (ltu *LikedTrackUpdate) SetTrackID(id int) *LikedTrackUpdate {
+	ltu.mutation.SetTrackID(id)
+	return ltu
+}
+
+// SetTrack sets the "track" edge to the Track entity.
+func (ltu *LikedTrackUpdate) SetTrack(t *Track) *LikedTrackUpdate {
+	return ltu.SetTrackID(t.ID)
+}
+
 // Mutation returns the LikedTrackMutation object of the builder.
 func (ltu *LikedTrackUpdate) Mutation() *LikedTrackMutation {
 	return ltu.mutation
+}
+
+// ClearTrack clears the "track" edge to the Track entity.
+func (ltu *LikedTrackUpdate) ClearTrack() *LikedTrackUpdate {
+	ltu.mutation.ClearTrack()
+	return ltu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -38,12 +57,18 @@ func (ltu *LikedTrackUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(ltu.hooks) == 0 {
+		if err = ltu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = ltu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*LikedTrackMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = ltu.check(); err != nil {
+				return 0, err
 			}
 			ltu.mutation = mutation
 			affected, err = ltu.sqlSave(ctx)
@@ -82,6 +107,14 @@ func (ltu *LikedTrackUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (ltu *LikedTrackUpdate) check() error {
+	if _, ok := ltu.mutation.TrackID(); ltu.mutation.TrackCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"track\"")
+	}
+	return nil
+}
+
 func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -99,6 +132,41 @@ func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if ltu.mutation.TrackCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   likedtrack.TrackTable,
+			Columns: []string{likedtrack.TrackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: track.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltu.mutation.TrackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   likedtrack.TrackTable,
+			Columns: []string{likedtrack.TrackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: track.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ltu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -119,9 +187,26 @@ type LikedTrackUpdateOne struct {
 	mutation *LikedTrackMutation
 }
 
+// SetTrackID sets the "track" edge to the Track entity by ID.
+func (ltuo *LikedTrackUpdateOne) SetTrackID(id int) *LikedTrackUpdateOne {
+	ltuo.mutation.SetTrackID(id)
+	return ltuo
+}
+
+// SetTrack sets the "track" edge to the Track entity.
+func (ltuo *LikedTrackUpdateOne) SetTrack(t *Track) *LikedTrackUpdateOne {
+	return ltuo.SetTrackID(t.ID)
+}
+
 // Mutation returns the LikedTrackMutation object of the builder.
 func (ltuo *LikedTrackUpdateOne) Mutation() *LikedTrackMutation {
 	return ltuo.mutation
+}
+
+// ClearTrack clears the "track" edge to the Track entity.
+func (ltuo *LikedTrackUpdateOne) ClearTrack() *LikedTrackUpdateOne {
+	ltuo.mutation.ClearTrack()
+	return ltuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -138,12 +223,18 @@ func (ltuo *LikedTrackUpdateOne) Save(ctx context.Context) (*LikedTrack, error) 
 		node *LikedTrack
 	)
 	if len(ltuo.hooks) == 0 {
+		if err = ltuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = ltuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*LikedTrackMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = ltuo.check(); err != nil {
+				return nil, err
 			}
 			ltuo.mutation = mutation
 			node, err = ltuo.sqlSave(ctx)
@@ -182,6 +273,14 @@ func (ltuo *LikedTrackUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (ltuo *LikedTrackUpdateOne) check() error {
+	if _, ok := ltuo.mutation.TrackID(); ltuo.mutation.TrackCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"track\"")
+	}
+	return nil
+}
+
 func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -216,6 +315,41 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 				ps[i](selector)
 			}
 		}
+	}
+	if ltuo.mutation.TrackCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   likedtrack.TrackTable,
+			Columns: []string{likedtrack.TrackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: track.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltuo.mutation.TrackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   likedtrack.TrackTable,
+			Columns: []string{likedtrack.TrackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: track.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &LikedTrack{config: ltuo.config}
 	_spec.Assign = _node.assignValues

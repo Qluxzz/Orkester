@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"goreact/ent"
+	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 	"goreact/models"
 	"os"
@@ -115,8 +116,8 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 		defer stream.Close()
 
 		c.Response().Header.Add("content-type", pathAndMimeType.Mimetype)
-		return c.SendStream(stream)
-	}
+			return c.SendStream(stream)
+		}
 }
 
 func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
@@ -140,6 +141,26 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 	}
 }
 
+func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		_, err = client.
+			LikedTrack.
+			Create().
+			SetTrackID(id).
+			Save(context)
+		if err != nil {
+			return err
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	}
+}
+
 func UnLikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
@@ -147,19 +168,7 @@ func UnLikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		track, err := client.Track.Query().Where(track.ID(id)).WithLiked().Only(context)
-
-		if err != nil {
-			return err
-		}
-
-		if err = client.LikedTrack.DeleteOne(track.Edges.Liked).Exec(context); err != nil {
-			return err
-		}
-
-		if err = track.Update().ClearLiked().Exec(context); err != nil {
-			return err
-		}
+		_, err = client.LikedTrack.Delete().Where(likedtrack.HasTrackWith(track.ID(id))).Exec(context)
 
 		if err != nil {
 			return err
