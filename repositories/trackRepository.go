@@ -183,8 +183,17 @@ func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client
 
 	log.Printf("Removed %d albums", removed_albums)
 
-	// Remove artists without albums
-	removed_artists, err := client.Artist.Delete().Where(artist.Not(artist.HasTracks())).Exec(context)
+	// Remove artists without albums or tracks
+	removed_artists, err := client.
+		Artist.
+		Delete().
+		Where(
+			artist.And(
+				artist.Not(artist.HasTracks()),
+				artist.Not(artist.HasAlbums()),
+			),
+		).
+		Exec(context)
 	if err != nil {
 		return err
 	}
