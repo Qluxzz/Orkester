@@ -19,6 +19,10 @@ export default function SearchBar() {
 
     function updateQueryAndHistory(query: string) {
         setQuery(query)
+        showSearchResults()
+    }
+
+    function showSearchResults() {
         history.replace(`/search/${query}`)
     }
 
@@ -26,6 +30,7 @@ export default function SearchBar() {
         <Input
             onChange={e => updateQueryAndHistory(e.target.value)}
             value={query}
+            onFocus={showSearchResults}
         />
     </Bar>
 }
