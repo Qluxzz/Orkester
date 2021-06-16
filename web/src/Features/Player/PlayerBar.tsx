@@ -55,6 +55,7 @@ function Controls() {
                 ? play
                 : pause
             }
+            style={{ width: 72 }}
         >
             {playbackState === "paused" ? "play" : "pause"}
         </button>
