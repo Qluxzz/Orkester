@@ -19,7 +19,7 @@ func GetLikedTracks(client *ent.Client, context context.Context) fiber.Handler {
 			Query().
 			Where(track.HasLiked()).
 			WithAlbum(func(aq *ent.AlbumQuery) {
-				aq.Select(album.FieldID, album.FieldName, album.FieldURLName).Only(context)
+				aq.Select(album.FieldID, album.FieldName, album.FieldURLName)
 			}).
 			WithArtists().
 			WithLiked().
