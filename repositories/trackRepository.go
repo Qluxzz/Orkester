@@ -83,8 +83,10 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 		Album.
 		Query().
 		Where(
+			album.And(
 			album.NameEqualFold(track.AlbumName.String),
 			album.HasArtistWith(artist.ID(albumArtist.ID)),
+			),
 		).Only(context)
 
 	if err == nil {
