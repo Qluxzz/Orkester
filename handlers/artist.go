@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"goreact/ent"
-	"goreact/ent/album"
 	"goreact/ent/artist"
 	"strconv"
 
@@ -17,24 +16,33 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		artist, err := client.
+		artist_info, err := client.
 			Artist.
 			Query().
 			Where(artist.ID(id)).
-			WithAlbums(func(aq *ent.AlbumQuery) {
-				aq.Select(album.FieldID, album.FieldName, album.FieldURLName)
-			}).
 			Only(context)
 
 		if err != nil {
 			return err
 		}
 
+		artist_albums, err := client.
+			Artist.
+			Query().
+			Where(artist.ID(id)).
+			QueryTracks().
+			QueryAlbum().
+			All(context)
+
+		if err != nil {
+			return nil
+		}
+
 		return c.JSON(&fiber.Map{
-			"id":      artist.ID,
-			"name":    artist.Name,
-			"urlName": artist.URLName,
-			"albums":  artist.Edges.Albums,
+			"id":      artist_info.ID,
+			"name":    artist_info.Name,
+			"urlName": artist_info.URLName,
+			"albums":  artist_albums,
 		})
 	}
 }
