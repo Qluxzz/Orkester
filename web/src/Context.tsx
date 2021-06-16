@@ -80,7 +80,8 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
             return
 
         playTrackById(savedTrack.id, savedTrack.timestamp)
-    }, [playTrackById])
+            .then(() => pause())
+    }, [playTrackById, pause])
 
     /* Effects */
 
