@@ -17,5 +17,10 @@ export function AlbumLink(props: ILink) {
 }
 
 function createLink(type: ILinkType, props: ILink) {
-    return <Link to={`/${type}/${props.id}/${props.urlName}`}>{props.children}</Link>
+    return <Link
+        to={`/${type}/${props.id}/${props.urlName}`}
+        onClick={e => e.stopPropagation()}
+    >
+        {props.children}
+    </Link>
 }
