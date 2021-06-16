@@ -110,7 +110,13 @@ export default function TrackListBase({
                     style.textAlign = "center"
                 }
 
-                return <div style={style} onClick={() => sortByColumn(column.key)}>{column.display}</div>
+                return <div
+                    style={style}
+                    onClick={() => sortByColumn(column.key)}
+                    key={column.key}
+                >
+                    {column.display}
+                </div>
             })}
         </header>
         <StyledList>
