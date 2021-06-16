@@ -7,6 +7,7 @@ import AlbumImage from "utilities/AlbumImage"
 import { AlbumLink, ArtistLink } from "utilities/Links"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
 import { usePlayerContext } from "Context"
+import ArtistList from "utilities/ArtistList"
 
 
 type IColumnKey = ITrackKeys | "albumCover"
@@ -169,11 +170,9 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
                 switch (column.key) {
                     case "album":
                         return <AlbumLink {...track.album}>{track.album.name}</AlbumLink>
-                    case "artists":
-                        return <>{track.artists.map(artist => <ArtistLink {...artist}>{artist.name}</ArtistLink>)}</>
                     case "albumCover":
                         return <div style={{ marginRight: 10 }}>
-                            <AlbumImage album={track.album} size={72} />
+                            <AlbumImage album={track.album} size={48} />
                         </div>
                     case "liked":
                         return <LikeButton
@@ -181,6 +180,11 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
                             liked={track.liked}
                             onLikeChanged={onLikedChanged}
                         />
+                    case "title":
+                        return <div>
+                            <p>{track.title}</p>
+                            <p style={{ fontSize: 12 }}><ArtistList artists={track.artists} /></p>
+                        </div>
                     case "length":
                         return secondsToTimeFormat(track.length)
                     case "date":
