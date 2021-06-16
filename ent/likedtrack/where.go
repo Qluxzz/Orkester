@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -172,6 +173,34 @@ func DateAddedLT(v time.Time) predicate.LikedTrack {
 func DateAddedLTE(v time.Time) predicate.LikedTrack {
 	return predicate.LikedTrack(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldDateAdded), v))
+	})
+}
+
+// HasTrack applies the HasEdge predicate on the "track" edge.
+func HasTrack() predicate.LikedTrack {
+	return predicate.LikedTrack(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TrackTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, TrackTable, TrackColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTrackWith applies the HasEdge predicate on the "track" edge with a given conditions (other predicates).
+func HasTrackWith(preds ...predicate.Track) predicate.LikedTrack {
+	return predicate.LikedTrack(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TrackInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, TrackTable, TrackColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

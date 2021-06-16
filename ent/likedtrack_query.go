@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"goreact/ent/likedtrack"
 	"goreact/ent/predicate"
+	"goreact/ent/track"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -24,6 +25,9 @@ type LikedTrackQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.LikedTrack
+	// eager-loading edges.
+	withTrack *TrackQuery
+	withFKs   bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +62,28 @@ func (ltq *LikedTrackQuery) Unique(unique bool) *LikedTrackQuery {
 func (ltq *LikedTrackQuery) Order(o ...OrderFunc) *LikedTrackQuery {
 	ltq.order = append(ltq.order, o...)
 	return ltq
+}
+
+// QueryTrack chains the current query on the "track" edge.
+func (ltq *LikedTrackQuery) QueryTrack() *TrackQuery {
+	query := &TrackQuery{config: ltq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ltq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ltq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(likedtrack.Table, likedtrack.FieldID, selector),
+			sqlgraph.To(track.Table, track.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, likedtrack.TrackTable, likedtrack.TrackColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first LikedTrack entity from the query.
@@ -241,10 +267,22 @@ func (ltq *LikedTrackQuery) Clone() *LikedTrackQuery {
 		offset:     ltq.offset,
 		order:      append([]OrderFunc{}, ltq.order...),
 		predicates: append([]predicate.LikedTrack{}, ltq.predicates...),
+		withTrack:  ltq.withTrack.Clone(),
 		// clone intermediate query.
 		sql:  ltq.sql.Clone(),
 		path: ltq.path,
 	}
+}
+
+// WithTrack tells the query-builder to eager-load the nodes that are connected to
+// the "track" edge. The optional arguments are used to configure the query builder of the edge.
+func (ltq *LikedTrackQuery) WithTrack(opts ...func(*TrackQuery)) *LikedTrackQuery {
+	query := &TrackQuery{config: ltq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltq.withTrack = query
+	return ltq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -310,9 +348,19 @@ func (ltq *LikedTrackQuery) prepareQuery(ctx context.Context) error {
 
 func (ltq *LikedTrackQuery) sqlAll(ctx context.Context) ([]*LikedTrack, error) {
 	var (
-		nodes = []*LikedTrack{}
-		_spec = ltq.querySpec()
+		nodes       = []*LikedTrack{}
+		withFKs     = ltq.withFKs
+		_spec       = ltq.querySpec()
+		loadedTypes = [1]bool{
+			ltq.withTrack != nil,
+		}
 	)
+	if ltq.withTrack != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, likedtrack.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &LikedTrack{config: ltq.config}
 		nodes = append(nodes, node)
@@ -323,6 +371,7 @@ func (ltq *LikedTrackQuery) sqlAll(ctx context.Context) ([]*LikedTrack, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ltq.driver, _spec); err != nil {
@@ -331,6 +380,36 @@ func (ltq *LikedTrackQuery) sqlAll(ctx context.Context) ([]*LikedTrack, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := ltq.withTrack; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*LikedTrack)
+		for i := range nodes {
+			if nodes[i].liked_track_track == nil {
+				continue
+			}
+			fk := *nodes[i].liked_track_track
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(track.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "liked_track_track" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Track = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

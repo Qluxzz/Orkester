@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"goreact/ent/likedtrack"
+	"goreact/ent/track"
 	"strings"
 	"time"
 
@@ -18,6 +19,33 @@ type LikedTrack struct {
 	ID int `json:"id,omitempty"`
 	// DateAdded holds the value of the "date_added" field.
 	DateAdded time.Time `json:"date_added,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the LikedTrackQuery when eager-loading is set.
+	Edges             LikedTrackEdges `json:"edges"`
+	liked_track_track *int
+}
+
+// LikedTrackEdges holds the relations/edges for other nodes in the graph.
+type LikedTrackEdges struct {
+	// Track holds the value of the track edge.
+	Track *Track `json:"track,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TrackOrErr returns the Track value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LikedTrackEdges) TrackOrErr() (*Track, error) {
+	if e.loadedTypes[0] {
+		if e.Track == nil {
+			// The edge track was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: track.Label}
+		}
+		return e.Track, nil
+	}
+	return nil, &NotLoadedError{edge: "track"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -29,6 +57,8 @@ func (*LikedTrack) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case likedtrack.FieldDateAdded:
 			values[i] = new(sql.NullTime)
+		case likedtrack.ForeignKeys[0]: // liked_track_track
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type LikedTrack", columns[i])
 		}
@@ -56,9 +86,21 @@ func (lt *LikedTrack) assignValues(columns []string, values []interface{}) error
 			} else if value.Valid {
 				lt.DateAdded = value.Time
 			}
+		case likedtrack.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field liked_track_track", value)
+			} else if value.Valid {
+				lt.liked_track_track = new(int)
+				*lt.liked_track_track = int(value.Int64)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryTrack queries the "track" edge of the LikedTrack entity.
+func (lt *LikedTrack) QueryTrack() *TrackQuery {
+	return (&LikedTrackClient{config: lt.config}).QueryTrack(lt)
 }
 
 // Update returns a builder for updating this LikedTrack.

@@ -1497,6 +1497,8 @@ type LikedTrackMutation struct {
 	id            *int
 	date_added    *time.Time
 	clearedFields map[string]struct{}
+	track         *int
+	clearedtrack  bool
 	done          bool
 	oldValue      func(context.Context) (*LikedTrack, error)
 	predicates    []predicate.LikedTrack
@@ -1617,6 +1619,45 @@ func (m *LikedTrackMutation) ResetDateAdded() {
 	m.date_added = nil
 }
 
+// SetTrackID sets the "track" edge to the Track entity by id.
+func (m *LikedTrackMutation) SetTrackID(id int) {
+	m.track = &id
+}
+
+// ClearTrack clears the "track" edge to the Track entity.
+func (m *LikedTrackMutation) ClearTrack() {
+	m.clearedtrack = true
+}
+
+// TrackCleared reports if the "track" edge to the Track entity was cleared.
+func (m *LikedTrackMutation) TrackCleared() bool {
+	return m.clearedtrack
+}
+
+// TrackID returns the "track" edge ID in the mutation.
+func (m *LikedTrackMutation) TrackID() (id int, exists bool) {
+	if m.track != nil {
+		return *m.track, true
+	}
+	return
+}
+
+// TrackIDs returns the "track" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TrackID instead. It exists only for internal usage by the builders.
+func (m *LikedTrackMutation) TrackIDs() (ids []int) {
+	if id := m.track; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTrack resets all changes to the "track" edge.
+func (m *LikedTrackMutation) ResetTrack() {
+	m.track = nil
+	m.clearedtrack = false
+}
+
 // Op returns the operation name.
 func (m *LikedTrackMutation) Op() Op {
 	return m.op
@@ -1730,49 +1771,77 @@ func (m *LikedTrackMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LikedTrackMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.track != nil {
+		edges = append(edges, likedtrack.EdgeTrack)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *LikedTrackMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case likedtrack.EdgeTrack:
+		if id := m.track; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LikedTrackMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *LikedTrackMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LikedTrackMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedtrack {
+		edges = append(edges, likedtrack.EdgeTrack)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *LikedTrackMutation) EdgeCleared(name string) bool {
+	switch name {
+	case likedtrack.EdgeTrack:
+		return m.clearedtrack
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *LikedTrackMutation) ClearEdge(name string) error {
+	switch name {
+	case likedtrack.EdgeTrack:
+		m.ClearTrack()
+		return nil
+	}
 	return fmt.Errorf("unknown LikedTrack unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *LikedTrackMutation) ResetEdge(name string) error {
+	switch name {
+	case likedtrack.EdgeTrack:
+		m.ResetTrack()
+		return nil
+	}
 	return fmt.Errorf("unknown LikedTrack edge %s", name)
 }
 

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"goreact/ent/likedtrack"
+	"goreact/ent/track"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -32,6 +33,17 @@ func (ltc *LikedTrackCreate) SetNillableDateAdded(t *time.Time) *LikedTrackCreat
 		ltc.SetDateAdded(*t)
 	}
 	return ltc
+}
+
+// SetTrackID sets the "track" edge to the Track entity by ID.
+func (ltc *LikedTrackCreate) SetTrackID(id int) *LikedTrackCreate {
+	ltc.mutation.SetTrackID(id)
+	return ltc
+}
+
+// SetTrack sets the "track" edge to the Track entity.
+func (ltc *LikedTrackCreate) SetTrack(t *Track) *LikedTrackCreate {
+	return ltc.SetTrackID(t.ID)
 }
 
 // Mutation returns the LikedTrackMutation object of the builder.
@@ -100,6 +112,9 @@ func (ltc *LikedTrackCreate) check() error {
 	if _, ok := ltc.mutation.DateAdded(); !ok {
 		return &ValidationError{Name: "date_added", err: errors.New("ent: missing required field \"date_added\"")}
 	}
+	if _, ok := ltc.mutation.TrackID(); !ok {
+		return &ValidationError{Name: "track", err: errors.New("ent: missing required edge \"track\"")}
+	}
 	return nil
 }
 
@@ -134,6 +149,26 @@ func (ltc *LikedTrackCreate) createSpec() (*LikedTrack, *sqlgraph.CreateSpec) {
 			Column: likedtrack.FieldDateAdded,
 		})
 		_node.DateAdded = value
+	}
+	if nodes := ltc.mutation.TrackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   likedtrack.TrackTable,
+			Columns: []string{likedtrack.TrackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: track.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.liked_track_track = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

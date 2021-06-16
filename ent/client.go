@@ -569,6 +569,22 @@ func (c *LikedTrackClient) GetX(ctx context.Context, id int) *LikedTrack {
 	return obj
 }
 
+// QueryTrack queries the track edge of a LikedTrack.
+func (c *LikedTrackClient) QueryTrack(lt *LikedTrack) *TrackQuery {
+	query := &TrackQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := lt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(likedtrack.Table, likedtrack.FieldID, id),
+			sqlgraph.To(track.Table, track.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, likedtrack.TrackTable, likedtrack.TrackColumn),
+		)
+		fromV = sqlgraph.Neighbors(lt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *LikedTrackClient) Hooks() []Hook {
 	return c.hooks.LikedTrack

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"goreact/ent"
 	"goreact/handlers"
@@ -10,6 +11,7 @@ import (
 	"goreact/repositories"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -51,6 +53,10 @@ func main() {
 	// Middlewares
 
 	app.Use(logger.New())
+	app.Use(cache.New(cache.Config{
+		Expiration:   10 * time.Minute,
+		CacheControl: true,
+	}))
 
 	// Routes
 
@@ -59,8 +65,8 @@ func main() {
 	track := v1.Group("/track")
 	track.Get("/:id/stream", handlers.TrackStream(client, ctx))
 	track.Get("/:id", handlers.TrackInfo(client, ctx))
-	track.Get("/:id/like", handlers.LikeTrack(client, ctx))
-	track.Get("/:id/unlike", handlers.UnLikeTrack(client, ctx))
+	track.Put("/:id/like", handlers.LikeTrack(client, ctx))
+	track.Delete("/:id/like", handlers.UnLikeTrack(client, ctx))
 
 	v1.Post("/tracks/ids", handlers.TracksInfo(client, ctx))
 

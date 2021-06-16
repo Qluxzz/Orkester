@@ -13,8 +13,17 @@ const (
 	FieldID = "id"
 	// FieldDateAdded holds the string denoting the date_added field in the database.
 	FieldDateAdded = "date_added"
+	// EdgeTrack holds the string denoting the track edge name in mutations.
+	EdgeTrack = "track"
 	// Table holds the table name of the likedtrack in the database.
 	Table = "liked_tracks"
+	// TrackTable is the table the holds the track relation/edge.
+	TrackTable = "liked_tracks"
+	// TrackInverseTable is the table name for the Track entity.
+	// It exists in this package in order to avoid circular dependency with the "track" package.
+	TrackInverseTable = "tracks"
+	// TrackColumn is the table column denoting the track relation/edge.
+	TrackColumn = "liked_track_track"
 )
 
 // Columns holds all SQL columns for likedtrack fields.
@@ -23,10 +32,21 @@ var Columns = []string{
 	FieldDateAdded,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "liked_tracks"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"liked_track_track",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
