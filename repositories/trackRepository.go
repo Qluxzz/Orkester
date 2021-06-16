@@ -34,9 +34,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 
 		if track.AlbumArtist.Valid {
 			albumArtist = GetOrCreateArtist(track.AlbumArtist.String, context, tx)
-		}
-
-		if albumArtist == nil {
+		} else {
 			albumArtist = artists[0]
 		}
 
@@ -84,8 +82,8 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 		Query().
 		Where(
 			album.And(
-			album.NameEqualFold(track.AlbumName.String),
-			album.HasArtistWith(artist.ID(albumArtist.ID)),
+				album.NameEqualFold(track.AlbumName.String),
+				album.HasArtistWith(artist.ID(albumArtist.ID)),
 			),
 		).Only(context)
 
@@ -100,7 +98,8 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 			SetURLName(slug.Make(track.AlbumName.String)).
 			SetImage(track.Image.Data).
 			SetImageMimeType(track.Image.MimeType.String).
-			SetArtist(albumArtist).Save(context)
+			SetArtist(albumArtist).
+			Save(context)
 
 		if err != nil {
 			log.Fatalf("failed to create album %v", err)
