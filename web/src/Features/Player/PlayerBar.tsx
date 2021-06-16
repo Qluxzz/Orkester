@@ -7,6 +7,7 @@ import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
 import { useTrackContext } from "Contexts/TrackContext"
 import { usePlaybackContext } from "Contexts/PlaybackContext"
 import { useEffect } from "react"
+import ArtistList from "utilities/ArtistList"
 
 const Bar = styled.div`
   display: flex;
@@ -29,12 +30,7 @@ export default function PlayerBar() {
             <div style={{ marginLeft: 10, overflow: "hidden" }}>
                 <h1>{track.title}</h1>
                 <h2 style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                    {track.artists.map((artist, i, arr) => <React.Fragment key={artist.id}>
-                        <ArtistLink {...artist} >
-                            {artist.name}
-                        </ArtistLink>
-                        {i !== arr.length - 1 && ", "}
-                    </React.Fragment>)}
+                    <ArtistList artists={track.artists} />
                     {" - "}
                     <AlbumLink {...track.album}>
                         {track.album.name}
