@@ -105,7 +105,7 @@ function DurationOrRemainingTime({ duration, currentTime }: { duration: number, 
         : secondsToTimeFormat(duration)
 
     return <div
-        style={{ padding: "0 10px", width: "6ch" }}
+        style={{ padding: "0 0 0 10px", width: "6ch" }}
         onClick={() => setInversed(!inversed)}
     >
         {time}
