@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"time"
 
 	"goreact/ent"
 	"goreact/handlers"
@@ -11,7 +10,6 @@ import (
 	"goreact/repositories"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -53,10 +51,6 @@ func main() {
 	// Middlewares
 
 	app.Use(logger.New())
-	app.Use(cache.New(cache.Config{
-		Expiration:   10 * time.Minute,
-		CacheControl: true,
-	}))
 
 	// Routes
 
