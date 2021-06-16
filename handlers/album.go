@@ -71,7 +71,11 @@ func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 			"name":    album.Name,
 			"urlName": album.URLName,
 			"tracks":  tracks,
-			"artist":  album.Edges.Artist,
+			"artist": &models.Artist{
+				Id:      album.Edges.Artist.ID,
+				Name:    album.Edges.Artist.Name,
+				UrlName: album.Edges.Artist.URLName,
+			},
 		})
 	}
 }
