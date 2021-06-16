@@ -645,9 +645,9 @@ type ArtistMutation struct {
 	albums        map[int]struct{}
 	removedalbums map[int]struct{}
 	clearedalbums bool
-	track         map[int]struct{}
-	removedtrack  map[int]struct{}
-	clearedtrack  bool
+	tracks        map[int]struct{}
+	removedtracks map[int]struct{}
+	clearedtracks bool
 	done          bool
 	oldValue      func(context.Context) (*Artist, error)
 	predicates    []predicate.Artist
@@ -857,57 +857,57 @@ func (m *ArtistMutation) ResetAlbums() {
 	m.removedalbums = nil
 }
 
-// AddTrackIDs adds the "track" edge to the Track entity by ids.
+// AddTrackIDs adds the "tracks" edge to the Track entity by ids.
 func (m *ArtistMutation) AddTrackIDs(ids ...int) {
-	if m.track == nil {
-		m.track = make(map[int]struct{})
+	if m.tracks == nil {
+		m.tracks = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.track[ids[i]] = struct{}{}
+		m.tracks[ids[i]] = struct{}{}
 	}
 }
 
-// ClearTrack clears the "track" edge to the Track entity.
-func (m *ArtistMutation) ClearTrack() {
-	m.clearedtrack = true
+// ClearTracks clears the "tracks" edge to the Track entity.
+func (m *ArtistMutation) ClearTracks() {
+	m.clearedtracks = true
 }
 
-// TrackCleared reports if the "track" edge to the Track entity was cleared.
-func (m *ArtistMutation) TrackCleared() bool {
-	return m.clearedtrack
+// TracksCleared reports if the "tracks" edge to the Track entity was cleared.
+func (m *ArtistMutation) TracksCleared() bool {
+	return m.clearedtracks
 }
 
-// RemoveTrackIDs removes the "track" edge to the Track entity by IDs.
+// RemoveTrackIDs removes the "tracks" edge to the Track entity by IDs.
 func (m *ArtistMutation) RemoveTrackIDs(ids ...int) {
-	if m.removedtrack == nil {
-		m.removedtrack = make(map[int]struct{})
+	if m.removedtracks == nil {
+		m.removedtracks = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.removedtrack[ids[i]] = struct{}{}
+		m.removedtracks[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedTrack returns the removed IDs of the "track" edge to the Track entity.
-func (m *ArtistMutation) RemovedTrackIDs() (ids []int) {
-	for id := range m.removedtrack {
+// RemovedTracks returns the removed IDs of the "tracks" edge to the Track entity.
+func (m *ArtistMutation) RemovedTracksIDs() (ids []int) {
+	for id := range m.removedtracks {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// TrackIDs returns the "track" edge IDs in the mutation.
-func (m *ArtistMutation) TrackIDs() (ids []int) {
-	for id := range m.track {
+// TracksIDs returns the "tracks" edge IDs in the mutation.
+func (m *ArtistMutation) TracksIDs() (ids []int) {
+	for id := range m.tracks {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetTrack resets all changes to the "track" edge.
-func (m *ArtistMutation) ResetTrack() {
-	m.track = nil
-	m.clearedtrack = false
-	m.removedtrack = nil
+// ResetTracks resets all changes to the "tracks" edge.
+func (m *ArtistMutation) ResetTracks() {
+	m.tracks = nil
+	m.clearedtracks = false
+	m.removedtracks = nil
 }
 
 // Op returns the operation name.
@@ -1044,8 +1044,8 @@ func (m *ArtistMutation) AddedEdges() []string {
 	if m.albums != nil {
 		edges = append(edges, artist.EdgeAlbums)
 	}
-	if m.track != nil {
-		edges = append(edges, artist.EdgeTrack)
+	if m.tracks != nil {
+		edges = append(edges, artist.EdgeTracks)
 	}
 	return edges
 }
@@ -1060,9 +1060,9 @@ func (m *ArtistMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case artist.EdgeTrack:
-		ids := make([]ent.Value, 0, len(m.track))
-		for id := range m.track {
+	case artist.EdgeTracks:
+		ids := make([]ent.Value, 0, len(m.tracks))
+		for id := range m.tracks {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1076,8 +1076,8 @@ func (m *ArtistMutation) RemovedEdges() []string {
 	if m.removedalbums != nil {
 		edges = append(edges, artist.EdgeAlbums)
 	}
-	if m.removedtrack != nil {
-		edges = append(edges, artist.EdgeTrack)
+	if m.removedtracks != nil {
+		edges = append(edges, artist.EdgeTracks)
 	}
 	return edges
 }
@@ -1092,9 +1092,9 @@ func (m *ArtistMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case artist.EdgeTrack:
-		ids := make([]ent.Value, 0, len(m.removedtrack))
-		for id := range m.removedtrack {
+	case artist.EdgeTracks:
+		ids := make([]ent.Value, 0, len(m.removedtracks))
+		for id := range m.removedtracks {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1108,8 +1108,8 @@ func (m *ArtistMutation) ClearedEdges() []string {
 	if m.clearedalbums {
 		edges = append(edges, artist.EdgeAlbums)
 	}
-	if m.clearedtrack {
-		edges = append(edges, artist.EdgeTrack)
+	if m.clearedtracks {
+		edges = append(edges, artist.EdgeTracks)
 	}
 	return edges
 }
@@ -1120,8 +1120,8 @@ func (m *ArtistMutation) EdgeCleared(name string) bool {
 	switch name {
 	case artist.EdgeAlbums:
 		return m.clearedalbums
-	case artist.EdgeTrack:
-		return m.clearedtrack
+	case artist.EdgeTracks:
+		return m.clearedtracks
 	}
 	return false
 }
@@ -1141,8 +1141,8 @@ func (m *ArtistMutation) ResetEdge(name string) error {
 	case artist.EdgeAlbums:
 		m.ResetAlbums()
 		return nil
-	case artist.EdgeTrack:
-		m.ResetTrack()
+	case artist.EdgeTracks:
+		m.ResetTracks()
 		return nil
 	}
 	return fmt.Errorf("unknown Artist edge %s", name)

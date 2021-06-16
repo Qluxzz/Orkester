@@ -23,6 +23,6 @@ func (Artist) Fields() []ent.Field {
 func (Artist) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("albums", Album.Type),
-		edge.From("track", Track.Type).Ref("artists"),
+		edge.From("tracks", Track.Type).Ref("artists"),
 	}
 }

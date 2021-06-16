@@ -43,14 +43,14 @@ func (au *ArtistUpdate) AddAlbums(a ...*Album) *ArtistUpdate {
 	return au.AddAlbumIDs(ids...)
 }
 
-// AddTrackIDs adds the "track" edge to the Track entity by IDs.
+// AddTrackIDs adds the "tracks" edge to the Track entity by IDs.
 func (au *ArtistUpdate) AddTrackIDs(ids ...int) *ArtistUpdate {
 	au.mutation.AddTrackIDs(ids...)
 	return au
 }
 
-// AddTrack adds the "track" edges to the Track entity.
-func (au *ArtistUpdate) AddTrack(t ...*Track) *ArtistUpdate {
+// AddTracks adds the "tracks" edges to the Track entity.
+func (au *ArtistUpdate) AddTracks(t ...*Track) *ArtistUpdate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -84,20 +84,20 @@ func (au *ArtistUpdate) RemoveAlbums(a ...*Album) *ArtistUpdate {
 	return au.RemoveAlbumIDs(ids...)
 }
 
-// ClearTrack clears all "track" edges to the Track entity.
-func (au *ArtistUpdate) ClearTrack() *ArtistUpdate {
-	au.mutation.ClearTrack()
+// ClearTracks clears all "tracks" edges to the Track entity.
+func (au *ArtistUpdate) ClearTracks() *ArtistUpdate {
+	au.mutation.ClearTracks()
 	return au
 }
 
-// RemoveTrackIDs removes the "track" edge to Track entities by IDs.
+// RemoveTrackIDs removes the "tracks" edge to Track entities by IDs.
 func (au *ArtistUpdate) RemoveTrackIDs(ids ...int) *ArtistUpdate {
 	au.mutation.RemoveTrackIDs(ids...)
 	return au
 }
 
-// RemoveTrack removes "track" edges to Track entities.
-func (au *ArtistUpdate) RemoveTrack(t ...*Track) *ArtistUpdate {
+// RemoveTracks removes "tracks" edges to Track entities.
+func (au *ArtistUpdate) RemoveTracks(t ...*Track) *ArtistUpdate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -228,12 +228,12 @@ func (au *ArtistUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if au.mutation.TrackCleared() {
+	if au.mutation.TracksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   artist.TrackTable,
-			Columns: artist.TrackPrimaryKey,
+			Table:   artist.TracksTable,
+			Columns: artist.TracksPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -244,12 +244,12 @@ func (au *ArtistUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.RemovedTrackIDs(); len(nodes) > 0 && !au.mutation.TrackCleared() {
+	if nodes := au.mutation.RemovedTracksIDs(); len(nodes) > 0 && !au.mutation.TracksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   artist.TrackTable,
-			Columns: artist.TrackPrimaryKey,
+			Table:   artist.TracksTable,
+			Columns: artist.TracksPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -263,12 +263,12 @@ func (au *ArtistUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.TrackIDs(); len(nodes) > 0 {
+	if nodes := au.mutation.TracksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   artist.TrackTable,
-			Columns: artist.TrackPrimaryKey,
+			Table:   artist.TracksTable,
+			Columns: artist.TracksPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -316,14 +316,14 @@ func (auo *ArtistUpdateOne) AddAlbums(a ...*Album) *ArtistUpdateOne {
 	return auo.AddAlbumIDs(ids...)
 }
 
-// AddTrackIDs adds the "track" edge to the Track entity by IDs.
+// AddTrackIDs adds the "tracks" edge to the Track entity by IDs.
 func (auo *ArtistUpdateOne) AddTrackIDs(ids ...int) *ArtistUpdateOne {
 	auo.mutation.AddTrackIDs(ids...)
 	return auo
 }
 
-// AddTrack adds the "track" edges to the Track entity.
-func (auo *ArtistUpdateOne) AddTrack(t ...*Track) *ArtistUpdateOne {
+// AddTracks adds the "tracks" edges to the Track entity.
+func (auo *ArtistUpdateOne) AddTracks(t ...*Track) *ArtistUpdateOne {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -357,20 +357,20 @@ func (auo *ArtistUpdateOne) RemoveAlbums(a ...*Album) *ArtistUpdateOne {
 	return auo.RemoveAlbumIDs(ids...)
 }
 
-// ClearTrack clears all "track" edges to the Track entity.
-func (auo *ArtistUpdateOne) ClearTrack() *ArtistUpdateOne {
-	auo.mutation.ClearTrack()
+// ClearTracks clears all "tracks" edges to the Track entity.
+func (auo *ArtistUpdateOne) ClearTracks() *ArtistUpdateOne {
+	auo.mutation.ClearTracks()
 	return auo
 }
 
-// RemoveTrackIDs removes the "track" edge to Track entities by IDs.
+// RemoveTrackIDs removes the "tracks" edge to Track entities by IDs.
 func (auo *ArtistUpdateOne) RemoveTrackIDs(ids ...int) *ArtistUpdateOne {
 	auo.mutation.RemoveTrackIDs(ids...)
 	return auo
 }
 
-// RemoveTrack removes "track" edges to Track entities.
-func (auo *ArtistUpdateOne) RemoveTrack(t ...*Track) *ArtistUpdateOne {
+// RemoveTracks removes "tracks" edges to Track entities.
+func (auo *ArtistUpdateOne) RemoveTracks(t ...*Track) *ArtistUpdateOne {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -525,12 +525,12 @@ func (auo *ArtistUpdateOne) sqlSave(ctx context.Context) (_node *Artist, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if auo.mutation.TrackCleared() {
+	if auo.mutation.TracksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   artist.TrackTable,
-			Columns: artist.TrackPrimaryKey,
+			Table:   artist.TracksTable,
+			Columns: artist.TracksPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -541,12 +541,12 @@ func (auo *ArtistUpdateOne) sqlSave(ctx context.Context) (_node *Artist, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.RemovedTrackIDs(); len(nodes) > 0 && !auo.mutation.TrackCleared() {
+	if nodes := auo.mutation.RemovedTracksIDs(); len(nodes) > 0 && !auo.mutation.TracksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   artist.TrackTable,
-			Columns: artist.TrackPrimaryKey,
+			Table:   artist.TracksTable,
+			Columns: artist.TracksPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -560,12 +560,12 @@ func (auo *ArtistUpdateOne) sqlSave(ctx context.Context) (_node *Artist, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.TrackIDs(); len(nodes) > 0 {
+	if nodes := auo.mutation.TracksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   artist.TrackTable,
-			Columns: artist.TrackPrimaryKey,
+			Table:   artist.TracksTable,
+			Columns: artist.TracksPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

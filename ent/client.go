@@ -373,15 +373,15 @@ func (c *ArtistClient) QueryAlbums(a *Artist) *AlbumQuery {
 	return query
 }
 
-// QueryTrack queries the track edge of a Artist.
-func (c *ArtistClient) QueryTrack(a *Artist) *TrackQuery {
+// QueryTracks queries the tracks edge of a Artist.
+func (c *ArtistClient) QueryTracks(a *Artist) *TrackQuery {
 	query := &TrackQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(artist.Table, artist.FieldID, id),
 			sqlgraph.To(track.Table, track.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, artist.TrackTable, artist.TrackPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, artist.TracksTable, artist.TracksPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil

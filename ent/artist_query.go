@@ -29,7 +29,7 @@ type ArtistQuery struct {
 	predicates []predicate.Artist
 	// eager-loading edges.
 	withAlbums *AlbumQuery
-	withTrack  *TrackQuery
+	withTracks *TrackQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -88,8 +88,8 @@ func (aq *ArtistQuery) QueryAlbums() *AlbumQuery {
 	return query
 }
 
-// QueryTrack chains the current query on the "track" edge.
-func (aq *ArtistQuery) QueryTrack() *TrackQuery {
+// QueryTracks chains the current query on the "tracks" edge.
+func (aq *ArtistQuery) QueryTracks() *TrackQuery {
 	query := &TrackQuery{config: aq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
@@ -102,7 +102,7 @@ func (aq *ArtistQuery) QueryTrack() *TrackQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(artist.Table, artist.FieldID, selector),
 			sqlgraph.To(track.Table, track.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, artist.TrackTable, artist.TrackPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, artist.TracksTable, artist.TracksPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -292,7 +292,7 @@ func (aq *ArtistQuery) Clone() *ArtistQuery {
 		order:      append([]OrderFunc{}, aq.order...),
 		predicates: append([]predicate.Artist{}, aq.predicates...),
 		withAlbums: aq.withAlbums.Clone(),
-		withTrack:  aq.withTrack.Clone(),
+		withTracks: aq.withTracks.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
@@ -310,14 +310,14 @@ func (aq *ArtistQuery) WithAlbums(opts ...func(*AlbumQuery)) *ArtistQuery {
 	return aq
 }
 
-// WithTrack tells the query-builder to eager-load the nodes that are connected to
-// the "track" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *ArtistQuery) WithTrack(opts ...func(*TrackQuery)) *ArtistQuery {
+// WithTracks tells the query-builder to eager-load the nodes that are connected to
+// the "tracks" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *ArtistQuery) WithTracks(opts ...func(*TrackQuery)) *ArtistQuery {
 	query := &TrackQuery{config: aq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	aq.withTrack = query
+	aq.withTracks = query
 	return aq
 }
 
@@ -388,7 +388,7 @@ func (aq *ArtistQuery) sqlAll(ctx context.Context) ([]*Artist, error) {
 		_spec       = aq.querySpec()
 		loadedTypes = [2]bool{
 			aq.withAlbums != nil,
-			aq.withTrack != nil,
+			aq.withTracks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -440,13 +440,13 @@ func (aq *ArtistQuery) sqlAll(ctx context.Context) ([]*Artist, error) {
 		}
 	}
 
-	if query := aq.withTrack; query != nil {
+	if query := aq.withTracks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		ids := make(map[int]*Artist, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
-			node.Edges.Track = []*Track{}
+			node.Edges.Tracks = []*Track{}
 		}
 		var (
 			edgeids []int
@@ -455,11 +455,11 @@ func (aq *ArtistQuery) sqlAll(ctx context.Context) ([]*Artist, error) {
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
 				Inverse: true,
-				Table:   artist.TrackTable,
-				Columns: artist.TrackPrimaryKey,
+				Table:   artist.TracksTable,
+				Columns: artist.TracksPrimaryKey,
 			},
 			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(artist.TrackPrimaryKey[1], fks...))
+				s.Where(sql.InValues(artist.TracksPrimaryKey[1], fks...))
 			},
 			ScanValues: func() [2]interface{} {
 				return [2]interface{}{new(sql.NullInt64), new(sql.NullInt64)}
@@ -487,7 +487,7 @@ func (aq *ArtistQuery) sqlAll(ctx context.Context) ([]*Artist, error) {
 			},
 		}
 		if err := sqlgraph.QueryEdges(ctx, aq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "track": %w`, err)
+			return nil, fmt.Errorf(`query edges "tracks": %w`, err)
 		}
 		query.Where(track.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
@@ -497,10 +497,10 @@ func (aq *ArtistQuery) sqlAll(ctx context.Context) ([]*Artist, error) {
 		for _, n := range neighbors {
 			nodes, ok := edges[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected "track" node returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected "tracks" node returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.Track = append(nodes[i].Edges.Track, n)
+				nodes[i].Edges.Tracks = append(nodes[i].Edges.Tracks, n)
 			}
 		}
 	}
