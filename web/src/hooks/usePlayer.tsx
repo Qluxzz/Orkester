@@ -28,12 +28,10 @@ export default function usePlayer() {
             return
 
         player.pause()
-        setPlaybackState("paused")
     }, [player])
 
     const play = useCallback(async () => {
         await player.play()
-        setPlaybackState("playing")
     }, [player])
 
     function writePlaybackStatusToLocalStorageWhilePlaying() {
@@ -82,9 +80,23 @@ export default function usePlayer() {
 
     useEffect(updateProgress, [player])
 
-    function seek(time: number) {
+
+    useEffect(() => {
+        const setPlaying = () => setPlaybackState("playing")
+        const setPaused = () => setPlaybackState("paused")
+
+        player.addEventListener("play", setPlaying)
+        player.addEventListener("pause", setPaused)
+
+        return () => {
+            player.removeEventListener("play", setPlaying)
+            player.removeEventListener("pause", setPaused)
+        }
+    }, [])
+
+    const seek = useCallback((time: number) => {
         player.fastSeek(time)
-    }
+    }, [player])
 
     const values = useMemo(() => ({
         playTrack: playTrackAtMs,
