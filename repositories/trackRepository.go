@@ -5,6 +5,7 @@ import (
 	"goreact/ent"
 	"goreact/ent/album"
 	"goreact/ent/artist"
+	"goreact/ent/track"
 	"goreact/indexFiles"
 	"log"
 	"time"
@@ -16,7 +17,6 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 	tracks_added := 0
 
 	for _, track := range tracks {
-
 		artists := []*ent.Artist{}
 
 		for _, artist := range track.Artists {
@@ -122,4 +122,45 @@ func GetOrCreateArtist(name string, context context.Context, client *ent.Client)
 	}
 
 	panic("failed to find or create artist")
+}
+
+func RemoveDeletedTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) (int, error) {
+	existing_tracks, err := client.
+		Track.
+		Query().
+		WithAlbum(func(aq *ent.AlbumQuery) {
+			aq.Select(album.FieldName)
+		}).
+		Select(track.FieldTrackNumber, track.FieldTitle).
+		All(context)
+
+	if err != nil {
+		return 0, err
+	}
+
+	removed_tracks := 0
+
+	for _, dbTrack := range existing_tracks {
+		exists := false
+
+		for _, track := range tracks {
+			if track.Title.String == dbTrack.Title &&
+				track.TrackNumber.Int32 == int32(dbTrack.TrackNumber) &&
+				track.AlbumName.String == dbTrack.Edges.Album.Name {
+				exists = true
+				break
+			}
+		}
+
+		if !exists {
+			err := client.Track.DeleteOneID(dbTrack.ID).Exec(context)
+			if err != nil {
+				return 0, err
+			}
+
+			removed_tracks += 1
+		}
+	}
+
+	return removed_tracks, nil
 }

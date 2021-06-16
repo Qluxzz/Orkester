@@ -23,6 +23,13 @@ func scanAndAddTracksToDb(client *ent.Client, ctx context.Context) {
 
 	log.Printf("%d tracks found", len(tracks))
 
+	tracks_removed, err := repositories.RemoveDeletedTracks(tracks, client, ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("%d tracks were removed", tracks_removed)
+
 	tracks_added := repositories.AddTracks(tracks, client, ctx)
 
 	log.Printf("%d new tracks has been added", tracks_added)
