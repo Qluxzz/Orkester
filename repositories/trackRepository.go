@@ -14,13 +14,18 @@ import (
 )
 
 func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) {
+	tx, err := client.Tx(context)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	tracks_added := 0
 
 	for _, track := range tracks {
 		artists := []*ent.Artist{}
 
 		for _, artist := range track.Artists {
-			a := GetOrCreateArtist(artist.String, context, client)
+			a := GetOrCreateArtist(artist.String, context, tx)
 
 			artists = append(artists, a)
 		}
@@ -28,7 +33,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		var albumArtist *ent.Artist
 
 		if track.AlbumArtist.Valid {
-			albumArtist = GetOrCreateArtist(track.AlbumArtist.String, context, client)
+			albumArtist = GetOrCreateArtist(track.AlbumArtist.String, context, tx)
 		}
 
 		if albumArtist == nil {
@@ -38,10 +43,10 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		var album *ent.Album
 
 		if track.AlbumName.Valid {
-			album = GetOrCreateAlbum(track, albumArtist, context, client)
+			album = GetOrCreateAlbum(track, albumArtist, context, tx)
 		}
 
-		_, err := client.
+		_, err := tx.
 			Track.
 			Create().
 			SetTitle(track.Title.String).
@@ -65,10 +70,15 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 
 	}
 
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Printf("Added %d tracks", tracks_added)
 }
 
-func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Client) *ent.Album {
+func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Tx) *ent.Album {
 	a, err := client.
 		Album.
 		Query().
@@ -100,7 +110,7 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 	panic("failed to find or create album")
 }
 
-func GetOrCreateArtist(name string, context context.Context, client *ent.Client) *ent.Artist {
+func GetOrCreateArtist(name string, context context.Context, client *ent.Tx) *ent.Artist {
 	a, err := client.Artist.Query().Where(artist.NameEqualFold(name)).Only(context)
 
 	if err == nil {
