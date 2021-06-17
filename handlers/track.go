@@ -116,28 +116,7 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 		defer stream.Close()
 
 		c.Response().Header.Add("content-type", pathAndMimeType.Mimetype)
-			return c.SendStream(stream)
-		}
-}
-
-func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		id, err := strconv.Atoi(c.Params("id"))
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
-		}
-
-		liked, err := client.LikedTrack.Create().Save(context)
-		if err != nil {
-			return err
-		}
-
-		_, err = client.Track.UpdateOneID(id).SetLiked(liked).Save(context)
-		if err != nil {
-			return err
-		}
-
-		return c.SendStatus(fiber.StatusOK)
+		return c.SendStream(stream)
 	}
 }
 
@@ -153,6 +132,7 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 			Create().
 			SetTrackID(id).
 			Save(context)
+
 		if err != nil {
 			return err
 		}
