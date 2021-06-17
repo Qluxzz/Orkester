@@ -52,6 +52,8 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 		image, err := scanFolderForCoverImage(filepath.Dir(path))
 		if err == nil {
 			track.Image = image
+		} else {
+			return nil, errors.New("failed to find image, it's required for tracks to be added to the database")
 		}
 	}
 
