@@ -118,7 +118,7 @@ function ArtistView(artist: IArtist) {
             gridTemplateRows: "1fr"
         }}>
             {artist.albums.map(album =>
-                <AlbumLink {...album}>
+                <AlbumLink key={album.id} {...album}>
                     <Album>
                         <AlbumImage album={album} />
                         <p>{album.name}</p>

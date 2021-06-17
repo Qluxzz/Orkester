@@ -92,7 +92,7 @@ export default function usePlayer() {
             player.removeEventListener("play", setPlaying)
             player.removeEventListener("pause", setPaused)
         }
-    }, [])
+    }, [player])
 
     const seek = useCallback((time: number) => {
         player.fastSeek(time)
