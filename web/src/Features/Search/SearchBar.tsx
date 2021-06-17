@@ -13,24 +13,22 @@ const Input = styled.input`
 `
 
 export default function SearchBar() {
-    const { query: initalQuery } = useParams<{ query: string }>()
-    const [query, setQuery] = useState<string>(initalQuery)
+    const { query } = useParams<{ query: string }>()
     const history = useHistory()
 
-    function updateQueryAndHistory(query: string) {
-        setQuery(query)
-        showSearchResults()
-    }
-
-    function showSearchResults() {
+    function search(query: string) {
         history.replace(`/search/${query}`)
     }
 
+    const searchQuery = query === undefined
+        ? ""
+        : query
+
     return <Bar>
         <Input
-            onChange={e => updateQueryAndHistory(e.target.value)}
-            value={query}
-            onFocus={showSearchResults}
+            onChange={e => search(e.target.value)}
+            value={searchQuery}
+            onFocus={() => search(searchQuery)}
         />
     </Bar>
 }
