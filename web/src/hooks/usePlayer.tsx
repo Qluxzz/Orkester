@@ -11,16 +11,25 @@ export default function usePlayer() {
     const player = playerRef.current
 
     const playTrackAtMs = useCallback((id: number, timeStamp: number = 0) => {
-        player.src = `/api/v1/track/${id}/stream`
-        player.preload = timeStamp.toString()
+        try {
+            player.src = `/api/v1/track/${id}/stream`
+            player.preload = timeStamp.toString()
 
-        player
-            .play()
-            .then(() => player.fastSeek(timeStamp))
-            .then(() => {
-                setPlaybackState("playing")
-                setTrackId(id)
-            })
+            player
+                .play()
+                .then(() => player.fastSeek(timeStamp))
+                .then(() => {
+                    setPlaybackState("playing")
+                    setTrackId(id)
+                })
+        } catch (e) {
+            const error: Error = e
+
+            if (error.name === "AbortError")
+                return
+
+            console.error(error)
+        }
     }, [player])
 
     const pause = useCallback(() => {
