@@ -1,7 +1,7 @@
 import React from "react"
 
 import ITrack from "types/track"
-import TrackListBase from "TrackListBase"
+import TrackListBase from "./TrackListBase"
 
 
 interface ITrackList {
