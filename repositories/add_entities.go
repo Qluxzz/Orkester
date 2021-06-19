@@ -2,20 +2,20 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"goreact/ent"
 	"goreact/ent/album"
 	"goreact/ent/artist"
 	"goreact/indexFiles"
-	"log"
 	"time"
 
 	"github.com/gosimple/slug"
 )
 
-func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) {
+func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) (int, error) {
 	tx, err := client.Tx(context)
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
 	tracks_added := 0
@@ -24,7 +24,10 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		artists := []*ent.Artist{}
 
 		for _, artist := range track.Artists {
-			a := GetOrCreateArtist(artist.String, context, tx)
+			a, err := GetOrCreateArtist(artist.String, context, tx)
+			if err != nil {
+				return 0, err
+			}
 
 			artists = append(artists, a)
 		}
@@ -32,7 +35,11 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		var albumArtist *ent.Artist
 
 		if track.AlbumArtist.Valid {
-			albumArtist = GetOrCreateArtist(track.AlbumArtist.String, context, tx)
+			albumArtist, err = GetOrCreateArtist(track.AlbumArtist.String, context, tx)
+			if err != nil {
+				return 0, err
+			}
+
 		} else {
 			albumArtist = artists[0]
 		}
@@ -40,7 +47,10 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		var album *ent.Album
 
 		if track.AlbumName.Valid {
-			album = GetOrCreateAlbum(track, albumArtist, context, tx)
+			album, err = GetOrCreateAlbum(track, albumArtist, context, tx)
+			if err != nil {
+				return 0, err
+			}
 		}
 
 		_, err := tx.
@@ -59,24 +69,22 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		if err != nil {
 			_, ok := err.(*ent.ConstraintError)
 			if !ok {
-				log.Fatalf("failed to create track %v", err)
+				return 0, err
 			}
 		} else {
-			log.Printf("Added track %s from album %s", track.Title.String, track.AlbumName.String)
-
 			tracks_added += 1
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
-	log.Printf("Added %d tracks", tracks_added)
+	return tracks_added, nil
 }
 
-func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Tx) *ent.Album {
+func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Tx) (*ent.Album, error) {
 	a, err := client.
 		Album.
 		Query().
@@ -88,7 +96,7 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 		).Only(context)
 
 	if err == nil {
-		return a
+		return a, nil
 	}
 
 	if _, ok := err.(*ent.NotFoundError); ok {
@@ -102,14 +110,14 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 			Save(context)
 
 		if err == nil {
-			return a
+			return a, nil
 		}
 	}
 
-	panic("failed to find or create album")
+	return nil, errors.New("failed to find or create album")
 }
 
-func GetOrCreateArtist(name string, context context.Context, client *ent.Tx) *ent.Artist {
+func GetOrCreateArtist(name string, context context.Context, client *ent.Tx) (*ent.Artist, error) {
 	a, err := client.
 		Artist.
 		Query().
@@ -119,7 +127,7 @@ func GetOrCreateArtist(name string, context context.Context, client *ent.Tx) *en
 		Only(context)
 
 	if err == nil {
-		return a
+		return a, nil
 	}
 
 	if _, ok := err.(*ent.NotFoundError); ok {
@@ -130,9 +138,9 @@ func GetOrCreateArtist(name string, context context.Context, client *ent.Tx) *en
 			Save(context)
 
 		if err == nil {
-			return a
+			return a, nil
 		}
 	}
 
-	panic("failed to find or create artist")
+	return nil, errors.New("failed to find or create artist")
 }
