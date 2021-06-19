@@ -212,6 +212,8 @@ function getColumnStyle(column: IColumn): React.CSSProperties {
         style.textAlign = "center"
     }
 
+    style.overflow = "hidden"
+
     return style
 }
 
