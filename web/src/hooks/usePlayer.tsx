@@ -12,16 +12,13 @@ export default function usePlayer() {
 
     const playTrackAtMs = useCallback((id: number, timeStamp: number = 0) => {
         try {
+            setTrackId(id)
             player.src = `/api/v1/track/${id}/stream`
             player.preload = timeStamp.toString()
 
             player
                 .play()
                 .then(() => player.fastSeek(timeStamp))
-                .then(() => {
-                    setPlaybackState("playing")
-                    setTrackId(id)
-                })
         } catch (e) {
             const error: Error = e
 
@@ -47,7 +44,7 @@ export default function usePlayer() {
         if (!trackId)
             return
 
-        if (playbackState !== "playing")
+        if (player.paused)
             return
 
         const interval = setInterval(
@@ -63,32 +60,10 @@ export default function usePlayer() {
         return () => { clearInterval(interval) }
     }
 
-    function updateProgress() {
-        const interval = setInterval(() => {
-            if (!player)
-                return
-
-            if (player.paused)
-                return
-
-            setProgress({
-                duration: Math.round(player.duration),
-                currentTime: Math.round(player.currentTime)
-            })
-        }, 1000)
-
-        return () => {
-            clearInterval(interval)
-        }
-    }
-
     useEffect(
         writePlaybackStatusToLocalStorageWhilePlaying,
         [trackId, playbackState, player]
     )
-
-    useEffect(updateProgress, [player])
-
 
     useEffect(() => {
         const setPlaying = () => setPlaybackState("playing")
@@ -102,6 +77,19 @@ export default function usePlayer() {
             player.removeEventListener("pause", setPaused)
         }
     }, [player])
+
+    useEffect(() => {
+        const updateProgress = () => setProgress({
+            duration: Math.round(player.duration),
+            currentTime: Math.round(player.currentTime)
+        })
+
+        player.addEventListener("timeupdate", updateProgress)
+
+        return () => {
+            player.removeEventListener("timeupdate", updateProgress)
+        }
+    })
 
     const seek = useCallback((time: number) => {
         player.fastSeek(time)
