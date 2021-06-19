@@ -57,7 +57,7 @@ export default function PlayerBar() {
 }
 
 function Controls() {
-    const { play, pause, playbackState, currentTime, duration } = usePlaybackContext()
+    const { play, pause, playbackState } = usePlaybackContext()
 
     return <div style={{ display: "flex" }}>
         <button
@@ -69,12 +69,12 @@ function Controls() {
         >
             {playbackState === "paused" ? "play" : "pause"}
         </button>
-        <Slider duration={duration} currentTime={currentTime} />
+        <Slider />
     </div>
 }
 
-function Slider({ currentTime, duration }: { currentTime: number, duration: number }) {
-    const { seek } = usePlaybackContext()
+function Slider() {
+    const { seek, duration, currentTime } = usePlaybackContext()
     const [value, setValue] = useState(currentTime)
     const [interacting, setInteracting] = useState(false)
 
