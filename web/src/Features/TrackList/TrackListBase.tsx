@@ -101,20 +101,8 @@ export default function TrackListBase({
     return <div>
         <header style={{ display: "flex", padding: "10px" }}>
             {columns.map(column => {
-                const style: React.CSSProperties = {}
-
-                if (typeof column.width === "number") {
-                    style.width = column.width
-                } else if (column.width === "grow") {
-                    style.flexGrow = 1
-                }
-
-                if (column.centered) {
-                    style.textAlign = "center"
-                }
-
                 return <div
-                    style={style}
+                    style={getColumnStyle(column)}
                     onClick={() => sortByColumn(column.key)}
                     key={column.key}
                 >
@@ -200,29 +188,31 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
                 }
             })()
 
-            const style: React.CSSProperties = {}
-
-            if (typeof column.width === "number") {
-                style.flexShrink = 0
-                style.width = column.width
-            } else if (column.width === "grow") {
-                style.flexGrow = 1
-            }
-
-            if (column.centered) {
-                style.textAlign = "center"
-            }
-
-            style.overflow = "hidden"
-
             return <div
                 key={column.key}
-                style={style}
+                style={getColumnStyle(column)}
             >
                 {children}
             </div>
         })}
     </li>
+}
+
+function getColumnStyle(column: IColumn): React.CSSProperties {
+    const style: React.CSSProperties = {}
+
+    if (typeof column.width === "number") {
+        style.flexShrink = 0
+        style.width = column.width
+    } else if (column.width === "grow") {
+        style.flexGrow = 1
+    }
+
+    if (column.centered) {
+        style.textAlign = "center"
+    }
+
+    return style
 }
 
 function sortDirection(direction: ISortDirection) {
