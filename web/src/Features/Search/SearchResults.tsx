@@ -88,23 +88,38 @@ export default function SearchResults({ query }: { query: string }) {
         return <p>No results...</p>
 
     return <Container>
-        {searchResults.tracks.length > 0 && <div>
+        <div>
             <h1>Tracks</h1>
-            <UnorderedListWithNoDots>{searchResults.tracks.map(track =>
-                <li onClick={() => play(track.id)} key={track.id}>{track.title}</li>
-            )}</UnorderedListWithNoDots>
-        </div>}
-        {searchResults.albums.length > 0 && <div>
+            {searchResults.tracks.length === 0
+                ? <p>No tracks found</p>
+                : <UnorderedListWithNoDots>{
+                    searchResults.tracks.map(track =>
+                        <li onClick={() => play(track.id)} key={track.id}>{track.title}</li>
+                    )}
+                </UnorderedListWithNoDots>
+            }
+        </div>
+        <div>
             <h1>Albums</h1>
-            <UnorderedListWithNoDots>{searchResults.albums.map(album =>
-                <AlbumLink {...album} key={album.id}><li>{album.name}</li></AlbumLink>
-            )}</UnorderedListWithNoDots>
-        </div>}
-        {searchResults.artists.length > 0 && <div>
+            {searchResults.albums.length === 0
+                ? <p>No albums found</p>
+                : <UnorderedListWithNoDots>
+                    {searchResults.albums.map(album =>
+                        <AlbumLink {...album} key={album.id}><li>{album.name}</li></AlbumLink>
+                    )}
+                </UnorderedListWithNoDots>
+            }
+        </div>
+        <div>
             <h1>Artists</h1>
-            <UnorderedListWithNoDots>{searchResults.artists.map(artist =>
-                <ArtistLink {...artist} key={artist.id}><li>{artist.name}</li></ArtistLink>
-            )}</UnorderedListWithNoDots>
-        </div>}
+            {searchResults.artists.length === 0
+                ? <p>No artists found</p>
+                : <UnorderedListWithNoDots>
+                    {searchResults.artists.map(artist =>
+                        <ArtistLink {...artist} key={artist.id}><li>{artist.name}</li></ArtistLink>
+                    )}
+                </UnorderedListWithNoDots>
+            }
+        </div>
     </Container>
 }
