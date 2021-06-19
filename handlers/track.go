@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bufio"
 	"context"
 	"goreact/ent"
 	"goreact/ent/likedtrack"
@@ -109,14 +110,20 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 			return err
 		}
 
-		stream, err := os.Open(pathAndMimeType.Path)
+		f, err := os.Open(pathAndMimeType.Path)
 		if err != nil {
+			f.Close()
 			return err
 		}
-		defer stream.Close()
 
-		c.Response().Header.Add("content-type", pathAndMimeType.Mimetype)
-		return c.SendStream(stream)
+		c.Response().Header.SetContentType(pathAndMimeType.Mimetype)
+		c.Response().SetBodyStreamWriter(func(w *bufio.Writer) {
+			_, _ = w.ReadFrom(f)
+
+			w.Flush()
+		})
+
+		return nil
 	}
 }
 
