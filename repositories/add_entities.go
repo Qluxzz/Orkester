@@ -90,7 +90,7 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 		Query().
 		Where(
 			album.And(
-				album.NameEQ(track.AlbumName.String),
+				album.NameEqualFold(track.AlbumName.String),
 				album.HasArtistWith(artist.ID(albumArtist.ID)),
 			),
 		).Only(context)
@@ -122,7 +122,7 @@ func GetOrCreateArtist(name string, context context.Context, client *ent.Tx) (*e
 		Artist.
 		Query().
 		Where(
-			artist.NameEQ(name),
+			artist.NameEqualFold(name),
 		).
 		Only(context)
 
