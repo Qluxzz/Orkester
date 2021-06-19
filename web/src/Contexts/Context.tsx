@@ -55,7 +55,7 @@ function readTrackInfoFromLocalStorage(): ILocalStorageTrack | undefined {
 
 export function PlayerContextProvider({ children }: { children: React.ReactNode }) {
     const [currentlyPlayingTrack, setCurrentlyPlayingTrack] = useState<ITrack>()
-    const { playTrack, progress, playbackState, pause, play, seek } = usePlayer()
+    const { playTrack, progress, playbackState, pause, play, seek, repeatState, setRepeat } = usePlayer()
 
     const _playTrack = useCallback((track: ITrack, timestamp?: number) => {
         setCurrentlyPlayingTrack(track)
@@ -101,8 +101,10 @@ export function PlayerContextProvider({ children }: { children: React.ReactNode 
         play,
         pause,
         playbackState: playbackState,
-        seek
-    }), [progress, play, pause, playbackState, seek])
+        seek,
+        repeatState,
+        setRepeat
+    }), [progress, play, pause, playbackState, seek, repeatState, setRepeat])
 
     return <PlayerContext.Provider
         value={playerContextValues}

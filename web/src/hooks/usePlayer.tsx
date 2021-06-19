@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ILocalStorageTrack from "types/localStorageTrack"
 import IPlaybackState from "types/playbackState"
+import IRepeatOptions from "types/repeatOptions"
 
 export default function usePlayer() {
     const [trackId, setTrackId] = useState<number>()
     const [playbackState, setPlaybackState] = useState<IPlaybackState>("paused")
     const [progress, setProgress] = useState<{ duration: number, currentTime: number }>({ duration: 0, currentTime: 0 })
+    const [repeatOption, setRepeatOption] = useState<IRepeatOptions>("off")
 
     const playerRef = useRef(new Audio())
     const player = playerRef.current
@@ -38,6 +40,25 @@ export default function usePlayer() {
 
     const play = useCallback(async () => {
         await player.play()
+    }, [player])
+
+    const setRepeat = useCallback((option: IRepeatOptions) => {
+        switch (option) {
+            case "off":
+                player.loop = false
+                break
+            case "track":
+                player.loop = true
+                break
+            case "queue":
+                console.log("Not yet implemented")
+                break
+            default:
+                throw new Error(`Unknown repeat option: ${option}`)
+        }
+
+        setRepeatOption(option)
+
     }, [player])
 
     function writePlaybackStatusToLocalStorageWhilePlaying() {
@@ -101,8 +122,10 @@ export default function usePlayer() {
         play,
         pause,
         progress,
-        seek
-    }), [playTrackAtMs, playbackState, play, pause, progress, seek])
+        seek,
+        setRepeat,
+        repeatState: repeatOption
+    }), [playTrackAtMs, playbackState, play, pause, progress, seek, setRepeat, repeatOption])
 
     return values
 }

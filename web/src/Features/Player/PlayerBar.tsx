@@ -55,19 +55,32 @@ export default function PlayerBar() {
 }
 
 function Controls() {
-    const { play, pause, playbackState } = usePlaybackContext()
+    const { play, pause, playbackState, repeatState, setRepeat } = usePlaybackContext()
 
-    return <div style={{ display: "flex" }}>
-        <button
-            onClick={playbackState === "paused"
-                ? play
-                : pause
-            }
-            style={{ width: 72 }}
-        >
-            {playbackState === "paused" ? "play" : "pause"}
-        </button>
-        <Slider />
+    return <div>
+        <div>
+            <button
+                onClick={playbackState === "paused"
+                    ? play
+                    : pause
+                }
+                style={{ width: 72 }}
+            >
+                {playbackState === "paused" ? "play" : "pause"}
+            </button>
+            <button
+                onClick={
+                    () => repeatState === "track"
+                        ? setRepeat("off")
+                        : setRepeat("track")
+                }
+            >
+                {repeatState === "track" ? "loopar" : "loopar ej"}
+            </button>
+        </div>
+        <div>
+            <Slider />
+        </div>
     </div>
 }
 
