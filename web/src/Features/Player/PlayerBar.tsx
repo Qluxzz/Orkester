@@ -75,7 +75,7 @@ function Controls() {
                         : setRepeat("track")
                 }
             >
-                {repeatState === "track" ? "loopar" : "loopar ej"}
+                {repeatState === "track" ? "repeat track" : "no repeat"}
             </button>
         </div>
         <div>
