@@ -23,12 +23,21 @@ func scanAndAddTracksToDb(client *ent.Client, ctx context.Context) {
 
 	log.Printf("%d tracks found", len(tracks))
 
-	err = repositories.RemoveDeletedEntities(tracks, client, ctx)
+	removed, err := repositories.RemoveDeletedEntities(tracks, client, ctx)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	repositories.AddTracks(tracks, client, ctx)
+	log.Printf("Removed %d tracks", removed.NumberOfRemovedTracks)
+	log.Printf("Removed %d albums", removed.NumberOfRemovedAlbums)
+	log.Printf("Removed %d artists", removed.NumberOfRemovedArtists)
+
+	tracks_added, err := repositories.AddTracks(tracks, client, ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("Added %d tracks", tracks_added)
 }
 
 func main() {

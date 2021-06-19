@@ -7,10 +7,15 @@ import (
 	"goreact/ent/artist"
 	"goreact/ent/track"
 	"goreact/indexFiles"
-	"log"
 )
 
-func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) error {
+type RemovedEntities struct {
+	NumberOfRemovedTracks  int
+	NumberOfRemovedArtists int
+	NumberOfRemovedAlbums  int
+}
+
+func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) (*RemovedEntities, error) {
 	db_tracks, err := client.
 		Track.
 		Query().
@@ -21,7 +26,7 @@ func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client
 		All(context)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	tracks_removed_from_disk := GetTracksRemovedFromDisk(tracks, db_tracks)
@@ -35,18 +40,14 @@ func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client
 	removed_tracks, err := client.Track.Delete().Where(track.IDIn(ids_to_be_removed...)).Exec(context)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	log.Printf("Removed %d tracks", removed_tracks)
 
 	// Remove albums without tracks
 	removed_albums, err := client.Album.Delete().Where(album.Not(album.HasTracks())).Exec(context)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	log.Printf("Removed %d albums", removed_albums)
 
 	// Remove artists without albums or tracks
 	removed_artists, err := client.
@@ -60,12 +61,14 @@ func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client
 		).
 		Exec(context)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	log.Printf("Removed %d artists", removed_artists)
-
-	return nil
+	return &RemovedEntities{
+		NumberOfRemovedTracks:  removed_tracks,
+		NumberOfRemovedArtists: removed_artists,
+		NumberOfRemovedAlbums:  removed_albums,
+	}, nil
 }
 
 func GetTracksRemovedFromDisk(tracks []*indexFiles.IndexedTrack, dbTracks []*ent.Track) []*ent.Track {
