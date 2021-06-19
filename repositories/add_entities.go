@@ -5,7 +5,6 @@ import (
 	"goreact/ent"
 	"goreact/ent/album"
 	"goreact/ent/artist"
-	"goreact/ent/track"
 	"goreact/indexFiles"
 	"log"
 	"time"
@@ -63,9 +62,10 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 				log.Fatalf("failed to create track %v", err)
 			}
 		} else {
+			log.Printf("Added track %s from album %s", track.Title.String, track.AlbumName.String)
+
 			tracks_added += 1
 		}
-
 	}
 
 	err = tx.Commit()
@@ -82,7 +82,7 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 		Query().
 		Where(
 			album.And(
-				album.NameEqualFold(track.AlbumName.String),
+				album.NameEQ(track.AlbumName.String),
 				album.HasArtistWith(artist.ID(albumArtist.ID)),
 			),
 		).Only(context)
@@ -101,18 +101,22 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 			SetArtist(albumArtist).
 			Save(context)
 
-		if err != nil {
-			log.Fatalf("failed to create album %v", err)
+		if err == nil {
+			return a
 		}
-
-		return a
 	}
 
 	panic("failed to find or create album")
 }
 
 func GetOrCreateArtist(name string, context context.Context, client *ent.Tx) *ent.Artist {
-	a, err := client.Artist.Query().Where(artist.NameEqualFold(name)).Only(context)
+	a, err := client.
+		Artist.
+		Query().
+		Where(
+			artist.NameEQ(name),
+		).
+		Only(context)
 
 	if err == nil {
 		return a
@@ -125,79 +129,10 @@ func GetOrCreateArtist(name string, context context.Context, client *ent.Tx) *en
 			SetURLName(slug.Make(name)).
 			Save(context)
 
-		if err != nil {
-			log.Fatalf("failed to create artist %v", err)
+		if err == nil {
+			return a
 		}
-
-		return a
 	}
 
 	panic("failed to find or create artist")
-}
-
-func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) error {
-	existing_tracks, err := client.
-		Track.
-		Query().
-		WithAlbum(func(aq *ent.AlbumQuery) {
-			aq.Select(album.FieldName)
-		}).
-		Select(track.FieldTrackNumber, track.FieldTitle).
-		All(context)
-
-	if err != nil {
-		return err
-	}
-
-	removed_tracks := 0
-
-	for _, dbTrack := range existing_tracks {
-		exists := false
-
-		for _, track := range tracks {
-			if track.Title.String == dbTrack.Title &&
-				track.TrackNumber.Int32 == int32(dbTrack.TrackNumber) &&
-				track.AlbumName.String == dbTrack.Edges.Album.Name {
-				exists = true
-				break
-			}
-		}
-
-		if !exists {
-			err := client.Track.DeleteOneID(dbTrack.ID).Exec(context)
-			if err != nil {
-				return err
-			}
-			removed_tracks += 1
-		}
-	}
-
-	log.Printf("Removed %d tracks", removed_tracks)
-
-	// Remove albums without tracks
-	removed_albums, err := client.Album.Delete().Where(album.Not(album.HasTracks())).Exec(context)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Removed %d albums", removed_albums)
-
-	// Remove artists without albums or tracks
-	removed_artists, err := client.
-		Artist.
-		Delete().
-		Where(
-			artist.And(
-				artist.Not(artist.HasTracks()),
-				artist.Not(artist.HasAlbums()),
-			),
-		).
-		Exec(context)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Removed %d artists", removed_artists)
-
-	return nil
 }
