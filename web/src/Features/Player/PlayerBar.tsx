@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import styled from "styled-components"
 
-import { AlbumLink, ArtistLink } from "utilities/Links"
+import { AlbumLink } from "utilities/Links"
 import AlbumImage from "utilities/AlbumImage"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
 import { useTrackContext } from "Contexts/TrackContext"

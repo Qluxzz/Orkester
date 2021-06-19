@@ -3,7 +3,7 @@ import { TrackContextProvider } from "Contexts/TrackContext"
 import usePlayer from "hooks/usePlayer"
 import React, { useState, useContext, useEffect, useCallback, useMemo } from "react"
 import ILocalStorageTrack from "types/localStorageTrack"
-import ITrack from "./types/track"
+import ITrack from "types/track"
 
 interface IPlayerContext {
     play: (id: number, timestamp?: number) => void
