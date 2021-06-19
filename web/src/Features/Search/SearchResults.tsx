@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { usePlayerContext } from "Context"
+import { usePlayerContext } from "Contexts/Context"
 import styled from "styled-components"
 import { IArtist, IAlbum } from "types/track"
 import CenteredDotLoader from "CenteredDotLoader"

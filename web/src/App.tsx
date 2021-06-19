@@ -10,7 +10,7 @@ import {
 import styled from "styled-components"
 import { GetAlbumWithId } from "Features/Album/Album"
 import { GetArtistWithId } from "Artist"
-import { PlayerContextProvider } from "Context"
+import { PlayerContextProvider } from "Contexts/Context"
 import PlayerBar from "Features/Player/PlayerBar"
 import SearchBar from "Features/Search/SearchBar"
 import SearchResults from "Features/Search/SearchResults"

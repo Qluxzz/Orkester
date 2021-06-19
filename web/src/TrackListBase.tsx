@@ -4,9 +4,9 @@ import styled from "styled-components"
 import LikeButton from "Features/Album/LikeButton"
 import ITrack from "types/track"
 import AlbumImage from "utilities/AlbumImage"
-import { AlbumLink, ArtistLink } from "utilities/Links"
+import { AlbumLink } from "utilities/Links"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
-import { usePlayerContext } from "Context"
+import { usePlayerContext } from "Contexts/Context"
 import ArtistList from "utilities/ArtistList"
 
 
