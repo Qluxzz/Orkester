@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import styled from "styled-components"
+import styled, { css } from "styled-components"
 
 import { AlbumLink } from "utilities/Links"
 import AlbumImage from "utilities/AlbumImage"
@@ -16,6 +16,20 @@ const Bar = styled.div`
   padding: 10px;
 `
 
+const textEllipsis = css`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`
+
+const TrackTitle = styled.h1`
+    ${_ => textEllipsis}
+`
+
+const ArtistAndAlbum = styled.h2`
+    ${_ => textEllipsis}
+`
+
 export default function PlayerBar() {
     const { track } = useTrackContext()
 
@@ -28,14 +42,14 @@ export default function PlayerBar() {
                 <AlbumImage album={track.album} size={72} />
             </AlbumLink>
             <div style={{ marginLeft: 10, overflow: "hidden" }}>
-                <h1>{track.title}</h1>
-                <h2 style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+                <TrackTitle>{track.title}</TrackTitle>
+                <ArtistAndAlbum>
                     <ArtistList artists={track.artists} />
                     {" - "}
                     <AlbumLink {...track.album}>
                         {track.album.name}
                     </AlbumLink>
-                </h2>
+                </ArtistAndAlbum>
             </div>
         </div>
         <Controls />
