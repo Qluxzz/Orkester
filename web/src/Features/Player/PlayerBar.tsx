@@ -118,16 +118,36 @@ function Slider() {
     </div>
 }
 
-function DurationOrRemainingTime({ duration, currentTime }: { duration: number, currentTime: number }) {
-    const [inversed, setInversed] = useState(false)
+type IState = "duration" | "timeLeft"
 
-    const time = inversed
-        ? `-${secondsToTimeFormat(duration - currentTime)}`
-        : secondsToTimeFormat(duration)
+function DurationOrRemainingTime({ duration, currentTime }: { duration: number, currentTime: number }) {
+    const [state, setState] = useState<IState>("duration")
+
+    function toggle() {
+        const newState = (() => {
+            switch (state) {
+                case "duration":
+                    return "timeLeft"
+                case "timeLeft":
+                    return "duration"
+            }
+        })()
+
+        setState(newState)
+    }
+
+    const time = (() => {
+        switch (state) {
+            case "duration":
+                return secondsToTimeFormat(duration)
+            case "timeLeft":
+                return `-${secondsToTimeFormat(duration - currentTime)}`
+        }
+    })()
 
     return <div
         style={{ padding: "0 0 0 10px", width: "6ch" }}
-        onClick={() => setInversed(!inversed)}
+        onClick={toggle}
     >
         {time}
     </div>
