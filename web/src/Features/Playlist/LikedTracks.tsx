@@ -1,6 +1,6 @@
 import CenteredDotLoader from "CenteredDotLoader";
 import { useEffect, useState } from "react";
-import TrackListBase from "TrackListBase";
+import TrackListBase from "Features/TrackList/TrackListBase";
 import ITrack from "types/track";
 
 async function getLikedTracks(): Promise<ITrack[]> {

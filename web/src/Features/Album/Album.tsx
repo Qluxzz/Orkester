@@ -6,7 +6,7 @@ import { secondsToTimeFormat } from "utilities/secondsToTimeFormat";
 import { useHistory } from "react-router";
 import CenteredDotLoader from "CenteredDotLoader";
 import { ArtistLink } from "utilities/Links";
-import TrackList from "TrackList";
+import TrackList from "Features/TrackList/TrackList";
 import AlbumImage from "utilities/AlbumImage";
 
 interface IAlbum {
