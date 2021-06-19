@@ -118,8 +118,7 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 
 		c.Response().Header.SetContentType(pathAndMimeType.Mimetype)
 		c.Response().SetBodyStreamWriter(func(w *bufio.Writer) {
-			_, _ = w.ReadFrom(f)
-
+			w.ReadFrom(f)
 			w.Flush()
 		})
 
