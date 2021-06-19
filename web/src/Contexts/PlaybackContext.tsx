@@ -1,5 +1,7 @@
 import React, { useContext } from "react";
-import IPlaybackState from "types/playbackState"
+
+import IPlaybackState from "types/playbackState";
+import IRepeatOptions from "types/repeatOptions"
 
 
 interface IPlaybackContext {
@@ -8,6 +10,8 @@ interface IPlaybackContext {
     play: () => void
     pause: () => void
     seek: (time: number) => void
+    setRepeat: (option: IRepeatOptions) => void
+    repeatState: IRepeatOptions
     playbackState: IPlaybackState
 }
 
