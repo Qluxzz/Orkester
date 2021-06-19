@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import styled, { css } from "styled-components"
+import styled from "styled-components"
 
 import { AlbumLink } from "utilities/Links"
 import AlbumImage from "utilities/AlbumImage"
@@ -9,6 +9,8 @@ import { usePlaybackContext } from "Contexts/PlaybackContext"
 import { useEffect } from "react"
 import ArtistList from "utilities/ArtistList"
 
+import textEllipsisMixin from "utilities/ellipsisText"
+
 const Bar = styled.div`
   display: flex;
   flex-direction: column;
@@ -16,18 +18,14 @@ const Bar = styled.div`
   padding: 10px;
 `
 
-const textEllipsis = css`
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-`
+
 
 const TrackTitle = styled.h1`
-    ${_ => textEllipsis}
+    ${_ => textEllipsisMixin}
 `
 
 const ArtistAndAlbum = styled.h2`
-    ${_ => textEllipsis}
+    ${_ => textEllipsisMixin}
 `
 
 export default function PlayerBar() {

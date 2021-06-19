@@ -9,6 +9,8 @@ import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
 import { usePlayerContext } from "Contexts/Context"
 import ArtistList from "utilities/ArtistList"
 
+import ellipsisTextMixin from "utilities/ellipsisText"
+
 
 type IColumnKey = ITrackKeys | "albumCover"
 
@@ -142,6 +144,10 @@ const StyledList = styled.ul`
     }
 `
 
+const TrackTitle = styled.p`
+    ${_ => ellipsisTextMixin}
+`
+
 function formatDate(d: Date): string {
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString(10).padStart(2, "0")}-${d.getDate()}`
 }
@@ -181,8 +187,8 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
                             onLikeChanged={onLikedChanged}
                         />
                     case "title":
-                        return <div>
-                            <p>{track.title}</p>
+                        return <div style={{ marginRight: 10 }}>
+                            <TrackTitle>{track.title}</TrackTitle>
                             <p style={{ fontSize: 12 }}><ArtistList artists={track.artists} /></p>
                         </div>
                     case "length":
@@ -197,6 +203,7 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
             const style: React.CSSProperties = {}
 
             if (typeof column.width === "number") {
+                style.flexShrink = 0
                 style.width = column.width
             } else if (column.width === "grow") {
                 style.flexGrow = 1
@@ -205,6 +212,8 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
             if (column.centered) {
                 style.textAlign = "center"
             }
+
+            style.overflow = "hidden"
 
             return <div
                 key={column.key}
