@@ -12,7 +12,7 @@ async function getLikedTracks(): Promise<ITrack[]> {
     return await response.json()
 }
 
-export default function LikedTracks() {
+export default function LikedTracks({ play }: { play: (id: number) => void }) {
     const [tracks, setTracks] = useState<ITrack[] | "loading">("loading")
 
     function removeLikedTrack(trackId: number) {
@@ -59,6 +59,7 @@ export default function LikedTracks() {
                     { display: "🕒", key: "length", width: 60, centered: true }
                 ]}
                 initalSortColumn="date"
+                play={play}
             />
         }
     </div>

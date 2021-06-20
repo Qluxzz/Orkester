@@ -13,63 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func TracksInfo(client *ent.Client, context context.Context) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		ids := new([]int)
-
-		if err := c.BodyParser(ids); err != nil {
-			return err
-		}
-
-		tracks, err := client.
-			Track.
-			Query().
-			Where(track.IDIn(*ids...)).
-			WithAlbum().
-			WithArtists().
-			WithLiked().
-			All(context)
-
-		if err != nil {
-			return nil
-		}
-
-		t2 := []models.Track{}
-		for _, track := range tracks {
-			t := models.Track{
-				Id:          track.ID,
-				TrackNumber: track.TrackNumber,
-				Title:       track.Title,
-				Length:      track.Length,
-				Liked:       track.Edges.Liked != nil,
-				Album: &models.Album{
-					Id:      track.Edges.Album.ID,
-					Name:    track.Edges.Album.Name,
-					UrlName: track.Edges.Album.URLName,
-				},
-			}
-
-			artists := []*models.Artist{}
-
-			for _, artist := range track.Edges.Artists {
-				a := &models.Artist{
-					Id:      artist.ID,
-					Name:    artist.Name,
-					UrlName: artist.URLName,
-				}
-
-				artists = append(artists, a)
-			}
-
-			t.Artists = artists
-
-			t2 = append(t2, t)
-		}
-
-		return c.JSON(t2)
-	}
-}
-
 func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
@@ -77,7 +20,7 @@ func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		track, err := client.Track.
+		dbTrack, err := client.Track.
 			Query().
 			Where(track.ID(id)).
 			WithAlbum().
@@ -87,6 +30,33 @@ func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 		if err != nil {
 			return err
 		}
+
+		track := models.Track{
+			Id:          dbTrack.ID,
+			TrackNumber: dbTrack.TrackNumber,
+			Title:       dbTrack.Title,
+			Length:      dbTrack.Length,
+			Liked:       dbTrack.Edges.Liked != nil,
+			Album: &models.Album{
+				Id:      dbTrack.Edges.Album.ID,
+				Name:    dbTrack.Edges.Album.Name,
+				UrlName: dbTrack.Edges.Album.URLName,
+			},
+		}
+
+		artists := []*models.Artist{}
+
+		for _, artist := range dbTrack.Edges.Artists {
+			a := &models.Artist{
+				Id:      artist.ID,
+				Name:    artist.Name,
+				UrlName: artist.URLName,
+			}
+
+			artists = append(artists, a)
+		}
+
+		track.Artists = artists
 
 		return c.JSON(track)
 	}

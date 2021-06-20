@@ -1,26 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import ILocalStorageTrack from "types/localStorageTrack"
 import IPlaybackState from "types/playbackState"
-import IRepeatOptions from "types/repeatOptions"
 
 export default function usePlayer() {
-    const [trackId, setTrackId] = useState<number>()
     const [playbackState, setPlaybackState] = useState<IPlaybackState>("paused")
     const [progress, setProgress] = useState<{ duration: number, currentTime: number }>({ duration: 0, currentTime: 0 })
-    const [repeatOption, setRepeatOption] = useState<IRepeatOptions>("off")
 
     const playerRef = useRef(new Audio())
     const player = playerRef.current
 
     const playTrackAtMs = useCallback((id: number, timeStamp: number = 0) => {
         try {
-            setTrackId(id)
             player.src = `/api/v1/track/${id}/stream`
             player.preload = timeStamp.toString()
 
-            player
-                .play()
-                .then(() => player.fastSeek(timeStamp))
+            player.play().then(_ => player.fastSeek(timeStamp))
         } catch (e) {
             const error: Error = e
 
@@ -42,50 +35,6 @@ export default function usePlayer() {
         await player.play()
     }, [player])
 
-    const setRepeat = useCallback((option: IRepeatOptions) => {
-        switch (option) {
-            case "off":
-                player.loop = false
-                break
-            case "track":
-                player.loop = true
-                break
-            case "queue":
-                console.log("Not yet implemented")
-                break
-            default:
-                throw new Error(`Unknown repeat option: ${option}`)
-        }
-
-        setRepeatOption(option)
-
-    }, [player])
-
-    function writePlaybackStatusToLocalStorageWhilePlaying() {
-        if (!trackId)
-            return
-
-        if (player.paused)
-            return
-
-        const interval = setInterval(
-            () => {
-                writeTrackInfoToLocalStorage({
-                    id: trackId,
-                    timestamp: Math.round(player.currentTime)
-                })
-            },
-            1000
-        )
-
-        return () => { clearInterval(interval) }
-    }
-
-    useEffect(
-        writePlaybackStatusToLocalStorageWhilePlaying,
-        [trackId, playbackState, player]
-    )
-
     useEffect(() => {
         const setPlaying = () => setPlaybackState("playing")
         const setPaused = () => setPlaybackState("paused")
@@ -101,7 +50,7 @@ export default function usePlayer() {
 
     useEffect(() => {
         const updateProgress = () => setProgress({
-            duration: Math.round(player.duration),
+            duration: Math.round(player.duration || 0),
             currentTime: Math.round(player.currentTime)
         })
 
@@ -110,7 +59,7 @@ export default function usePlayer() {
         return () => {
             player.removeEventListener("timeupdate", updateProgress)
         }
-    })
+    }, [player])
 
     const seek = useCallback((time: number) => {
         player.fastSeek(time)
@@ -123,13 +72,7 @@ export default function usePlayer() {
         pause,
         progress,
         seek,
-        setRepeat,
-        repeatState: repeatOption
-    }), [playTrackAtMs, playbackState, play, pause, progress, seek, setRepeat, repeatOption])
+    }), [playTrackAtMs, playbackState, play, pause, progress, seek])
 
     return values
-}
-
-function writeTrackInfoToLocalStorage(trackInfo: ILocalStorageTrack) {
-    localStorage.setItem("track", JSON.stringify(trackInfo))
 }

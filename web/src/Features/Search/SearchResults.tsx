@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import { usePlayerContext } from "Contexts/Context"
 import styled from "styled-components"
 import { IArtist, IAlbum } from "types/track"
 import CenteredDotLoader from "CenteredDotLoader"
@@ -52,9 +51,8 @@ async function search(query: string) {
 }
 
 
-export default function SearchResults({ query }: { query: string }) {
+export default function SearchResults({ query, play }: { query: string, play: (id: number) => void }) {
     const [searchResults, setSearchResults] = useState<ISearchResults>()
-    const { play } = usePlayerContext()
 
     useEffect(() => {
         if (!query)

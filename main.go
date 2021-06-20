@@ -71,8 +71,6 @@ func main() {
 	track.Put("/:id/like", handlers.LikeTrack(client, ctx))
 	track.Delete("/:id/like", handlers.UnLikeTrack(client, ctx))
 
-	v1.Post("/tracks/ids", handlers.TracksInfo(client, ctx))
-
 	album := v1.Group("/album")
 	album.Get("/:id", handlers.GetAlbum(client, ctx))
 	album.Get("/:id/image", handlers.GetAlbumCover(client, ctx))

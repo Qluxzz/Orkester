@@ -4,12 +4,12 @@ import styled from "styled-components"
 import { AlbumLink } from "utilities/Links"
 import AlbumImage from "utilities/AlbumImage"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
-import { useTrackContext } from "Contexts/TrackContext"
-import { usePlaybackContext } from "Contexts/PlaybackContext"
 import { useEffect } from "react"
 import ArtistList from "utilities/ArtistList"
 
 import textEllipsisMixin from "utilities/ellipsisText"
+import ITrack from "types/track"
+import IPlaybackState from "types/playbackState"
 
 const Bar = styled.div`
   display: flex;
@@ -28,9 +28,26 @@ const ArtistAndAlbum = styled.h2`
     ${_ => textEllipsisMixin}
 `
 
-export default function PlayerBar() {
-    const { track } = useTrackContext()
+interface IPlayerBar {
+    track?: ITrack
+    play: () => void
+    pause: () => void
+    playbackState: IPlaybackState
+    seek: (ms: number) => void
+    currentTime: number
+    duration: number
+}
 
+
+export default function PlayerBar({
+    track,
+    play,
+    pause,
+    playbackState,
+    seek,
+    currentTime,
+    duration
+}: IPlayerBar) {
     if (!track)
         return <Bar>Nothing is currently playing...</Bar>
 
@@ -50,13 +67,28 @@ export default function PlayerBar() {
                 </ArtistAndAlbum>
             </div>
         </div>
-        <Controls />
+        <Controls
+            play={play}
+            pause={pause}
+            playbackState={playbackState}
+            seek={seek}
+            currentTime={currentTime}
+            duration={duration}
+        />
     </Bar>
 }
 
-function Controls() {
-    const { play, pause, playbackState, repeatState, setRepeat } = usePlaybackContext()
+interface IControls {
+    play: () => void
+    pause: () => void
+    playbackState: IPlaybackState
+    seek: (ms: number) => void
+    currentTime: number
+    duration: number
+}
 
+
+function Controls({ play, pause, playbackState, seek, currentTime, duration }: IControls) {
     return <div>
         <div>
             <button
@@ -68,24 +100,24 @@ function Controls() {
             >
                 {playbackState === "paused" ? "play" : "pause"}
             </button>
-            <button
-                onClick={
-                    () => repeatState === "track"
-                        ? setRepeat("off")
-                        : setRepeat("track")
-                }
-            >
-                {repeatState === "track" ? "repeat track" : "no repeat"}
-            </button>
         </div>
         <div>
-            <Slider />
+            <Slider
+                duration={duration}
+                currentTime={currentTime}
+                seek={seek}
+            />
         </div>
     </div>
 }
 
-function Slider() {
-    const { seek, duration, currentTime } = usePlaybackContext()
+interface ISlider {
+    seek: (ms: number) => void
+    duration: number
+    currentTime: number
+}
+
+function Slider({ seek, duration, currentTime }: ISlider) {
     const [value, setValue] = useState(currentTime)
     const [interacting, setInteracting] = useState(false)
 
