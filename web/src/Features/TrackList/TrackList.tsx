@@ -7,10 +7,10 @@ import TrackListBase from "./TrackListBase"
 interface ITrackList {
     tracks: ITrack[]
     onLikedChanged?: (liked: boolean, trackId: number) => void
-    showAlbumCover?: boolean
+    play: (id: number) => void
 }
 
-export default function TrackList({ tracks, onLikedChanged }: ITrackList) {
+export default function TrackList({ tracks, onLikedChanged, play }: ITrackList) {
     return <TrackListBase
         tracks={tracks}
         columns={[
@@ -21,6 +21,7 @@ export default function TrackList({ tracks, onLikedChanged }: ITrackList) {
         ]}
         initalSortColumn="trackNumber"
         onLikedChanged={onLikedChanged}
+        play={play}
     />
 }
 

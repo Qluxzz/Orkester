@@ -6,7 +6,6 @@ import ITrack from "types/track"
 import AlbumImage from "utilities/AlbumImage"
 import { AlbumLink } from "utilities/Links"
 import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
-import { usePlayerContext } from "Contexts/Context"
 import ArtistList from "utilities/ArtistList"
 
 import ellipsisTextMixin from "utilities/ellipsisText"
@@ -26,6 +25,7 @@ interface ITrackListBase {
     initalSortColumn?: ITrackKeys
     columns: IColumn[]
     onLikedChanged?: (liked: boolean, trackId: number) => void
+    play: (id: number) => void
 }
 
 type ITrackKeys = keyof ITrack
@@ -43,7 +43,8 @@ export default function TrackListBase({
     tracks,
     initalSortColumn = defaultSortColumn,
     columns,
-    onLikedChanged
+    onLikedChanged,
+    play
 }: ITrackListBase) {
     const [sortOptions, setSortOptions] = useState<ISortOptions>({
         column: initalSortColumn,
@@ -117,6 +118,7 @@ export default function TrackListBase({
                     track={track}
                     columns={columns}
                     onLikedChanged={onLikedChanged}
+                    play={() => play(track.id)}
                 />
             )}
         </StyledList>
@@ -144,11 +146,10 @@ interface ITrackRow {
     columns: IColumn[]
     track: ITrack
     onLikedChanged?: (liked: boolean, trackId: number) => void
+    play: () => void
 }
 
-function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
-    const { play } = usePlayerContext()
-
+function TrackRow({ columns, track, onLikedChanged, play }: ITrackRow) {
     return <li
         style={{
             display: "flex",
@@ -156,7 +157,7 @@ function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
             alignItems: "center",
             cursor: "default"
         }}
-        onClick={() => play(track.id)}
+        onClick={play}
     >
         {columns.map(column => {
 
