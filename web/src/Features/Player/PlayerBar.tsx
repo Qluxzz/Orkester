@@ -8,8 +8,9 @@ import { useEffect } from "react"
 import ArtistList from "utilities/ArtistList"
 
 import textEllipsisMixin from "utilities/ellipsisText"
-import ITrack from "types/track"
-import IPlaybackState from "types/playbackState"
+import { useTrackContext } from "Context/TrackContext"
+import { useControlsContext } from "Context/ControlsContext"
+import { useProgressContext } from "Context/ProgressContext"
 
 const Bar = styled.div`
   display: flex;
@@ -28,26 +29,9 @@ const ArtistAndAlbum = styled.h2`
     ${_ => textEllipsisMixin}
 `
 
-interface IPlayerBar {
-    track?: ITrack
-    play: () => void
-    pause: () => void
-    playbackState: IPlaybackState
-    seek: (ms: number) => void
-    currentTime: number
-    duration: number
-}
+export default function PlayerBar() {
+    const track = useTrackContext()
 
-
-export default function PlayerBar({
-    track,
-    play,
-    pause,
-    playbackState,
-    seek,
-    currentTime,
-    duration
-}: IPlayerBar) {
     if (!track)
         return <Bar>Nothing is currently playing...</Bar>
 
@@ -67,28 +51,13 @@ export default function PlayerBar({
                 </ArtistAndAlbum>
             </div>
         </div>
-        <Controls
-            play={play}
-            pause={pause}
-            playbackState={playbackState}
-            seek={seek}
-            currentTime={currentTime}
-            duration={duration}
-        />
+        <Controls />
     </Bar>
 }
 
-interface IControls {
-    play: () => void
-    pause: () => void
-    playbackState: IPlaybackState
-    seek: (ms: number) => void
-    currentTime: number
-    duration: number
-}
+function Controls() {
+    const { play, pause, playbackState } = useControlsContext()
 
-
-function Controls({ play, pause, playbackState, seek, currentTime, duration }: IControls) {
     return <div>
         <div>
             <button
@@ -102,22 +71,15 @@ function Controls({ play, pause, playbackState, seek, currentTime, duration }: I
             </button>
         </div>
         <div>
-            <Slider
-                duration={duration}
-                currentTime={currentTime}
-                seek={seek}
-            />
+            <Slider />
         </div>
     </div>
 }
 
-interface ISlider {
-    seek: (ms: number) => void
-    duration: number
-    currentTime: number
-}
+function Slider() {
+    const { duration, currentTime } = useProgressContext()
+    const { seek } = useControlsContext()
 
-function Slider({ seek, duration, currentTime }: ISlider) {
     const [value, setValue] = useState(currentTime)
     const [interacting, setInteracting] = useState(false)
 
