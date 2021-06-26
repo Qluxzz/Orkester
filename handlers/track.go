@@ -79,7 +79,7 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		_, err = client.
+		liked, err := client.
 			LikedTrack.
 			Create().
 			SetTrackID(id).
@@ -88,6 +88,8 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 		if err != nil {
 			return err
 		}
+
+		client.Track.UpdateOneID(id).SetLiked(liked).Save(context)
 
 		return c.SendStatus(fiber.StatusOK)
 	}

@@ -135,8 +135,8 @@ func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ltu.mutation.TrackCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
 			Table:   likedtrack.TrackTable,
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,
@@ -151,8 +151,8 @@ func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := ltu.mutation.TrackIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
 			Table:   likedtrack.TrackTable,
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,
@@ -318,8 +318,8 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 	}
 	if ltuo.mutation.TrackCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
 			Table:   likedtrack.TrackTable,
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,
@@ -334,8 +334,8 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 	}
 	if nodes := ltuo.mutation.TrackIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
 			Table:   likedtrack.TrackTable,
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,

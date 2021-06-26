@@ -577,7 +577,7 @@ func (c *LikedTrackClient) QueryTrack(lt *LikedTrack) *TrackQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(likedtrack.Table, likedtrack.FieldID, id),
 			sqlgraph.To(track.Table, track.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, likedtrack.TrackTable, likedtrack.TrackColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, likedtrack.TrackTable, likedtrack.TrackColumn),
 		)
 		fromV = sqlgraph.Neighbors(lt.driver.Dialect(), step)
 		return fromV, nil
@@ -715,7 +715,7 @@ func (c *TrackClient) QueryLiked(t *Track) *LikedTrackQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(track.Table, track.FieldID, id),
 			sqlgraph.To(likedtrack.Table, likedtrack.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, track.LikedTable, track.LikedColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, track.LikedTable, track.LikedColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

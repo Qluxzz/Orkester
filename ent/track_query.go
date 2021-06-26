@@ -127,7 +127,7 @@ func (tq *TrackQuery) QueryLiked() *LikedTrackQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(track.Table, track.FieldID, selector),
 			sqlgraph.To(likedtrack.Table, likedtrack.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, track.LikedTable, track.LikedColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, track.LikedTable, track.LikedColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -430,7 +430,7 @@ func (tq *TrackQuery) sqlAll(ctx context.Context) ([]*Track, error) {
 			tq.withLiked != nil,
 		}
 	)
-	if tq.withAlbum != nil || tq.withLiked != nil {
+	if tq.withAlbum != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -551,31 +551,30 @@ func (tq *TrackQuery) sqlAll(ctx context.Context) ([]*Track, error) {
 	}
 
 	if query := tq.withLiked; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*Track)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Track)
 		for i := range nodes {
-			if nodes[i].track_liked == nil {
-				continue
-			}
-			fk := *nodes[i].track_liked
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(likedtrack.IDIn(ids...))
+		query.withFKs = true
+		query.Where(predicate.LikedTrack(func(s *sql.Selector) {
+			s.Where(sql.InValues(track.LikedColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.track_liked
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "track_liked" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "track_liked" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "track_liked" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Liked = n
-			}
+			node.Edges.Liked = n
 		}
 	}
 

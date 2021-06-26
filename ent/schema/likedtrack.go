@@ -23,6 +23,6 @@ func (LikedTrack) Fields() []ent.Field {
 // Edges of the LikedTrack.
 func (LikedTrack) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("track", Track.Type).Unique().Required(),
+		edge.From("track", Track.Type).Ref("liked").Unique().Required(),
 	}
 }
