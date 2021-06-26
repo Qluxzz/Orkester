@@ -9,5 +9,6 @@ export default function AlbumImage({ album: { id, name }, size }: IAlbumImage) {
         height={size}
         src={`/api/v1/album/${id}/image`}
         alt={`Album cover for album titled ${name}`}
+        style={{ aspectRatio: "1 / 1" }}
     />
 }
