@@ -80,34 +80,36 @@ function Slider() {
     const { duration, currentTime } = useProgressContext()
     const { seek } = useControlsContext()
 
-    const [value, setValue] = useState(currentTime)
+    const [sliderValue, setSliderValue] = useState(currentTime)
     const [interacting, setInteracting] = useState(false)
 
     useEffect(() => {
-        setValue(currentTime)
-    }, [currentTime])
+        if (interacting)
+            return
+
+        setSliderValue(currentTime)
+    }, [currentTime, interacting])
 
     return <div style={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-        <div style={{ padding: "0 10px" }}>{secondsToTimeFormat(value)}</div>
+        <div style={{ padding: "0 10px" }}>{secondsToTimeFormat(sliderValue)}</div>
         <input
             style={{ width: "100%" }}
             type="range"
             min={0}
             max={duration}
-            value={!interacting ? value : undefined}
-            defaultValue={interacting ? value : undefined}
+            value={sliderValue}
             onMouseUp={e => {
                 seek(e.currentTarget.valueAsNumber)
                 setInteracting(false)
             }}
-            onMouseDown={() => setInteracting(true)}
-            onMouseMove={e => {
-                setValue(e.currentTarget.valueAsNumber)
+            onChange={e => {
+                setSliderValue(e.currentTarget.valueAsNumber)
+                setInteracting(true)
             }}
         />
         <DurationOrRemainingTime
             duration={duration}
-            currentTime={currentTime}
+            currentTime={sliderValue}
         />
     </div>
 }
