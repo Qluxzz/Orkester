@@ -3,6 +3,7 @@ import styled from "styled-components"
 import { IArtist, IAlbum } from "types/track"
 import CenteredDotLoader from "CenteredDotLoader"
 import { AlbumLink, ArtistLink } from "utilities/Links"
+import { useAppContext } from "Context/AppContext"
 
 const Container = styled.div`
     display: flex;
@@ -51,7 +52,7 @@ async function search(query: string) {
 }
 
 
-export default function SearchResults({ query, play }: { query: string, play: (id: number) => void }) {
+export default function SearchResults({ query }: { query: string }) {
     const [searchResults, setSearchResults] = useState<ISearchResults>()
 
     useEffect(() => {
@@ -92,7 +93,7 @@ export default function SearchResults({ query, play }: { query: string, play: (i
                 ? <p>No tracks found</p>
                 : <UnorderedListWithNoDots>{
                     searchResults.tracks.map(track =>
-                        <li onClick={() => play(track.id)} key={track.id}>{track.title}</li>
+                        <TrackRow key={track.id} track={track} />
                     )}
                 </UnorderedListWithNoDots>
             }
@@ -120,4 +121,9 @@ export default function SearchResults({ query, play }: { query: string, play: (i
             }
         </div>
     </Container>
+}
+
+function TrackRow({ track }: { track: ITrack }) {
+    const { play } = useAppContext()
+    return <li onClick={() => play(track.id)} key={track.id}>{track.title}</li>
 }

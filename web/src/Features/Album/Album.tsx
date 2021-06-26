@@ -33,10 +33,9 @@ async function fetchAlbumInfo(id: number): Promise<IAlbum> {
 
 interface IGetAlbumById {
     id: number
-    play: (id: number) => void
 }
 
-export function GetAlbumById({ id, play }: IGetAlbumById) {
+export function GetAlbumById({ id }: IGetAlbumById) {
     const history = useHistory()
     const [album, setAlbum] = useState<IAlbum>()
 
@@ -65,7 +64,7 @@ export function GetAlbumById({ id, play }: IGetAlbumById) {
     if (!album)
         return <CenteredDotLoader />
 
-    return <AlbumView album={album} play={play} />
+    return <AlbumView album={album} />
 }
 
 const AlbumInfo = styled.div`
@@ -85,10 +84,9 @@ const Container = styled.div`
 
 interface IAlbumView {
     album: IAlbum
-    play: (id: number) => void
 }
 
-function AlbumView({ album, play }: IAlbumView) {
+function AlbumView({ album }: IAlbumView) {
     const totalPlayTime = album.tracks.reduce((acc, x) => (acc += x.length), 0)
 
     return <Container>
@@ -105,6 +103,6 @@ function AlbumView({ album, play }: IAlbumView) {
                 <p>{album.date}</p>
             </AlbumInfo>
         </header>
-        <TrackList tracks={album.tracks} play={play} />
+        <TrackList tracks={album.tracks} />
     </Container >
 }
