@@ -21,8 +21,8 @@ type LikedTrack struct {
 	DateAdded time.Time `json:"date_added,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LikedTrackQuery when eager-loading is set.
-	Edges             LikedTrackEdges `json:"edges"`
-	liked_track_track *int
+	Edges       LikedTrackEdges `json:"edges"`
+	track_liked *int
 }
 
 // LikedTrackEdges holds the relations/edges for other nodes in the graph.
@@ -57,7 +57,7 @@ func (*LikedTrack) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case likedtrack.FieldDateAdded:
 			values[i] = new(sql.NullTime)
-		case likedtrack.ForeignKeys[0]: // liked_track_track
+		case likedtrack.ForeignKeys[0]: // track_liked
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type LikedTrack", columns[i])
@@ -88,10 +88,10 @@ func (lt *LikedTrack) assignValues(columns []string, values []interface{}) error
 			}
 		case likedtrack.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field liked_track_track", value)
+				return fmt.Errorf("unexpected type %T for edge-field track_liked", value)
 			} else if value.Valid {
-				lt.liked_track_track = new(int)
-				*lt.liked_track_track = int(value.Int64)
+				lt.track_liked = new(int)
+				*lt.track_liked = int(value.Int64)
 			}
 		}
 	}

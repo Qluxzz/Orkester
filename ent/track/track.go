@@ -40,7 +40,7 @@ const (
 	// AlbumColumn is the table column denoting the album relation/edge.
 	AlbumColumn = "album_tracks"
 	// LikedTable is the table the holds the liked relation/edge.
-	LikedTable = "tracks"
+	LikedTable = "liked_tracks"
 	// LikedInverseTable is the table name for the LikedTrack entity.
 	// It exists in this package in order to avoid circular dependency with the "likedtrack" package.
 	LikedInverseTable = "liked_tracks"
@@ -63,7 +63,6 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"album_tracks",
-	"track_liked",
 }
 
 var (

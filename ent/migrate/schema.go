@@ -66,7 +66,7 @@ var (
 	LikedTracksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "date_added", Type: field.TypeTime},
-		{Name: "liked_track_track", Type: field.TypeInt, Nullable: true},
+		{Name: "track_liked", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// LikedTracksTable holds the schema information for the "liked_tracks" table.
 	LikedTracksTable = &schema.Table{
@@ -75,7 +75,7 @@ var (
 		PrimaryKey: []*schema.Column{LikedTracksColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "liked_tracks_tracks_track",
+				Symbol:     "liked_tracks_tracks_liked",
 				Columns:    []*schema.Column{LikedTracksColumns[2]},
 				RefColumns: []*schema.Column{TracksColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -92,7 +92,6 @@ var (
 		{Name: "length", Type: field.TypeInt},
 		{Name: "mimetype", Type: field.TypeString},
 		{Name: "album_tracks", Type: field.TypeInt, Nullable: true},
-		{Name: "track_liked", Type: field.TypeInt, Nullable: true},
 	}
 	// TracksTable holds the schema information for the "tracks" table.
 	TracksTable = &schema.Table{
@@ -104,12 +103,6 @@ var (
 				Symbol:     "tracks_albums_tracks",
 				Columns:    []*schema.Column{TracksColumns[7]},
 				RefColumns: []*schema.Column{AlbumsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "tracks_liked_tracks_liked",
-				Columns:    []*schema.Column{TracksColumns[8]},
-				RefColumns: []*schema.Column{LikedTracksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -161,7 +154,6 @@ func init() {
 	AlbumsTable.ForeignKeys[0].RefTable = ArtistsTable
 	LikedTracksTable.ForeignKeys[0].RefTable = TracksTable
 	TracksTable.ForeignKeys[0].RefTable = AlbumsTable
-	TracksTable.ForeignKeys[1].RefTable = LikedTracksTable
 	TrackArtistsTable.ForeignKeys[0].RefTable = TracksTable
 	TrackArtistsTable.ForeignKeys[1].RefTable = ArtistsTable
 }

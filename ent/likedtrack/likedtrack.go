@@ -23,7 +23,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "track" package.
 	TrackInverseTable = "tracks"
 	// TrackColumn is the table column denoting the track relation/edge.
-	TrackColumn = "liked_track_track"
+	TrackColumn = "track_liked"
 )
 
 // Columns holds all SQL columns for likedtrack fields.
@@ -35,7 +35,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "liked_tracks"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"liked_track_track",
+	"track_liked",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

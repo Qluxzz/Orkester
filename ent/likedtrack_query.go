@@ -78,7 +78,7 @@ func (ltq *LikedTrackQuery) QueryTrack() *TrackQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(likedtrack.Table, likedtrack.FieldID, selector),
 			sqlgraph.To(track.Table, track.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, likedtrack.TrackTable, likedtrack.TrackColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, likedtrack.TrackTable, likedtrack.TrackColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
 		return fromU, nil
@@ -385,10 +385,10 @@ func (ltq *LikedTrackQuery) sqlAll(ctx context.Context) ([]*LikedTrack, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*LikedTrack)
 		for i := range nodes {
-			if nodes[i].liked_track_track == nil {
+			if nodes[i].track_liked == nil {
 				continue
 			}
-			fk := *nodes[i].liked_track_track
+			fk := *nodes[i].track_liked
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -402,7 +402,7 @@ func (ltq *LikedTrackQuery) sqlAll(ctx context.Context) ([]*LikedTrack, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "liked_track_track" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "track_liked" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Track = n

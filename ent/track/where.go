@@ -758,7 +758,7 @@ func HasLiked() predicate.Track {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(LikedTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, LikedTable, LikedColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, LikedTable, LikedColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -770,7 +770,7 @@ func HasLikedWith(preds ...predicate.LikedTrack) predicate.Track {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(LikedInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, LikedTable, LikedColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, LikedTable, LikedColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

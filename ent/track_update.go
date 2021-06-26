@@ -287,7 +287,7 @@ func (tu *TrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.LikedCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   track.LikedTable,
 			Columns: []string{track.LikedColumn},
@@ -303,7 +303,7 @@ func (tu *TrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := tu.mutation.LikedIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   track.LikedTable,
 			Columns: []string{track.LikedColumn},
@@ -620,7 +620,7 @@ func (tuo *TrackUpdateOne) sqlSave(ctx context.Context) (_node *Track, err error
 	}
 	if tuo.mutation.LikedCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   track.LikedTable,
 			Columns: []string{track.LikedColumn},
@@ -636,7 +636,7 @@ func (tuo *TrackUpdateOne) sqlSave(ctx context.Context) (_node *Track, err error
 	}
 	if nodes := tuo.mutation.LikedIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   track.LikedTable,
 			Columns: []string{track.LikedColumn},

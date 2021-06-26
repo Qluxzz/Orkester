@@ -34,7 +34,6 @@ type Track struct {
 	// The values are being populated by the TrackQuery when eager-loading is set.
 	Edges        TrackEdges `json:"edges"`
 	album_tracks *int
-	track_liked  *int
 }
 
 // TrackEdges holds the relations/edges for other nodes in the graph.
@@ -100,8 +99,6 @@ func (*Track) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case track.ForeignKeys[0]: // album_tracks
 			values[i] = new(sql.NullInt64)
-		case track.ForeignKeys[1]: // track_liked
-			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Track", columns[i])
 		}
@@ -165,13 +162,6 @@ func (t *Track) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				t.album_tracks = new(int)
 				*t.album_tracks = int(value.Int64)
-			}
-		case track.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field track_liked", value)
-			} else if value.Valid {
-				t.track_liked = new(int)
-				*t.track_liked = int(value.Int64)
 			}
 		}
 	}
