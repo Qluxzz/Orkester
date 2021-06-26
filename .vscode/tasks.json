@@ -30,6 +30,12 @@
             "type": "shell",
             "command": "go test ./...",
             "problemMatcher": []
+        },
+        {
+            "label": "build production build",
+            "type": "shell",
+            "command": "./build_production",
+            "problemMatcher": []
         }
     ]
 }
