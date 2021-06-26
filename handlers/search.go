@@ -26,7 +26,7 @@ func Search(client *ent.Client, context context.Context) fiber.Handler {
 		err = client.
 			Track.
 			Query().
-			Where(track.TitleContains(query)).
+			Where(track.TitleContainsFold(query)).
 			Select(track.FieldID, track.FieldTitle).
 			Scan(context, &tracks)
 
@@ -43,7 +43,7 @@ func Search(client *ent.Client, context context.Context) fiber.Handler {
 		err = client.
 			Album.
 			Query().
-			Where(album.NameContains(query)).
+			Where(album.NameContainsFold(query)).
 			Select(album.FieldID, album.FieldName, album.FieldURLName).
 			Scan(context, &albums)
 
@@ -60,7 +60,7 @@ func Search(client *ent.Client, context context.Context) fiber.Handler {
 		err = client.
 			Artist.
 			Query().
-			Where(artist.NameContains(query)).
+			Where(artist.NameContainsFold(query)).
 			Select(artist.FieldID, artist.FieldName, artist.FieldURLName).
 			Scan(context, &artists)
 
