@@ -6,27 +6,29 @@ import (
 	"goreact/ent"
 	"goreact/ent/album"
 	"goreact/ent/artist"
+	"goreact/ent/track"
 	"goreact/indexFiles"
 	"time"
 
 	"github.com/gosimple/slug"
 )
 
-func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) (int, error) {
+func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) ([]*ent.Track, error) {
 	tx, err := client.Tx(context)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	tracks_added := 0
+	added_tracks := []*ent.Track{}
 
-	for _, track := range tracks {
+	for _, track_on_disk := range tracks {
 		artists := []*ent.Artist{}
 
-		for _, artist := range track.Artists {
+		for _, artist := range track_on_disk.Artists {
 			a, err := GetOrCreateArtist(artist.String, context, tx)
 			if err != nil {
-				return 0, err
+				tx.Rollback()
+				return nil, err
 			}
 
 			artists = append(artists, a)
@@ -34,10 +36,11 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 
 		var albumArtist *ent.Artist
 
-		if track.AlbumArtist.Valid {
-			albumArtist, err = GetOrCreateArtist(track.AlbumArtist.String, context, tx)
+		if track_on_disk.AlbumArtist.Valid {
+			albumArtist, err = GetOrCreateArtist(track_on_disk.AlbumArtist.String, context, tx)
 			if err != nil {
-				return 0, err
+				tx.Rollback()
+				return nil, err
 			}
 
 		} else {
@@ -46,42 +49,60 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 
 		var album *ent.Album
 
-		if track.AlbumName.Valid {
-			album, err = GetOrCreateAlbum(track, albumArtist, context, tx)
+		if track_on_disk.AlbumName.Valid {
+			album, err = GetOrCreateAlbum(track_on_disk, albumArtist, context, tx)
 			if err != nil {
-				return 0, err
+				tx.Rollback()
+				return nil, err
 			}
 		}
 
-		_, err := tx.
+		added_track, err := tx.
 			Track.
 			Create().
-			SetTitle(track.Title.String).
-			SetTrackNumber(int(track.TrackNumber.Int32)).
-			SetPath(track.Path.String).
+			SetTitle(track_on_disk.Title.String).
+			SetTrackNumber(int(track_on_disk.TrackNumber.Int32)).
+			SetPath(track_on_disk.Path.String).
 			SetDate(time.Now()).
-			SetLength(int(track.Length.Int32)).
-			SetMimetype(track.MimeType.String).
+			SetLength(int(track_on_disk.Length.Int32)).
+			SetMimetype(track_on_disk.MimeType.String).
 			SetAlbum(album).
 			AddArtists(artists...).
 			Save(context)
 
-		if err != nil {
-			_, ok := err.(*ent.ConstraintError)
-			if !ok {
-				return 0, err
+		if err == nil {
+			track, err := GetTrackById(added_track.ID, context, tx)
+
+			if err == nil {
+				added_tracks = append(added_tracks, track)
 			}
 		} else {
-			tracks_added += 1
+			_, ok := err.(*ent.ConstraintError)
+			if !ok {
+				tx.Rollback()
+				return nil, err
+			}
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return tracks_added, nil
+	return added_tracks, nil
+}
+
+func GetTrackById(id int, context context.Context, client *ent.Tx) (*ent.Track, error) {
+	return client.
+		Track.
+		Query().
+		Where(track.ID(id)).
+		WithAlbum(func(aq *ent.AlbumQuery) {
+			aq.Select(album.FieldName)
+		}).
+		WithArtists().
+		Only(context)
 }
 
 func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Tx) (*ent.Album, error) {

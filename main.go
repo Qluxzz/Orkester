@@ -6,39 +6,12 @@ import (
 
 	"goreact/ent"
 	"goreact/handlers"
-	"goreact/indexFiles"
-	"goreact/repositories"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	_ "github.com/mattn/go-sqlite3"
 )
-
-func scanAndAddTracksToDb(client *ent.Client, ctx context.Context) {
-	tracks, err := indexFiles.ScanPathForMusicFiles("./content")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Printf("%d tracks found", len(tracks))
-
-	removed, err := repositories.RemoveDeletedEntities(tracks, client, ctx)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Printf("Removed %d tracks", removed.NumberOfRemovedTracks)
-	log.Printf("Removed %d albums", removed.NumberOfRemovedAlbums)
-	log.Printf("Removed %d artists", removed.NumberOfRemovedArtists)
-
-	tracks_added, err := repositories.AddTracks(tracks, client, ctx)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Printf("Added %d tracks", tracks_added)
-}
 
 func main() {
 	client, err := ent.Open("sqlite3", "sqlite.db?cache=shared&_fk=1")
@@ -52,8 +25,6 @@ func main() {
 	if err := client.Schema.Create(ctx); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
-
-	go scanAndAddTracksToDb(client, ctx)
 
 	app := fiber.New()
 
@@ -84,7 +55,8 @@ func main() {
 	playlist := v1.Group("/playlist")
 	playlist.Get("/liked", handlers.GetLikedTracks(client, ctx))
 
-	// app.Static("/", "web/build")
+	v1.Put("/scan", handlers.UpdateLibrary(client, ctx))
+
 
 	// app.Get("/*", func(c *fiber.Ctx) error {
 	// 	return c.SendFile("./web/build/index.html")

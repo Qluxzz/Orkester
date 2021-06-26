@@ -15,13 +15,14 @@ type RemovedEntities struct {
 	NumberOfRemovedAlbums  int
 }
 
-func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) (*RemovedEntities, error) {
+func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) ([]*ent.Track, error) {
 	db_tracks, err := client.
 		Track.
 		Query().
 		WithAlbum(func(aq *ent.AlbumQuery) {
 			aq.Select(album.FieldName)
 		}).
+		WithArtists().
 		Select(track.FieldTrackNumber, track.FieldTitle).
 		All(context)
 
@@ -37,20 +38,20 @@ func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client
 		ids_to_be_removed = append(ids_to_be_removed, removed_track.ID)
 	}
 
-	removed_tracks, err := client.Track.Delete().Where(track.IDIn(ids_to_be_removed...)).Exec(context)
+	_, err = client.Track.Delete().Where(track.IDIn(ids_to_be_removed...)).Exec(context)
 
 	if err != nil {
 		return nil, err
 	}
 
 	// Remove albums without tracks
-	removed_albums, err := client.Album.Delete().Where(album.Not(album.HasTracks())).Exec(context)
+	_, err = client.Album.Delete().Where(album.Not(album.HasTracks())).Exec(context)
 	if err != nil {
 		return nil, err
 	}
 
 	// Remove artists without albums or tracks
-	removed_artists, err := client.
+	_, err = client.
 		Artist.
 		Delete().
 		Where(
@@ -64,11 +65,7 @@ func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client
 		return nil, err
 	}
 
-	return &RemovedEntities{
-		NumberOfRemovedTracks:  removed_tracks,
-		NumberOfRemovedArtists: removed_artists,
-		NumberOfRemovedAlbums:  removed_albums,
-	}, nil
+	return tracks_removed_from_disk, nil
 }
 
 func GetTracksRemovedFromDisk(tracks []*indexFiles.IndexedTrack, dbTracks []*ent.Track) []*ent.Track {
