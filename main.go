@@ -13,6 +13,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var mode string
+
 func main() {
 	client, err := ent.Open("sqlite3", "sqlite.db?cache=shared&_fk=1")
 
@@ -57,10 +59,14 @@ func main() {
 
 	v1.Put("/scan", handlers.UpdateLibrary(client, ctx))
 
+	if mode == "production" {
+		app.Static("/", "client/")
 
-	// app.Get("/*", func(c *fiber.Ctx) error {
-	// 	return c.SendFile("./web/build/index.html")
-	// })
+		app.Get("/*", func(c *fiber.Ctx) error {
+			log.Print("Tried to access /")
+			return c.SendFile("client/index.html")
+		})
+	}
 
 	// Start app
 
