@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"goreact/ent"
+	"goreact/ent/album"
 	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 	"goreact/models"
@@ -23,7 +24,9 @@ func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 		dbTrack, err := client.Track.
 			Query().
 			Where(track.ID(id)).
-			WithAlbum().
+			WithAlbum(func(aq *ent.AlbumQuery) {
+				aq.Select(album.FieldName, album.FieldURLName)
+			}).
 			WithArtists().
 			Only(context)
 
@@ -31,34 +34,7 @@ func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 			return err
 		}
 
-		track := models.Track{
-			Id:          dbTrack.ID,
-			TrackNumber: dbTrack.TrackNumber,
-			Title:       dbTrack.Title,
-			Length:      dbTrack.Length,
-			Liked:       dbTrack.Edges.Liked != nil,
-			Album: &models.Album{
-				Id:      dbTrack.Edges.Album.ID,
-				Name:    dbTrack.Edges.Album.Name,
-				UrlName: dbTrack.Edges.Album.URLName,
-			},
-		}
-
-		artists := []*models.Artist{}
-
-		for _, artist := range dbTrack.Edges.Artists {
-			a := &models.Artist{
-				Id:      artist.ID,
-				Name:    artist.Name,
-				UrlName: artist.URLName,
-			}
-
-			artists = append(artists, a)
-		}
-
-		track.Artists = artists
-
-		return c.JSON(track)
+		return c.JSON(models.FromEntTrack(dbTrack))
 	}
 }
 
