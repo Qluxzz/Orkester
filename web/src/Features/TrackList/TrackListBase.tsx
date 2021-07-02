@@ -137,7 +137,7 @@ const TrackTitle = styled.p`
 `
 
 function formatDate(d: Date): string {
-    return `${d.getFullYear()}-${(d.getMonth() + 1).toString(10).padStart(2, "0")}-${d.getDate()}`
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString(10).padStart(2, "0")}-${d.getDate().toString(10).padStart(2, "0")}`
 }
 
 interface ITrackRow {
