@@ -13,10 +13,12 @@ import (
 
 func UpdateLibrary(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tracks, err := indexFiles.ScanPathForMusicFiles("/home/qluxzz/Music")
+		tracks, failed_tracks, err := indexFiles.ScanPathForMusicFiles("/home/qluxzz/Music")
 		if err != nil {
 			return err
 		}
+
+		log.Printf("%d tracks failed to be indexed", len(failed_tracks))
 
 		log.Printf("%d tracks found", len(tracks))
 
@@ -49,6 +51,7 @@ func UpdateLibrary(client *ent.Client, context context.Context) fiber.Handler {
 		return c.JSON(&fiber.Map{
 			"tracksRemoved": removed_tracks,
 			"tracksAdded":   added_tracks,
+			"failedTracks":  failed_tracks,
 		})
 	}
 }

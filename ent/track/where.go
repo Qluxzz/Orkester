@@ -4,7 +4,6 @@ package track
 
 import (
 	"goreact/ent/predicate"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -111,13 +110,6 @@ func TrackNumber(v int) predicate.Track {
 func Path(v string) predicate.Track {
 	return predicate.Track(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPath), v))
-	})
-}
-
-// Date applies equality check predicate on the "date" field. It's identical to DateEQ.
-func Date(v time.Time) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDate), v))
 	})
 }
 
@@ -430,82 +422,6 @@ func PathEqualFold(v string) predicate.Track {
 func PathContainsFold(v string) predicate.Track {
 	return predicate.Track(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldPath), v))
-	})
-}
-
-// DateEQ applies the EQ predicate on the "date" field.
-func DateEQ(v time.Time) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDate), v))
-	})
-}
-
-// DateNEQ applies the NEQ predicate on the "date" field.
-func DateNEQ(v time.Time) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldDate), v))
-	})
-}
-
-// DateIn applies the In predicate on the "date" field.
-func DateIn(vs ...time.Time) predicate.Track {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Track(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldDate), v...))
-	})
-}
-
-// DateNotIn applies the NotIn predicate on the "date" field.
-func DateNotIn(vs ...time.Time) predicate.Track {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Track(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldDate), v...))
-	})
-}
-
-// DateGT applies the GT predicate on the "date" field.
-func DateGT(v time.Time) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldDate), v))
-	})
-}
-
-// DateGTE applies the GTE predicate on the "date" field.
-func DateGTE(v time.Time) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldDate), v))
-	})
-}
-
-// DateLT applies the LT predicate on the "date" field.
-func DateLT(v time.Time) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldDate), v))
-	})
-}
-
-// DateLTE applies the LTE predicate on the "date" field.
-func DateLTE(v time.Time) predicate.Track {
-	return predicate.Track(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldDate), v))
 	})
 }
 

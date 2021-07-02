@@ -3,6 +3,7 @@ package indexFiles
 import (
 	"database/sql"
 	"errors"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,24 +12,45 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
-func ScanPathForMusicFiles(path string) ([]*IndexedTrack, error) {
+type FailedAudioFile struct {
+	Path  string
+	Error error
+}
+
+func ScanPathForMusicFiles(path string) ([]*IndexedTrack, []*FailedAudioFile, error) {
 	path, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	tracks := []*IndexedTrack{}
+	successfully_parsed_audio_files := []*IndexedTrack{}
+	failed_audio_files := []*FailedAudioFile{}
 
-	filepath.Walk(path, func(path string, fileInfo os.FileInfo, err error) error {
-		track, _ := parseAudioFile(path)
+	filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		track, err := parseAudioFile(path)
 		if track != nil {
-			tracks = append(tracks, track)
+			successfully_parsed_audio_files = append(successfully_parsed_audio_files, track)
+		}
+
+		if err != nil {
+			failed_audio_files = append(failed_audio_files, &FailedAudioFile{
+				Path:  path,
+				Error: err,
+			})
 		}
 
 		return nil
 	})
 
-	return tracks, nil
+	return successfully_parsed_audio_files, failed_audio_files, nil
 }
 
 func parseAudioFile(path string) (*IndexedTrack, error) {

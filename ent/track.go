@@ -8,7 +8,6 @@ import (
 	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 	"strings"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -24,8 +23,6 @@ type Track struct {
 	TrackNumber int `json:"track_number,omitempty"`
 	// Path holds the value of the "path" field.
 	Path string `json:"path,omitempty"`
-	// Date holds the value of the "date" field.
-	Date time.Time `json:"date,omitempty"`
 	// Length holds the value of the "length" field.
 	Length int `json:"length,omitempty"`
 	// Mimetype holds the value of the "mimetype" field.
@@ -95,8 +92,6 @@ func (*Track) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case track.FieldTitle, track.FieldPath, track.FieldMimetype:
 			values[i] = new(sql.NullString)
-		case track.FieldDate:
-			values[i] = new(sql.NullTime)
 		case track.ForeignKeys[0]: // album_tracks
 			values[i] = new(sql.NullInt64)
 		default:
@@ -137,12 +132,6 @@ func (t *Track) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field path", values[i])
 			} else if value.Valid {
 				t.Path = value.String
-			}
-		case track.FieldDate:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field date", values[i])
-			} else if value.Valid {
-				t.Date = value.Time
 			}
 		case track.FieldLength:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -212,8 +201,6 @@ func (t *Track) String() string {
 	builder.WriteString(fmt.Sprintf("%v", t.TrackNumber))
 	builder.WriteString(", path=")
 	builder.WriteString(t.Path)
-	builder.WriteString(", date=")
-	builder.WriteString(t.Date.Format(time.ANSIC))
 	builder.WriteString(", length=")
 	builder.WriteString(fmt.Sprintf("%v", t.Length))
 	builder.WriteString(", mimetype=")

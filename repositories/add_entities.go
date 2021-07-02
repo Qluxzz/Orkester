@@ -8,7 +8,6 @@ import (
 	"goreact/ent/artist"
 	"goreact/ent/track"
 	"goreact/indexFiles"
-	"time"
 
 	"github.com/gosimple/slug"
 )
@@ -63,7 +62,6 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 			SetTitle(track_on_disk.Title.String).
 			SetTrackNumber(int(track_on_disk.TrackNumber.Int32)).
 			SetPath(track_on_disk.Path.String).
-			SetDate(time.Now()).
 			SetLength(int(track_on_disk.Length.Int32)).
 			SetMimetype(track_on_disk.MimeType.String).
 			SetAlbum(album).

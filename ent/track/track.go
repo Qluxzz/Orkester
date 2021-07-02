@@ -13,8 +13,6 @@ const (
 	FieldTrackNumber = "track_number"
 	// FieldPath holds the string denoting the path field in the database.
 	FieldPath = "path"
-	// FieldDate holds the string denoting the date field in the database.
-	FieldDate = "date"
 	// FieldLength holds the string denoting the length field in the database.
 	FieldLength = "length"
 	// FieldMimetype holds the string denoting the mimetype field in the database.
@@ -54,7 +52,6 @@ var Columns = []string{
 	FieldTitle,
 	FieldTrackNumber,
 	FieldPath,
-	FieldDate,
 	FieldLength,
 	FieldMimetype,
 }
