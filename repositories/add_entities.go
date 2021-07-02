@@ -49,7 +49,13 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		var album *ent.Album
 
 		if track_on_disk.AlbumName != "" {
-			album, err = GetOrCreateAlbum(track_on_disk.AlbumName, track_on_disk.Image, albumArtist, context, tx)
+			album, err = GetOrCreateAlbum(
+				track_on_disk.AlbumName,
+				track_on_disk.Image,
+				albumArtist,
+				context,
+				tx,
+			)
 			if err != nil {
 				tx.Rollback()
 				return nil, err
