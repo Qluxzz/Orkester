@@ -18,7 +18,6 @@ export default function TrackList({ tracks, onLikedChanged }: ITrackList) {
             { display: "", key: "liked", width: 50 },
             { display: "🕒", key: "length", width: 60, centered: true }
         ]}
-        initalSortColumn="trackNumber"
         onLikedChanged={onLikedChanged}
     />
 }
