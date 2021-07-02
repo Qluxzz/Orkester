@@ -10,7 +10,6 @@ import (
 	"goreact/ent/artist"
 	"goreact/ent/likedtrack"
 	"goreact/ent/track"
-	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -38,12 +37,6 @@ func (tc *TrackCreate) SetTrackNumber(i int) *TrackCreate {
 // SetPath sets the "path" field.
 func (tc *TrackCreate) SetPath(s string) *TrackCreate {
 	tc.mutation.SetPath(s)
-	return tc
-}
-
-// SetDate sets the "date" field.
-func (tc *TrackCreate) SetDate(t time.Time) *TrackCreate {
-	tc.mutation.SetDate(t)
 	return tc
 }
 
@@ -167,9 +160,6 @@ func (tc *TrackCreate) check() error {
 	if _, ok := tc.mutation.Path(); !ok {
 		return &ValidationError{Name: "path", err: errors.New("ent: missing required field \"path\"")}
 	}
-	if _, ok := tc.mutation.Date(); !ok {
-		return &ValidationError{Name: "date", err: errors.New("ent: missing required field \"date\"")}
-	}
 	if _, ok := tc.mutation.Length(); !ok {
 		return &ValidationError{Name: "length", err: errors.New("ent: missing required field \"length\"")}
 	}
@@ -232,14 +222,6 @@ func (tc *TrackCreate) createSpec() (*Track, *sqlgraph.CreateSpec) {
 			Column: track.FieldPath,
 		})
 		_node.Path = value
-	}
-	if value, ok := tc.mutation.Date(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: track.FieldDate,
-		})
-		_node.Date = value
 	}
 	if value, ok := tc.mutation.Length(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

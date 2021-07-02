@@ -63,12 +63,8 @@ func FromEntTrack(dbTrack *ent.Track) Track {
 }
 
 func FromEntTrackWithPath(dbTrack *ent.Track) TrackWithPath {
-	track := FromEntTrack(dbTrack)
-
-	track_with_path := TrackWithPath{
-		Track: track,
+	return TrackWithPath{
+		Track: FromEntTrack(dbTrack),
 		Path:  dbTrack.Path,
 	}
-
-	return track_with_path
 }

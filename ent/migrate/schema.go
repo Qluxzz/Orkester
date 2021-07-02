@@ -88,7 +88,6 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "track_number", Type: field.TypeInt},
 		{Name: "path", Type: field.TypeString},
-		{Name: "date", Type: field.TypeTime},
 		{Name: "length", Type: field.TypeInt},
 		{Name: "mimetype", Type: field.TypeString},
 		{Name: "album_tracks", Type: field.TypeInt, Nullable: true},
@@ -101,7 +100,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "tracks_albums_tracks",
-				Columns:    []*schema.Column{TracksColumns[7]},
+				Columns:    []*schema.Column{TracksColumns[6]},
 				RefColumns: []*schema.Column{AlbumsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -110,7 +109,7 @@ var (
 			{
 				Name:    "track_track_number_title_album_tracks",
 				Unique:  true,
-				Columns: []*schema.Column{TracksColumns[2], TracksColumns[1], TracksColumns[7]},
+				Columns: []*schema.Column{TracksColumns[2], TracksColumns[1], TracksColumns[6]},
 			},
 		},
 	}

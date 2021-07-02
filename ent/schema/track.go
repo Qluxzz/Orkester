@@ -18,7 +18,6 @@ func (Track) Fields() []ent.Field {
 		field.String("title").Immutable(),
 		field.Int("track_number").Immutable(),
 		field.String("path").Immutable(),
-		field.Time("date").Immutable(),
 		field.Int("length").Immutable(),
 		field.String("mimetype").Immutable(),
 	}

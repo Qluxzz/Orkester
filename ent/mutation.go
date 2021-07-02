@@ -1855,7 +1855,6 @@ type TrackMutation struct {
 	track_number    *int
 	addtrack_number *int
 	_path           *string
-	date            *time.Time
 	length          *int
 	addlength       *int
 	mimetype        *string
@@ -2077,42 +2076,6 @@ func (m *TrackMutation) OldPath(ctx context.Context) (v string, err error) {
 // ResetPath resets all changes to the "path" field.
 func (m *TrackMutation) ResetPath() {
 	m._path = nil
-}
-
-// SetDate sets the "date" field.
-func (m *TrackMutation) SetDate(t time.Time) {
-	m.date = &t
-}
-
-// Date returns the value of the "date" field in the mutation.
-func (m *TrackMutation) Date() (r time.Time, exists bool) {
-	v := m.date
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDate returns the old "date" field's value of the Track entity.
-// If the Track object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TrackMutation) OldDate(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldDate is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldDate requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDate: %w", err)
-	}
-	return oldValue.Date, nil
-}
-
-// ResetDate resets all changes to the "date" field.
-func (m *TrackMutation) ResetDate() {
-	m.date = nil
 }
 
 // SetLength sets the "length" field.
@@ -2352,7 +2315,7 @@ func (m *TrackMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TrackMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.title != nil {
 		fields = append(fields, track.FieldTitle)
 	}
@@ -2361,9 +2324,6 @@ func (m *TrackMutation) Fields() []string {
 	}
 	if m._path != nil {
 		fields = append(fields, track.FieldPath)
-	}
-	if m.date != nil {
-		fields = append(fields, track.FieldDate)
 	}
 	if m.length != nil {
 		fields = append(fields, track.FieldLength)
@@ -2385,8 +2345,6 @@ func (m *TrackMutation) Field(name string) (ent.Value, bool) {
 		return m.TrackNumber()
 	case track.FieldPath:
 		return m.Path()
-	case track.FieldDate:
-		return m.Date()
 	case track.FieldLength:
 		return m.Length()
 	case track.FieldMimetype:
@@ -2406,8 +2364,6 @@ func (m *TrackMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldTrackNumber(ctx)
 	case track.FieldPath:
 		return m.OldPath(ctx)
-	case track.FieldDate:
-		return m.OldDate(ctx)
 	case track.FieldLength:
 		return m.OldLength(ctx)
 	case track.FieldMimetype:
@@ -2441,13 +2397,6 @@ func (m *TrackMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPath(v)
-		return nil
-	case track.FieldDate:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDate(v)
 		return nil
 	case track.FieldLength:
 		v, ok := value.(int)
@@ -2547,9 +2496,6 @@ func (m *TrackMutation) ResetField(name string) error {
 		return nil
 	case track.FieldPath:
 		m.ResetPath()
-		return nil
-	case track.FieldDate:
-		m.ResetDate()
 		return nil
 	case track.FieldLength:
 		m.ResetLength()
