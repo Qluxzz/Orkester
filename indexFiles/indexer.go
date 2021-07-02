@@ -1,7 +1,6 @@
 package indexFiles
 
 import (
-	"database/sql"
 	"errors"
 	"io/fs"
 	"io/ioutil"
@@ -150,7 +149,7 @@ func scanFolderForCoverImage(path string) (*Image, error) {
 
 		return &Image{
 			Data:     data,
-			MimeType: CreateValidNullString(mime.String()),
+			MimeType: mime.String(),
 		}, nil
 	}
 
@@ -159,19 +158,19 @@ func scanFolderForCoverImage(path string) (*Image, error) {
 
 type Image struct {
 	Data     []byte
-	MimeType sql.NullString
+	MimeType string
 }
 
 type IndexedTrack struct {
-	Path        sql.NullString
-	Title       sql.NullString
-	Artists     []sql.NullString
-	AlbumName   sql.NullString
+	Path        string
+	Title       string
+	Artists     []string
+	AlbumName   string
 	Image       *Image
-	AlbumArtist sql.NullString
-	TrackNumber sql.NullInt32
-	Genre       sql.NullString
-	Length      sql.NullInt32
-	Date        sql.NullString
-	MimeType    sql.NullString
+	AlbumArtist string
+	TrackNumber int
+	Genre       string
+	Length      int
+	Date        string
+	MimeType    string
 }

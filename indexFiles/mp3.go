@@ -21,15 +21,15 @@ func ParseMp3File(path string) (*IndexedTrack, error) {
 	defer mp3File.Close()
 
 	track := new(IndexedTrack)
-	track.Title = CreateValidNullString(trimNullFromString(mp3File.Title()))
-	track.Path = CreateValidNullString(path)
-	track.MimeType = CreateValidNullString("audio/mpeg")
+	track.Title = trimNullFromString(mp3File.Title())
+	track.Path = path
+	track.MimeType = "audio/mpeg"
 
 	trackNumberFrame, valid := mp3File.Frame("TRCK").(*v2.TextFrame)
 	if valid {
 		trackNumber, err := strconv.Atoi(trimNullFromString(trackNumberFrame.Text()))
 		if err == nil {
-			track.TrackNumber = CreateValidNullInt(trackNumber)
+			track.TrackNumber = trackNumber
 		}
 	}
 
@@ -37,22 +37,22 @@ func ParseMp3File(path string) (*IndexedTrack, error) {
 	if valid {
 		lengthMs, err := strconv.Atoi(trimNullFromString(lengthFrame.Text()))
 		if err == nil {
-			track.Length = CreateValidNullInt(lengthMs / 1000)
+			track.Length = lengthMs / 1000
 		}
 	}
 
-	track.AlbumName = CreateValidNullString(trimNullFromString(mp3File.Album()))
+	track.AlbumName = trimNullFromString(mp3File.Album())
 
 	imageFrame, valid := mp3File.Frame("APIC").(*v2.ImageFrame)
 	if valid {
 		track.Image = &Image{
 			Data:     imageFrame.Data(),
-			MimeType: CreateValidNullString(imageFrame.MIMEType()),
+			MimeType: imageFrame.MIMEType(),
 		}
 	}
-	track.Artists = append(track.Artists, CreateValidNullString(trimNullFromString(mp3File.Artist())))
-	track.Genre = CreateValidNullString(trimNullFromString(mp3File.Genre()))
-	track.Date = CreateValidNullString(trimNullFromString(mp3File.Year()))
+	track.Artists = append(track.Artists, trimNullFromString(mp3File.Artist()))
+	track.Genre = trimNullFromString(mp3File.Genre())
+	track.Date = trimNullFromString(mp3File.Year())
 
 	if len(track.Artists) == 0 {
 		return nil, errors.New("track was missing artist")

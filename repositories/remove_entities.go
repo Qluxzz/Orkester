@@ -9,12 +9,6 @@ import (
 	"goreact/indexFiles"
 )
 
-type RemovedEntities struct {
-	NumberOfRemovedTracks  int
-	NumberOfRemovedArtists int
-	NumberOfRemovedAlbums  int
-}
-
 func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) ([]*ent.Track, error) {
 	db_tracks, err := client.
 		Track.
@@ -93,7 +87,7 @@ func TrackExistsOnDisk(tracks []*indexFiles.IndexedTrack, dbTrack *ent.Track) bo
 // This is a copy of the indexes found in ent/schema/track.go
 // Which defines the unique constraint for a track
 func IsSameTrack(track *indexFiles.IndexedTrack, dbTrack *ent.Track) bool {
-	return track.Title.String == dbTrack.Title &&
-		int(track.TrackNumber.Int32) == dbTrack.TrackNumber &&
-		track.AlbumName.String == dbTrack.Edges.Album.Name
+	return track.Title == dbTrack.Title &&
+		int(track.TrackNumber) == dbTrack.TrackNumber &&
+		track.AlbumName == dbTrack.Edges.Album.Name
 }

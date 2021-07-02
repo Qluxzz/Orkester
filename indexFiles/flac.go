@@ -19,9 +19,9 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 
 	track := new(IndexedTrack)
 
-	track.Path = CreateValidNullString(path)
-	track.Length = CreateValidNullInt(int(f.Info.NSamples) / int(f.Info.SampleRate))
-	track.MimeType = CreateValidNullString("audio/flac")
+	track.Path = path
+	track.Length = int(f.Info.NSamples) / int(f.Info.SampleRate)
+	track.MimeType = "audio/flac"
 
 	for _, block := range f.Blocks {
 		switch block.Type {
@@ -37,23 +37,23 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 
 				switch tagType {
 				case "title":
-					track.Title = CreateValidNullString(value)
+					track.Title = value
 				case "artist":
-					track.Artists = append(track.Artists, CreateValidNullString(value))
+					track.Artists = append(track.Artists, value)
 				case "album":
-					track.AlbumName = CreateValidNullString(value)
+					track.AlbumName = value
 				case "albumartist":
-					track.AlbumArtist = CreateValidNullString(value)
+					track.AlbumArtist = value
 				case "tracknumber":
 					// Some tracknumbers are formatted as (tracknumber)/(amount of tracks)
 					slices := strings.Split(value, "/")
 					if trackNumber, err := strconv.Atoi(slices[0]); err == nil {
-						track.TrackNumber = CreateValidNullInt(trackNumber)
+						track.TrackNumber = trackNumber
 					}
 				case "genre":
-					track.Genre = CreateValidNullString(value)
+					track.Genre = value
 				case "date":
-					track.Date = CreateValidNullString(value)
+					track.Date = value
 				}
 			}
 		case meta.TypePicture:
@@ -67,7 +67,7 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 			if data.Type == coverFront {
 				track.Image = &Image{
 					Data:     data.Data,
-					MimeType: CreateValidNullString(data.MIME),
+					MimeType: data.MIME,
 				}
 			}
 		}

@@ -24,7 +24,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		artists := []*ent.Artist{}
 
 		for _, artist := range track_on_disk.Artists {
-			a, err := GetOrCreateArtist(artist.String, context, tx)
+			a, err := GetOrCreateArtist(artist, context, tx)
 			if err != nil {
 				tx.Rollback()
 				return nil, err
@@ -35,8 +35,8 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 
 		var albumArtist *ent.Artist
 
-		if track_on_disk.AlbumArtist.Valid {
-			albumArtist, err = GetOrCreateArtist(track_on_disk.AlbumArtist.String, context, tx)
+		if track_on_disk.AlbumArtist != "" {
+			albumArtist, err = GetOrCreateArtist(track_on_disk.AlbumArtist, context, tx)
 			if err != nil {
 				tx.Rollback()
 				return nil, err
@@ -48,8 +48,8 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 
 		var album *ent.Album
 
-		if track_on_disk.AlbumName.Valid {
-			album, err = GetOrCreateAlbum(track_on_disk, albumArtist, context, tx)
+		if track_on_disk.AlbumName != "" {
+			album, err = GetOrCreateAlbum(track_on_disk.AlbumName, track_on_disk.Image, albumArtist, context, tx)
 			if err != nil {
 				tx.Rollback()
 				return nil, err
@@ -59,11 +59,11 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		added_track, err := tx.
 			Track.
 			Create().
-			SetTitle(track_on_disk.Title.String).
-			SetTrackNumber(int(track_on_disk.TrackNumber.Int32)).
-			SetPath(track_on_disk.Path.String).
-			SetLength(int(track_on_disk.Length.Int32)).
-			SetMimetype(track_on_disk.MimeType.String).
+			SetTitle(track_on_disk.Title).
+			SetTrackNumber(int(track_on_disk.TrackNumber)).
+			SetPath(track_on_disk.Path).
+			SetLength(int(track_on_disk.Length)).
+			SetMimetype(track_on_disk.MimeType).
 			SetAlbum(album).
 			AddArtists(artists...).
 			Save(context)
@@ -103,13 +103,13 @@ func GetTrackById(id int, context context.Context, client *ent.Tx) (*ent.Track, 
 		Only(context)
 }
 
-func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, context context.Context, client *ent.Tx) (*ent.Album, error) {
+func GetOrCreateAlbum(albumName string, albumImage *indexFiles.Image, albumArtist *ent.Artist, context context.Context, client *ent.Tx) (*ent.Album, error) {
 	a, err := client.
 		Album.
 		Query().
 		Where(
 			album.And(
-				album.NameEqualFold(track.AlbumName.String),
+				album.NameEqualFold(albumName),
 				album.HasArtistWith(artist.ID(albumArtist.ID)),
 			),
 		).Only(context)
@@ -121,10 +121,10 @@ func GetOrCreateAlbum(track *indexFiles.IndexedTrack, albumArtist *ent.Artist, c
 	if _, ok := err.(*ent.NotFoundError); ok {
 		a, err := client.Album.
 			Create().
-			SetName(track.AlbumName.String).
-			SetURLName(slug.Make(track.AlbumName.String)).
-			SetImage(track.Image.Data).
-			SetImageMimeType(track.Image.MimeType.String).
+			SetName(albumName).
+			SetURLName(slug.Make(albumName)).
+			SetImage(albumImage.Data).
+			SetImageMimeType(albumImage.MimeType).
 			SetArtist(albumArtist).
 			Save(context)
 
