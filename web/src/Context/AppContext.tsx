@@ -36,6 +36,8 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         if (!currentTrack)
             return
 
+        document.title = `${currentTrack.title} - ${currentTrack.artists.map(x => x.name).join(", ")}`
+
         if (!navigator.mediaSession)
             return
 
