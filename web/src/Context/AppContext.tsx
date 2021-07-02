@@ -1,5 +1,6 @@
 import usePlayer from "hooks/usePlayer"
 import React, { useCallback, useContext, useMemo, useState } from "react"
+import { useEffect } from "react"
 import ITrack from "types/track"
 import { ControlsContextProvider } from "./ControlsContext"
 import { ProgressContextProvider } from "./ProgressContext"
@@ -30,6 +31,21 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 
         playTrack(id)
     }, [playTrack])
+
+    useEffect(() => {
+        if (!currentTrack)
+            return
+
+        if (!navigator.mediaSession)
+            return
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: currentTrack.title,
+            artist: currentTrack.artists.map(x => x.name).join(", "),
+            album: currentTrack.album.name
+        })
+
+    }, [currentTrack])
 
     return <AppContext.Provider value={useMemo(() => ({ play: playTrackById }), [playTrackById])}>
         <TrackContextProvider value={useMemo(() => currentTrack, [currentTrack])}>
