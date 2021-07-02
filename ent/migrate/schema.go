@@ -50,18 +50,6 @@ var (
 		Columns:    ArtistsColumns,
 		PrimaryKey: []*schema.Column{ArtistsColumns[0]},
 	}
-	// GenresColumns holds the columns for the "genres" table.
-	GenresColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "url_name", Type: field.TypeString},
-	}
-	// GenresTable holds the schema information for the "genres" table.
-	GenresTable = &schema.Table{
-		Name:       "genres",
-		Columns:    GenresColumns,
-		PrimaryKey: []*schema.Column{GenresColumns[0]},
-	}
 	// LikedTracksColumns holds the columns for the "liked_tracks" table.
 	LikedTracksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -142,7 +130,6 @@ var (
 	Tables = []*schema.Table{
 		AlbumsTable,
 		ArtistsTable,
-		GenresTable,
 		LikedTracksTable,
 		TracksTable,
 		TrackArtistsTable,

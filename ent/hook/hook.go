@@ -34,19 +34,6 @@ func (f ArtistFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return f(ctx, mv)
 }
 
-// The GenreFunc type is an adapter to allow the use of ordinary
-// function as Genre mutator.
-type GenreFunc func(context.Context, *ent.GenreMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f GenreFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.GenreMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenreMutation", m)
-	}
-	return f(ctx, mv)
-}
-
 // The LikedTrackFunc type is an adapter to allow the use of ordinary
 // function as LikedTrack mutator.
 type LikedTrackFunc func(context.Context, *ent.LikedTrackMutation) (ent.Value, error)

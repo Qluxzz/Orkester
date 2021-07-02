@@ -51,7 +51,6 @@ func ParseMp3File(path string) (*IndexedTrack, error) {
 		}
 	}
 	track.Artists = append(track.Artists, trimNullFromString(mp3File.Artist()))
-	track.Genre = trimNullFromString(mp3File.Genre())
 	track.Date = trimNullFromString(mp3File.Year())
 
 	if len(track.Artists) == 0 {

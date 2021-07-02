@@ -168,7 +168,6 @@ type IndexedTrack struct {
 	Image       *Image
 	AlbumArtist string
 	TrackNumber int
-	Genre       string
 	Length      int
 	Date        string
 	MimeType    string

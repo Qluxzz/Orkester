@@ -50,8 +50,6 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 					if trackNumber, err := strconv.Atoi(slices[0]); err == nil {
 						track.TrackNumber = trackNumber
 					}
-				case "genre":
-					track.Genre = value
 				case "date":
 					track.Date = value
 				}

@@ -29,7 +29,6 @@ type IdNameAndUrlName struct {
 
 type Album = IdNameAndUrlName
 type Artist = IdNameAndUrlName
-type Genre = IdNameAndUrlName
 
 func FromEntTrack(dbTrack *ent.Track) Track {
 	track := Track{

@@ -12,9 +12,6 @@ type Album func(*sql.Selector)
 // Artist is the predicate function for artist builders.
 type Artist func(*sql.Selector)
 
-// Genre is the predicate function for genre builders.
-type Genre func(*sql.Selector)
-
 // LikedTrack is the predicate function for likedtrack builders.
 type LikedTrack func(*sql.Selector)
 

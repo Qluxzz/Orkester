@@ -6,7 +6,6 @@ type ITrack = {
     readonly length: number
     readonly album: IAlbum
     readonly artists: IArtist[]
-    readonly genre: string
     readonly liked: boolean
 }
 
