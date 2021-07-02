@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"goreact/ent/album"
 	"goreact/ent/artist"
-	"goreact/ent/genre"
 	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 
@@ -36,7 +35,6 @@ func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		album.Table:      album.ValidColumn,
 		artist.Table:     artist.ValidColumn,
-		genre.Table:      genre.ValidColumn,
 		likedtrack.Table: likedtrack.ValidColumn,
 		track.Table:      track.ValidColumn,
 	}

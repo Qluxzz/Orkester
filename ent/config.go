@@ -26,7 +26,6 @@ type config struct {
 type hooks struct {
 	Album      []ent.Hook
 	Artist     []ent.Hook
-	Genre      []ent.Hook
 	LikedTrack []ent.Hook
 	Track      []ent.Hook
 }

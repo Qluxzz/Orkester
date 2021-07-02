@@ -11,7 +11,6 @@ import (
 
 	"goreact/ent/album"
 	"goreact/ent/artist"
-	"goreact/ent/genre"
 	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 
@@ -29,8 +28,6 @@ type Client struct {
 	Album *AlbumClient
 	// Artist is the client for interacting with the Artist builders.
 	Artist *ArtistClient
-	// Genre is the client for interacting with the Genre builders.
-	Genre *GenreClient
 	// LikedTrack is the client for interacting with the LikedTrack builders.
 	LikedTrack *LikedTrackClient
 	// Track is the client for interacting with the Track builders.
@@ -50,7 +47,6 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Album = NewAlbumClient(c.config)
 	c.Artist = NewArtistClient(c.config)
-	c.Genre = NewGenreClient(c.config)
 	c.LikedTrack = NewLikedTrackClient(c.config)
 	c.Track = NewTrackClient(c.config)
 }
@@ -88,7 +84,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:     cfg,
 		Album:      NewAlbumClient(cfg),
 		Artist:     NewArtistClient(cfg),
-		Genre:      NewGenreClient(cfg),
 		LikedTrack: NewLikedTrackClient(cfg),
 		Track:      NewTrackClient(cfg),
 	}, nil
@@ -111,7 +106,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:     cfg,
 		Album:      NewAlbumClient(cfg),
 		Artist:     NewArtistClient(cfg),
-		Genre:      NewGenreClient(cfg),
 		LikedTrack: NewLikedTrackClient(cfg),
 		Track:      NewTrackClient(cfg),
 	}, nil
@@ -145,7 +139,6 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Album.Use(hooks...)
 	c.Artist.Use(hooks...)
-	c.Genre.Use(hooks...)
 	c.LikedTrack.Use(hooks...)
 	c.Track.Use(hooks...)
 }
@@ -392,96 +385,6 @@ func (c *ArtistClient) QueryTracks(a *Artist) *TrackQuery {
 // Hooks returns the client hooks.
 func (c *ArtistClient) Hooks() []Hook {
 	return c.hooks.Artist
-}
-
-// GenreClient is a client for the Genre schema.
-type GenreClient struct {
-	config
-}
-
-// NewGenreClient returns a client for the Genre from the given config.
-func NewGenreClient(c config) *GenreClient {
-	return &GenreClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `genre.Hooks(f(g(h())))`.
-func (c *GenreClient) Use(hooks ...Hook) {
-	c.hooks.Genre = append(c.hooks.Genre, hooks...)
-}
-
-// Create returns a create builder for Genre.
-func (c *GenreClient) Create() *GenreCreate {
-	mutation := newGenreMutation(c.config, OpCreate)
-	return &GenreCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Genre entities.
-func (c *GenreClient) CreateBulk(builders ...*GenreCreate) *GenreCreateBulk {
-	return &GenreCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Genre.
-func (c *GenreClient) Update() *GenreUpdate {
-	mutation := newGenreMutation(c.config, OpUpdate)
-	return &GenreUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *GenreClient) UpdateOne(ge *Genre) *GenreUpdateOne {
-	mutation := newGenreMutation(c.config, OpUpdateOne, withGenre(ge))
-	return &GenreUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *GenreClient) UpdateOneID(id int) *GenreUpdateOne {
-	mutation := newGenreMutation(c.config, OpUpdateOne, withGenreID(id))
-	return &GenreUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Genre.
-func (c *GenreClient) Delete() *GenreDelete {
-	mutation := newGenreMutation(c.config, OpDelete)
-	return &GenreDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *GenreClient) DeleteOne(ge *Genre) *GenreDeleteOne {
-	return c.DeleteOneID(ge.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *GenreClient) DeleteOneID(id int) *GenreDeleteOne {
-	builder := c.Delete().Where(genre.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &GenreDeleteOne{builder}
-}
-
-// Query returns a query builder for Genre.
-func (c *GenreClient) Query() *GenreQuery {
-	return &GenreQuery{
-		config: c.config,
-	}
-}
-
-// Get returns a Genre entity by its id.
-func (c *GenreClient) Get(ctx context.Context, id int) (*Genre, error) {
-	return c.Query().Where(genre.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *GenreClient) GetX(ctx context.Context, id int) *Genre {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *GenreClient) Hooks() []Hook {
-	return c.hooks.Genre
 }
 
 // LikedTrackClient is a client for the LikedTrack schema.
