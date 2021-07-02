@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io/fs"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -84,12 +83,12 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 func scanFolderForCoverImage(path string) (*Image, error) {
 	validImages := []string{}
 
-	filepath.Walk(path, func(currentPath string, fileInfo os.FileInfo, err error) error {
-		if fileInfo.IsDir() {
+	filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
 			return nil
 		}
 
-		ext := filepath.Ext(currentPath)
+		ext := filepath.Ext(path)
 
 		hasValidExtension := func(ext string) bool {
 			validExtensions := []string{
@@ -108,7 +107,7 @@ func scanFolderForCoverImage(path string) (*Image, error) {
 			return false
 		}(ext)
 
-		fileName := fileInfo.Name()
+		fileName := d.Name()
 
 		filenameWithoutExtension := fileName[0 : len(fileName)-len(ext)]
 
@@ -130,7 +129,7 @@ func scanFolderForCoverImage(path string) (*Image, error) {
 		}(filenameWithoutExtension)
 
 		if hasValidExtension && hasValidFileName {
-			validImages = append(validImages, currentPath)
+			validImages = append(validImages, path)
 		}
 
 		return nil
