@@ -53,7 +53,7 @@ export default function LikedTracks() {
                 columns={[
                     { display: "", key: "albumCover" },
                     { display: "TITLE", key: "title", width: "grow" },
-                    { display: "DATE ADDED", key: "date", width: 150, centered: true },
+                    { display: "ADDED", key: "date", width: 150, centered: true },
                     { display: "", key: "liked", width: 50 },
                     { display: "🕒", key: "length", width: 60, centered: true }
                 ]}
