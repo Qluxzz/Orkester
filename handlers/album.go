@@ -23,7 +23,6 @@ func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 		album, err := client.
 			Album.
 			Query().
-			Select(album.FieldID, album.FieldName, album.FieldURLName).
 			Where(album.ID(id)).
 			WithArtist().
 			WithTracks(func(q *ent.TrackQuery) {
@@ -91,7 +90,7 @@ func GetAlbumCover(client *ent.Client, ctx context.Context) fiber.Handler {
 			Album.
 			Query().
 			Where(album.ID(id)).
-			Select(album.FieldImage, album.FieldImageMimeType).
+			QueryAlbumImage().
 			Only(ctx)
 
 		if err != nil {

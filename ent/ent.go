@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"goreact/ent/album"
+	"goreact/ent/albumimage"
 	"goreact/ent/artist"
 	"goreact/ent/likedtrack"
 	"goreact/ent/track"
@@ -34,6 +35,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		album.Table:      album.ValidColumn,
+		albumimage.Table: albumimage.ValidColumn,
 		artist.Table:     artist.ValidColumn,
 		likedtrack.Table: likedtrack.ValidColumn,
 		track.Table:      track.ValidColumn,

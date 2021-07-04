@@ -106,20 +106,6 @@ func URLName(v string) predicate.Album {
 	})
 }
 
-// Image applies equality check predicate on the "image" field. It's identical to ImageEQ.
-func Image(v []byte) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldImage), v))
-	})
-}
-
-// ImageMimeType applies equality check predicate on the "image_mime_type" field. It's identical to ImageMimeTypeEQ.
-func ImageMimeType(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldImageMimeType), v))
-	})
-}
-
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
@@ -342,193 +328,6 @@ func URLNameContainsFold(v string) predicate.Album {
 	})
 }
 
-// ImageEQ applies the EQ predicate on the "image" field.
-func ImageEQ(v []byte) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldImage), v))
-	})
-}
-
-// ImageNEQ applies the NEQ predicate on the "image" field.
-func ImageNEQ(v []byte) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldImage), v))
-	})
-}
-
-// ImageIn applies the In predicate on the "image" field.
-func ImageIn(vs ...[]byte) predicate.Album {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Album(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldImage), v...))
-	})
-}
-
-// ImageNotIn applies the NotIn predicate on the "image" field.
-func ImageNotIn(vs ...[]byte) predicate.Album {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Album(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldImage), v...))
-	})
-}
-
-// ImageGT applies the GT predicate on the "image" field.
-func ImageGT(v []byte) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldImage), v))
-	})
-}
-
-// ImageGTE applies the GTE predicate on the "image" field.
-func ImageGTE(v []byte) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldImage), v))
-	})
-}
-
-// ImageLT applies the LT predicate on the "image" field.
-func ImageLT(v []byte) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldImage), v))
-	})
-}
-
-// ImageLTE applies the LTE predicate on the "image" field.
-func ImageLTE(v []byte) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldImage), v))
-	})
-}
-
-// ImageMimeTypeEQ applies the EQ predicate on the "image_mime_type" field.
-func ImageMimeTypeEQ(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeNEQ applies the NEQ predicate on the "image_mime_type" field.
-func ImageMimeTypeNEQ(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeIn applies the In predicate on the "image_mime_type" field.
-func ImageMimeTypeIn(vs ...string) predicate.Album {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Album(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldImageMimeType), v...))
-	})
-}
-
-// ImageMimeTypeNotIn applies the NotIn predicate on the "image_mime_type" field.
-func ImageMimeTypeNotIn(vs ...string) predicate.Album {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Album(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldImageMimeType), v...))
-	})
-}
-
-// ImageMimeTypeGT applies the GT predicate on the "image_mime_type" field.
-func ImageMimeTypeGT(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeGTE applies the GTE predicate on the "image_mime_type" field.
-func ImageMimeTypeGTE(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeLT applies the LT predicate on the "image_mime_type" field.
-func ImageMimeTypeLT(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeLTE applies the LTE predicate on the "image_mime_type" field.
-func ImageMimeTypeLTE(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeContains applies the Contains predicate on the "image_mime_type" field.
-func ImageMimeTypeContains(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeHasPrefix applies the HasPrefix predicate on the "image_mime_type" field.
-func ImageMimeTypeHasPrefix(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeHasSuffix applies the HasSuffix predicate on the "image_mime_type" field.
-func ImageMimeTypeHasSuffix(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeEqualFold applies the EqualFold predicate on the "image_mime_type" field.
-func ImageMimeTypeEqualFold(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldImageMimeType), v))
-	})
-}
-
-// ImageMimeTypeContainsFold applies the ContainsFold predicate on the "image_mime_type" field.
-func ImageMimeTypeContainsFold(v string) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldImageMimeType), v))
-	})
-}
-
 // HasArtist applies the HasEdge predicate on the "artist" edge.
 func HasArtist() predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
@@ -576,6 +375,34 @@ func HasTracksWith(preds ...predicate.Track) predicate.Album {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(TracksInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, TracksTable, TracksColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAlbumImage applies the HasEdge predicate on the "album_image" edge.
+func HasAlbumImage() predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AlbumImageTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, AlbumImageTable, AlbumImageColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAlbumImageWith applies the HasEdge predicate on the "album_image" edge with a given conditions (other predicates).
+func HasAlbumImageWith(preds ...predicate.AlbumImage) predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AlbumImageInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, AlbumImageTable, AlbumImageColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

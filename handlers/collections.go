@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"goreact/ent"
-	"goreact/ent/album"
 	"goreact/ent/track"
 	"goreact/models"
 	"log"
@@ -18,9 +17,7 @@ func GetLikedTracks(client *ent.Client, context context.Context) fiber.Handler {
 			Track.
 			Query().
 			Where(track.HasLiked()).
-			WithAlbum(func(aq *ent.AlbumQuery) {
-				aq.Select(album.FieldID, album.FieldName, album.FieldURLName)
-			}).
+			WithAlbum().
 			WithArtists().
 			WithLiked().
 			All(context)
