@@ -5,7 +5,6 @@ import (
 	"goreact/ent"
 	"goreact/ent/album"
 	"goreact/ent/artist"
-	"goreact/ent/track"
 	"goreact/models"
 	"strconv"
 
@@ -23,34 +22,44 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 			Artist.
 			Query().
 			Where(artist.ID(id)).
+			WithAlbums(func(aq *ent.AlbumQuery) {
+				aq.Select(album.FieldID, album.FieldName, album.FieldName)
+			}).
+			WithTracks(func(tq *ent.TrackQuery) {
+				tq.WithAlbum(func(aq *ent.AlbumQuery) {
+					aq.Select(album.FieldID, album.FieldName, album.FieldName)
+				})
+			}).
 			Only(context)
 
 		if err != nil {
 			return err
 		}
 
-		dbAlbums, err := client.
-			Album.
-			Query().
-			Where(album.Or(
-				album.HasArtistWith(artist.ID(id)),
-				album.HasTracksWith(track.HasArtistsWith(artist.ID(id))),
-			)).
-			Select(album.FieldID, album.FieldName, album.FieldURLName).
-			All(context)
+		albums_map := make(map[int]models.Album)
 
-		if err != nil {
-			return nil
+		for _, album := range artist_info.Edges.Albums {
+
+			albums_map[album.ID] = models.Album{
+				Id:      album.ID,
+				Name:    album.Name,
+				UrlName: album.URLName,
+			}
+		}
+
+		for _, track := range artist_info.Edges.Tracks {
+			album := track.Edges.Album
+			albums_map[album.ID] = models.Album{
+				Id:      album.ID,
+				Name:    album.Name,
+				UrlName: album.URLName,
+			}
 		}
 
 		albums := []models.Album{}
 
-		for _, album := range dbAlbums {
-			albums = append(albums, models.Album{
-				Id:      album.ID,
-				Name:    album.Name,
-				UrlName: album.URLName,
-			})
+		for _, album := range albums_map {
+			albums = append(albums, album)
 		}
 
 		return c.JSON(&fiber.Map{
