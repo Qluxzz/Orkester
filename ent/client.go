@@ -10,6 +10,7 @@ import (
 	"goreact/ent/migrate"
 
 	"goreact/ent/album"
+	"goreact/ent/albumimage"
 	"goreact/ent/artist"
 	"goreact/ent/likedtrack"
 	"goreact/ent/track"
@@ -26,6 +27,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Album is the client for interacting with the Album builders.
 	Album *AlbumClient
+	// AlbumImage is the client for interacting with the AlbumImage builders.
+	AlbumImage *AlbumImageClient
 	// Artist is the client for interacting with the Artist builders.
 	Artist *ArtistClient
 	// LikedTrack is the client for interacting with the LikedTrack builders.
@@ -46,6 +49,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Album = NewAlbumClient(c.config)
+	c.AlbumImage = NewAlbumImageClient(c.config)
 	c.Artist = NewArtistClient(c.config)
 	c.LikedTrack = NewLikedTrackClient(c.config)
 	c.Track = NewTrackClient(c.config)
@@ -83,6 +87,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:        ctx,
 		config:     cfg,
 		Album:      NewAlbumClient(cfg),
+		AlbumImage: NewAlbumImageClient(cfg),
 		Artist:     NewArtistClient(cfg),
 		LikedTrack: NewLikedTrackClient(cfg),
 		Track:      NewTrackClient(cfg),
@@ -105,6 +110,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		config:     cfg,
 		Album:      NewAlbumClient(cfg),
+		AlbumImage: NewAlbumImageClient(cfg),
 		Artist:     NewArtistClient(cfg),
 		LikedTrack: NewLikedTrackClient(cfg),
 		Track:      NewTrackClient(cfg),
@@ -138,6 +144,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Album.Use(hooks...)
+	c.AlbumImage.Use(hooks...)
 	c.Artist.Use(hooks...)
 	c.LikedTrack.Use(hooks...)
 	c.Track.Use(hooks...)
@@ -260,9 +267,131 @@ func (c *AlbumClient) QueryTracks(a *Album) *TrackQuery {
 	return query
 }
 
+// QueryAlbumImage queries the album_image edge of a Album.
+func (c *AlbumClient) QueryAlbumImage(a *Album) *AlbumImageQuery {
+	query := &AlbumImageQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(album.Table, album.FieldID, id),
+			sqlgraph.To(albumimage.Table, albumimage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, album.AlbumImageTable, album.AlbumImageColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AlbumClient) Hooks() []Hook {
 	return c.hooks.Album
+}
+
+// AlbumImageClient is a client for the AlbumImage schema.
+type AlbumImageClient struct {
+	config
+}
+
+// NewAlbumImageClient returns a client for the AlbumImage from the given config.
+func NewAlbumImageClient(c config) *AlbumImageClient {
+	return &AlbumImageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `albumimage.Hooks(f(g(h())))`.
+func (c *AlbumImageClient) Use(hooks ...Hook) {
+	c.hooks.AlbumImage = append(c.hooks.AlbumImage, hooks...)
+}
+
+// Create returns a create builder for AlbumImage.
+func (c *AlbumImageClient) Create() *AlbumImageCreate {
+	mutation := newAlbumImageMutation(c.config, OpCreate)
+	return &AlbumImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlbumImage entities.
+func (c *AlbumImageClient) CreateBulk(builders ...*AlbumImageCreate) *AlbumImageCreateBulk {
+	return &AlbumImageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlbumImage.
+func (c *AlbumImageClient) Update() *AlbumImageUpdate {
+	mutation := newAlbumImageMutation(c.config, OpUpdate)
+	return &AlbumImageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlbumImageClient) UpdateOne(ai *AlbumImage) *AlbumImageUpdateOne {
+	mutation := newAlbumImageMutation(c.config, OpUpdateOne, withAlbumImage(ai))
+	return &AlbumImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlbumImageClient) UpdateOneID(id int) *AlbumImageUpdateOne {
+	mutation := newAlbumImageMutation(c.config, OpUpdateOne, withAlbumImageID(id))
+	return &AlbumImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlbumImage.
+func (c *AlbumImageClient) Delete() *AlbumImageDelete {
+	mutation := newAlbumImageMutation(c.config, OpDelete)
+	return &AlbumImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *AlbumImageClient) DeleteOne(ai *AlbumImage) *AlbumImageDeleteOne {
+	return c.DeleteOneID(ai.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *AlbumImageClient) DeleteOneID(id int) *AlbumImageDeleteOne {
+	builder := c.Delete().Where(albumimage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlbumImageDeleteOne{builder}
+}
+
+// Query returns a query builder for AlbumImage.
+func (c *AlbumImageClient) Query() *AlbumImageQuery {
+	return &AlbumImageQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a AlbumImage entity by its id.
+func (c *AlbumImageClient) Get(ctx context.Context, id int) (*AlbumImage, error) {
+	return c.Query().Where(albumimage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlbumImageClient) GetX(ctx context.Context, id int) *AlbumImage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAlbum queries the album edge of a AlbumImage.
+func (c *AlbumImageClient) QueryAlbum(ai *AlbumImage) *AlbumQuery {
+	query := &AlbumQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ai.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(albumimage.Table, albumimage.FieldID, id),
+			sqlgraph.To(album.Table, album.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, albumimage.AlbumTable, albumimage.AlbumColumn),
+		)
+		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AlbumImageClient) Hooks() []Hook {
+	return c.hooks.AlbumImage
 }
 
 // ArtistClient is a client for the Artist schema.

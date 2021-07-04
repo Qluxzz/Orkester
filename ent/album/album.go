@@ -11,14 +11,12 @@ const (
 	FieldName = "name"
 	// FieldURLName holds the string denoting the url_name field in the database.
 	FieldURLName = "url_name"
-	// FieldImage holds the string denoting the image field in the database.
-	FieldImage = "image"
-	// FieldImageMimeType holds the string denoting the image_mime_type field in the database.
-	FieldImageMimeType = "image_mime_type"
 	// EdgeArtist holds the string denoting the artist edge name in mutations.
 	EdgeArtist = "artist"
 	// EdgeTracks holds the string denoting the tracks edge name in mutations.
 	EdgeTracks = "tracks"
+	// EdgeAlbumImage holds the string denoting the album_image edge name in mutations.
+	EdgeAlbumImage = "album_image"
 	// Table holds the table name of the album in the database.
 	Table = "albums"
 	// ArtistTable is the table the holds the artist relation/edge.
@@ -35,6 +33,13 @@ const (
 	TracksInverseTable = "tracks"
 	// TracksColumn is the table column denoting the tracks relation/edge.
 	TracksColumn = "album_tracks"
+	// AlbumImageTable is the table the holds the album_image relation/edge.
+	AlbumImageTable = "albums"
+	// AlbumImageInverseTable is the table name for the AlbumImage entity.
+	// It exists in this package in order to avoid circular dependency with the "albumimage" package.
+	AlbumImageInverseTable = "album_images"
+	// AlbumImageColumn is the table column denoting the album_image relation/edge.
+	AlbumImageColumn = "album_album_image"
 )
 
 // Columns holds all SQL columns for album fields.
@@ -42,13 +47,12 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldURLName,
-	FieldImage,
-	FieldImageMimeType,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "albums"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"album_album_image",
 	"artist_albums",
 }
 

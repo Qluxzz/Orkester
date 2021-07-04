@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"goreact/ent"
-	"goreact/ent/album"
 	"goreact/ent/likedtrack"
 	"goreact/ent/track"
 	"goreact/models"
@@ -24,9 +23,7 @@ func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 		dbTrack, err := client.Track.
 			Query().
 			Where(track.ID(id)).
-			WithAlbum(func(aq *ent.AlbumQuery) {
-				aq.Select(album.FieldName, album.FieldURLName)
-			}).
+			WithAlbum().
 			WithArtists().
 			Only(context)
 

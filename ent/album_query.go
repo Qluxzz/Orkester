@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"goreact/ent/album"
+	"goreact/ent/albumimage"
 	"goreact/ent/artist"
 	"goreact/ent/predicate"
 	"goreact/ent/track"
@@ -28,9 +29,10 @@ type AlbumQuery struct {
 	fields     []string
 	predicates []predicate.Album
 	// eager-loading edges.
-	withArtist *ArtistQuery
-	withTracks *TrackQuery
-	withFKs    bool
+	withArtist     *ArtistQuery
+	withTracks     *TrackQuery
+	withAlbumImage *AlbumImageQuery
+	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -104,6 +106,28 @@ func (aq *AlbumQuery) QueryTracks() *TrackQuery {
 			sqlgraph.From(album.Table, album.FieldID, selector),
 			sqlgraph.To(track.Table, track.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, album.TracksTable, album.TracksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAlbumImage chains the current query on the "album_image" edge.
+func (aq *AlbumQuery) QueryAlbumImage() *AlbumImageQuery {
+	query := &AlbumImageQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(album.Table, album.FieldID, selector),
+			sqlgraph.To(albumimage.Table, albumimage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, album.AlbumImageTable, album.AlbumImageColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -287,13 +311,14 @@ func (aq *AlbumQuery) Clone() *AlbumQuery {
 		return nil
 	}
 	return &AlbumQuery{
-		config:     aq.config,
-		limit:      aq.limit,
-		offset:     aq.offset,
-		order:      append([]OrderFunc{}, aq.order...),
-		predicates: append([]predicate.Album{}, aq.predicates...),
-		withArtist: aq.withArtist.Clone(),
-		withTracks: aq.withTracks.Clone(),
+		config:         aq.config,
+		limit:          aq.limit,
+		offset:         aq.offset,
+		order:          append([]OrderFunc{}, aq.order...),
+		predicates:     append([]predicate.Album{}, aq.predicates...),
+		withArtist:     aq.withArtist.Clone(),
+		withTracks:     aq.withTracks.Clone(),
+		withAlbumImage: aq.withAlbumImage.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
@@ -319,6 +344,17 @@ func (aq *AlbumQuery) WithTracks(opts ...func(*TrackQuery)) *AlbumQuery {
 		opt(query)
 	}
 	aq.withTracks = query
+	return aq
+}
+
+// WithAlbumImage tells the query-builder to eager-load the nodes that are connected to
+// the "album_image" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AlbumQuery) WithAlbumImage(opts ...func(*AlbumImageQuery)) *AlbumQuery {
+	query := &AlbumImageQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withAlbumImage = query
 	return aq
 }
 
@@ -388,12 +424,13 @@ func (aq *AlbumQuery) sqlAll(ctx context.Context) ([]*Album, error) {
 		nodes       = []*Album{}
 		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			aq.withArtist != nil,
 			aq.withTracks != nil,
+			aq.withAlbumImage != nil,
 		}
 	)
-	if aq.withArtist != nil {
+	if aq.withArtist != nil || aq.withAlbumImage != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -474,6 +511,35 @@ func (aq *AlbumQuery) sqlAll(ctx context.Context) ([]*Album, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "album_tracks" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Tracks = append(node.Edges.Tracks, n)
+		}
+	}
+
+	if query := aq.withAlbumImage; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Album)
+		for i := range nodes {
+			if nodes[i].album_album_image == nil {
+				continue
+			}
+			fk := *nodes[i].album_album_image
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(albumimage.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "album_album_image" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.AlbumImage = n
+			}
 		}
 	}
 

@@ -17,8 +17,6 @@ func (Album) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").Immutable(),
 		field.String("url_name").Immutable(),
-		field.Bytes("image").Immutable(),
-		field.String("image_mime_type").Immutable(),
 	}
 }
 
@@ -27,6 +25,7 @@ func (Album) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("artist", Artist.Type).Ref("albums").Unique().Required(),
 		edge.To("tracks", Track.Type),
+		edge.From("album_image", AlbumImage.Type).Unique().Required(),
 	}
 }
 

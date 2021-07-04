@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"goreact/ent/album"
+	"goreact/ent/albumimage"
 	"goreact/ent/artist"
 	"goreact/ent/predicate"
 	"goreact/ent/track"
@@ -55,6 +56,25 @@ func (au *AlbumUpdate) AddTracks(t ...*Track) *AlbumUpdate {
 	return au.AddTrackIDs(ids...)
 }
 
+// SetAlbumImageID sets the "album_image" edge to the AlbumImage entity by ID.
+func (au *AlbumUpdate) SetAlbumImageID(id int) *AlbumUpdate {
+	au.mutation.SetAlbumImageID(id)
+	return au
+}
+
+// SetNillableAlbumImageID sets the "album_image" edge to the AlbumImage entity by ID if the given value is not nil.
+func (au *AlbumUpdate) SetNillableAlbumImageID(id *int) *AlbumUpdate {
+	if id != nil {
+		au = au.SetAlbumImageID(*id)
+	}
+	return au
+}
+
+// SetAlbumImage sets the "album_image" edge to the AlbumImage entity.
+func (au *AlbumUpdate) SetAlbumImage(a *AlbumImage) *AlbumUpdate {
+	return au.SetAlbumImageID(a.ID)
+}
+
 // Mutation returns the AlbumMutation object of the builder.
 func (au *AlbumUpdate) Mutation() *AlbumMutation {
 	return au.mutation
@@ -85,6 +105,12 @@ func (au *AlbumUpdate) RemoveTracks(t ...*Track) *AlbumUpdate {
 		ids[i] = t[i].ID
 	}
 	return au.RemoveTrackIDs(ids...)
+}
+
+// ClearAlbumImage clears the "album_image" edge to the AlbumImage entity.
+func (au *AlbumUpdate) ClearAlbumImage() *AlbumUpdate {
+	au.mutation.ClearAlbumImage()
+	return au
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -259,6 +285,41 @@ func (au *AlbumUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if au.mutation.AlbumImageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   album.AlbumImageTable,
+			Columns: []string{album.AlbumImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: albumimage.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.AlbumImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   album.AlbumImageTable,
+			Columns: []string{album.AlbumImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: albumimage.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{album.Label}
@@ -304,6 +365,25 @@ func (auo *AlbumUpdateOne) AddTracks(t ...*Track) *AlbumUpdateOne {
 	return auo.AddTrackIDs(ids...)
 }
 
+// SetAlbumImageID sets the "album_image" edge to the AlbumImage entity by ID.
+func (auo *AlbumUpdateOne) SetAlbumImageID(id int) *AlbumUpdateOne {
+	auo.mutation.SetAlbumImageID(id)
+	return auo
+}
+
+// SetNillableAlbumImageID sets the "album_image" edge to the AlbumImage entity by ID if the given value is not nil.
+func (auo *AlbumUpdateOne) SetNillableAlbumImageID(id *int) *AlbumUpdateOne {
+	if id != nil {
+		auo = auo.SetAlbumImageID(*id)
+	}
+	return auo
+}
+
+// SetAlbumImage sets the "album_image" edge to the AlbumImage entity.
+func (auo *AlbumUpdateOne) SetAlbumImage(a *AlbumImage) *AlbumUpdateOne {
+	return auo.SetAlbumImageID(a.ID)
+}
+
 // Mutation returns the AlbumMutation object of the builder.
 func (auo *AlbumUpdateOne) Mutation() *AlbumMutation {
 	return auo.mutation
@@ -334,6 +414,12 @@ func (auo *AlbumUpdateOne) RemoveTracks(t ...*Track) *AlbumUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return auo.RemoveTrackIDs(ids...)
+}
+
+// ClearAlbumImage clears the "album_image" edge to the AlbumImage entity.
+func (auo *AlbumUpdateOne) ClearAlbumImage() *AlbumUpdateOne {
+	auo.mutation.ClearAlbumImage()
+	return auo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -524,6 +610,41 @@ func (auo *AlbumUpdateOne) sqlSave(ctx context.Context) (_node *Album, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: track.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.AlbumImageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   album.AlbumImageTable,
+			Columns: []string{album.AlbumImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: albumimage.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.AlbumImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   album.AlbumImageTable,
+			Columns: []string{album.AlbumImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: albumimage.FieldID,
 				},
 			},
 		}

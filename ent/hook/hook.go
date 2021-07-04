@@ -21,6 +21,19 @@ func (f AlbumFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return f(ctx, mv)
 }
 
+// The AlbumImageFunc type is an adapter to allow the use of ordinary
+// function as AlbumImage mutator.
+type AlbumImageFunc func(context.Context, *ent.AlbumImageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlbumImageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AlbumImageMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlbumImageMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The ArtistFunc type is an adapter to allow the use of ordinary
 // function as Artist mutator.
 type ArtistFunc func(context.Context, *ent.ArtistMutation) (ent.Value, error)

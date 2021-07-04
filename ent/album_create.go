@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"goreact/ent/album"
+	"goreact/ent/albumimage"
 	"goreact/ent/artist"
 	"goreact/ent/track"
 
@@ -30,18 +31,6 @@ func (ac *AlbumCreate) SetName(s string) *AlbumCreate {
 // SetURLName sets the "url_name" field.
 func (ac *AlbumCreate) SetURLName(s string) *AlbumCreate {
 	ac.mutation.SetURLName(s)
-	return ac
-}
-
-// SetImage sets the "image" field.
-func (ac *AlbumCreate) SetImage(b []byte) *AlbumCreate {
-	ac.mutation.SetImage(b)
-	return ac
-}
-
-// SetImageMimeType sets the "image_mime_type" field.
-func (ac *AlbumCreate) SetImageMimeType(s string) *AlbumCreate {
-	ac.mutation.SetImageMimeType(s)
 	return ac
 }
 
@@ -69,6 +58,25 @@ func (ac *AlbumCreate) AddTracks(t ...*Track) *AlbumCreate {
 		ids[i] = t[i].ID
 	}
 	return ac.AddTrackIDs(ids...)
+}
+
+// SetAlbumImageID sets the "album_image" edge to the AlbumImage entity by ID.
+func (ac *AlbumCreate) SetAlbumImageID(id int) *AlbumCreate {
+	ac.mutation.SetAlbumImageID(id)
+	return ac
+}
+
+// SetNillableAlbumImageID sets the "album_image" edge to the AlbumImage entity by ID if the given value is not nil.
+func (ac *AlbumCreate) SetNillableAlbumImageID(id *int) *AlbumCreate {
+	if id != nil {
+		ac = ac.SetAlbumImageID(*id)
+	}
+	return ac
+}
+
+// SetAlbumImage sets the "album_image" edge to the AlbumImage entity.
+func (ac *AlbumCreate) SetAlbumImage(a *AlbumImage) *AlbumCreate {
+	return ac.SetAlbumImageID(a.ID)
 }
 
 // Mutation returns the AlbumMutation object of the builder.
@@ -131,12 +139,6 @@ func (ac *AlbumCreate) check() error {
 	if _, ok := ac.mutation.URLName(); !ok {
 		return &ValidationError{Name: "url_name", err: errors.New("ent: missing required field \"url_name\"")}
 	}
-	if _, ok := ac.mutation.Image(); !ok {
-		return &ValidationError{Name: "image", err: errors.New("ent: missing required field \"image\"")}
-	}
-	if _, ok := ac.mutation.ImageMimeType(); !ok {
-		return &ValidationError{Name: "image_mime_type", err: errors.New("ent: missing required field \"image_mime_type\"")}
-	}
 	if _, ok := ac.mutation.ArtistID(); !ok {
 		return &ValidationError{Name: "artist", err: errors.New("ent: missing required edge \"artist\"")}
 	}
@@ -183,22 +185,6 @@ func (ac *AlbumCreate) createSpec() (*Album, *sqlgraph.CreateSpec) {
 		})
 		_node.URLName = value
 	}
-	if value, ok := ac.mutation.Image(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: album.FieldImage,
-		})
-		_node.Image = value
-	}
-	if value, ok := ac.mutation.ImageMimeType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldImageMimeType,
-		})
-		_node.ImageMimeType = value
-	}
 	if nodes := ac.mutation.ArtistIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -236,6 +222,26 @@ func (ac *AlbumCreate) createSpec() (*Album, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.AlbumImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   album.AlbumImageTable,
+			Columns: []string{album.AlbumImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: albumimage.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.album_album_image = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"goreact/ent"
-	"goreact/ent/album"
 	"goreact/ent/artist"
 	"goreact/models"
 	"strconv"
@@ -22,13 +21,9 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 			Artist.
 			Query().
 			Where(artist.ID(id)).
-			WithAlbums(func(aq *ent.AlbumQuery) {
-				aq.Select(album.FieldID, album.FieldName, album.FieldName)
-			}).
+			WithAlbums().
 			WithTracks(func(tq *ent.TrackQuery) {
-				tq.WithAlbum(func(aq *ent.AlbumQuery) {
-					aq.Select(album.FieldID, album.FieldName, album.FieldName)
-				})
+				tq.WithAlbum()
 			}).
 			Only(context)
 

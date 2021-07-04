@@ -125,12 +125,22 @@ func GetOrCreateAlbum(albumName string, albumImage *indexFiles.Image, albumArtis
 	}
 
 	if _, ok := err.(*ent.NotFoundError); ok {
+		image, err := client.
+			AlbumImage.
+			Create().
+			SetImage(albumImage.Data).
+			SetImageMimeType(albumImage.MimeType).
+			Save(context)
+
+		if err != nil {
+			return nil, err
+		}
+
 		a, err := client.Album.
 			Create().
 			SetName(albumName).
 			SetURLName(slug.Make(albumName)).
-			SetImage(albumImage.Data).
-			SetImageMimeType(albumImage.MimeType).
+			SetAlbumImage(image).
 			SetArtist(albumArtist).
 			Save(context)
 

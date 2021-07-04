@@ -25,6 +25,7 @@ type config struct {
 // hooks per client, for fast access.
 type hooks struct {
 	Album      []ent.Hook
+	AlbumImage []ent.Hook
 	Artist     []ent.Hook
 	LikedTrack []ent.Hook
 	Track      []ent.Hook
