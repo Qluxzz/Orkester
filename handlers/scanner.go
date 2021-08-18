@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"goreact/ent"
+	"goreact/ent/album"
+	"goreact/ent/track"
 	"goreact/indexFiles"
 	"goreact/models"
 	"goreact/repositories"
@@ -13,32 +15,46 @@ import (
 
 func UpdateLibrary(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tracks, failed_tracks, err := indexFiles.ScanPathForMusicFiles("/home/qluxzz/Music")
+		tracksOnDisk, failed_tracks, err := indexFiles.ScanPathForMusicFiles("/home/qluxzz/Music")
 		if err != nil {
 			return err
 		}
 
 		log.Printf("%d tracks failed to be indexed", len(failed_tracks))
 
-		log.Printf("%d tracks found", len(tracks))
+		log.Printf("%d tracks found", len(tracksOnDisk))
 
-		removed_db_tracks, err := repositories.RemoveDeletedEntities(tracks, client, context)
+		removed_db_tracks, err := repositories.RemoveDeletedEntities(tracksOnDisk, client, context)
 		if err != nil {
 			return err
 		}
 
 		log.Printf("Removed %d tracks", len(removed_db_tracks))
 
-		added_db_tracks, err := repositories.AddTracks(tracks, client, context)
+		addedTrackIds, err := repositories.AddTracks(tracksOnDisk, client, context)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("Added %d tracks", len(added_db_tracks))
+		log.Printf("Added %d tracks", len(addedTrackIds))
+
+		tracks, err := client.
+			Track.
+			Query().
+			Where(track.IDIn(addedTrackIds...)).
+			WithAlbum(func(aq *ent.AlbumQuery) {
+				aq.Select(album.FieldName)
+			}).
+			WithArtists().
+			All(context)
+
+		if err != nil {
+			return err
+		}
 
 		added_tracks := []models.TrackWithPath{}
 
-		for _, track := range added_db_tracks {
+		for _, track := range tracks {
 			added_tracks = append(added_tracks, models.FromEntTrackWithPath(track))
 		}
 

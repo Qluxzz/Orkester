@@ -66,6 +66,9 @@ func main() {
 			log.Print("Tried to access /")
 			return c.SendFile("client/index.html")
 		})
+	} else {
+		// Used for end-to-end testing
+		v1.Put("/scan/fake", handlers.AddFakeTracks(client, ctx))
 	}
 
 	// Start app
