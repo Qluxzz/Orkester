@@ -58,6 +58,8 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 			albums = append(albums, album)
 		}
 
+		// Maps don't have a specified sort order
+		// So we sort the array by id so it's the same between requests
 		sort.SliceStable(albums, func(i, j int) bool {
 			return albums[i].Id < albums[j].Id
 		})
