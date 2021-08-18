@@ -290,7 +290,7 @@ func AddFakeTracks(client *ent.Client, context context.Context) fiber.Handler {
 		fakeTracks := []*indexFiles.IndexedTrack{}
 
 		for i := 0; i < amount; i++ {
-			fakeTracks = append(fakeTracks, generateFakeTrack(rand.Intn(4)+1))
+			fakeTracks = append(fakeTracks, generateFakeTrack())
 		}
 
 		_, err = repositories.AddTracks(fakeTracks, client, context)
@@ -303,8 +303,10 @@ func AddFakeTracks(client *ent.Client, context context.Context) fiber.Handler {
 	}
 }
 
-func generateFakeTrack(numberOfArtists int) *indexFiles.IndexedTrack {
+func generateFakeTrack() *indexFiles.IndexedTrack {
 	artists := []string{}
+
+	numberOfArtists := rand.Intn(2) + 1
 
 	for i := 0; i < numberOfArtists; i++ {
 		artists = append(artists, artistNames[rand.Intn(len(artistNames))])
@@ -334,7 +336,7 @@ func generateFakeTrack(numberOfArtists int) *indexFiles.IndexedTrack {
 	}
 }
 
-// Generates a grid of random colors in even chunks
+// Generates a grid of a base color and shades in even chunks
 func generateFakeAlbumImage() []byte {
 	imageSize := 128
 	cols := 4
