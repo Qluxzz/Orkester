@@ -17,12 +17,12 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		artist_info, err := client.
+		artistInfo, err := client.
 			Artist.
 			Query().
 			Where(artist.ID(id)).
-			WithAlbums().
-			WithTracks(func(tq *ent.TrackQuery) {
+			WithAlbums().                         // Albums
+			WithTracks(func(tq *ent.TrackQuery) { // Appears on
 				tq.WithAlbum()
 			}).
 			Only(context)
@@ -31,20 +31,20 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 			return err
 		}
 
-		albums_map := make(map[int]models.Album)
+		deduplicatedAlbums := make(map[int]models.Album)
 
-		for _, album := range artist_info.Edges.Albums {
-
-			albums_map[album.ID] = models.Album{
+		for _, album := range artistInfo.Edges.Albums {
+			deduplicatedAlbums[album.ID] = models.Album{
 				Id:      album.ID,
 				Name:    album.Name,
 				UrlName: album.URLName,
 			}
 		}
 
-		for _, track := range artist_info.Edges.Tracks {
+		for _, track := range artistInfo.Edges.Tracks {
 			album := track.Edges.Album
-			albums_map[album.ID] = models.Album{
+
+			deduplicatedAlbums[album.ID] = models.Album{
 				Id:      album.ID,
 				Name:    album.Name,
 				UrlName: album.URLName,
@@ -53,14 +53,14 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 
 		albums := []models.Album{}
 
-		for _, album := range albums_map {
+		for _, album := range deduplicatedAlbums {
 			albums = append(albums, album)
 		}
 
 		return c.JSON(&fiber.Map{
-			"id":      artist_info.ID,
-			"name":    artist_info.Name,
-			"urlName": artist_info.URLName,
+			"id":      artistInfo.ID,
+			"name":    artistInfo.Name,
+			"urlName": artistInfo.URLName,
 			"albums":  albums,
 		})
 	}
