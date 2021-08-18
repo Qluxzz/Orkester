@@ -32,7 +32,16 @@ export default function usePlayer() {
     }, [player])
 
     const play = useCallback(async () => {
-        await player.play()
+        try {
+            await player.play()
+        } catch (e) {
+            const error: Error = e
+
+            if (error.name === "NotSupportedError")
+                return
+
+            console.error(error)
+        }
     }, [player])
 
     useEffect(() => {
