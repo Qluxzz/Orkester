@@ -5,6 +5,7 @@ import (
 	"goreact/ent"
 	"goreact/ent/artist"
 	"goreact/models"
+	"sort"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -56,6 +57,10 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 		for _, album := range deduplicatedAlbums {
 			albums = append(albums, album)
 		}
+
+		sort.SliceStable(albums, func(i, j int) bool {
+			return albums[i].Id < albums[j].Id
+		})
 
 		return c.JSON(&fiber.Map{
 			"id":      artistInfo.ID,
