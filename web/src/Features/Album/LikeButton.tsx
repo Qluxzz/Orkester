@@ -5,6 +5,7 @@ const Button = styled.button`
     background: none;
     border: none;
     color: white;
+    padding: 5px;
 `
 
 async function likeTrack(trackId: number): Promise<boolean> {
