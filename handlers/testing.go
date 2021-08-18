@@ -20,9 +20,6 @@ import (
 
 const fakePath = "fakePath"
 
-// Source https://stackoverflow.com/a/36605651
-var fakeAlbumImage []byte = []byte("GIF89a\x01\x00\x01\x00\x00\xff\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x00;")
-
 var albumNames []string = []string{
 	"Mezzanine",
 	"Sledgehammer (From The Motion Picture \"Star Trek Beyond\")",
