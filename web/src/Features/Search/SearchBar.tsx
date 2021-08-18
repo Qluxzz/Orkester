@@ -27,7 +27,10 @@ export default function SearchBar() {
         <Input
             onChange={e => search(e.target.value)}
             value={searchQuery}
-            onFocus={() => search(searchQuery)}
+            onFocus={() => {
+                if (searchQuery.length > 0)
+                    search(searchQuery)
+            }}
         />
     </Bar>
 }
