@@ -142,8 +142,10 @@ func scanFolderForCoverImage(path string) (*Image, error) {
 		}
 
 		mime := mimetype.Detect(data)
-		if mime == nil {
-			return nil, errors.New("failed to get image mimetype")
+
+		failedToIdentifyMimeType := "application/octet-stream"
+		if mime.String() == failedToIdentifyMimeType {
+			return nil, errors.New("failed to identify mime type")
 		}
 
 		return &Image{
