@@ -11,6 +11,7 @@ import (
 	"image/color"
 	"image/png"
 	"log"
+	"math"
 	"math/rand"
 	"strconv"
 	"time"
@@ -289,7 +290,7 @@ func AddFakeTracks(client *ent.Client, context context.Context) fiber.Handler {
 		fakeTracks := []*indexFiles.IndexedTrack{}
 
 		for i := 0; i < amount; i++ {
-			fakeTracks = append(fakeTracks, GenerateFakeTrack(rand.Intn(4)+1))
+			fakeTracks = append(fakeTracks, generateFakeTrack(rand.Intn(4)+1))
 		}
 
 		_, err = repositories.AddTracks(fakeTracks, client, context)
@@ -302,7 +303,7 @@ func AddFakeTracks(client *ent.Client, context context.Context) fiber.Handler {
 	}
 }
 
-func GenerateFakeTrack(numberOfArtists int) *indexFiles.IndexedTrack {
+func generateFakeTrack(numberOfArtists int) *indexFiles.IndexedTrack {
 	artists := []string{}
 
 	for i := 0; i < numberOfArtists; i++ {
@@ -319,7 +320,7 @@ func GenerateFakeTrack(numberOfArtists int) *indexFiles.IndexedTrack {
 	return &indexFiles.IndexedTrack{
 		Path: fakePath,
 		Image: &indexFiles.Image{
-			Data:     GenerateFakeAlbumImage(),
+			Data:     generateFakeAlbumImage(),
 			MimeType: "image/png",
 		},
 		Artists:     artists,
@@ -333,12 +334,38 @@ func GenerateFakeTrack(numberOfArtists int) *indexFiles.IndexedTrack {
 	}
 }
 
-func GenerateFakeAlbumImage() []byte {
-	img := image.NewRGBA(image.Rect(0, 0, 4, 4))
+// Generates a grid of random colors in even chunks
+func generateFakeAlbumImage() []byte {
+	imageSize := 128
+	cols := 4
+	chunk := imageSize / cols
 
-	for x := 0; x < 4; x++ {
-		for y := 0; y < 4; y++ {
-			img.Set(x, y, color.RGBA{R: uint8(rand.Intn(255)), G: uint8(rand.Intn(255)), B: uint8(rand.Intn(255)), A: 255})
+	img := image.NewRGBA(image.Rect(0, 0, imageSize, imageSize))
+
+	baseColor := color.RGBA{
+		R: uint8(rand.Intn(255)),
+		G: uint8(rand.Intn(255)),
+		B: uint8(rand.Intn(255)),
+		A: math.MaxUint8,
+	}
+
+	for col := 0; col < cols; col++ {
+		for row := 0; row < cols; row++ {
+			shade := color.RGBA{
+				R: baseColor.R + randomOffset(),
+				G: baseColor.G + randomOffset(),
+				B: baseColor.B + randomOffset(),
+				A: math.MaxUint8,
+			}
+
+			for x := 0; x < chunk; x++ {
+				for y := 0; y < chunk; y++ {
+					img.Set(
+						col*chunk+x,
+						row*chunk+y,
+						shade)
+				}
+			}
 		}
 	}
 
@@ -347,4 +374,8 @@ func GenerateFakeAlbumImage() []byte {
 	png.Encode(&buf, img)
 
 	return buf.Bytes()
+}
+
+func randomOffset() uint8 {
+	return uint8(rand.Intn(24) - 12)
 }
