@@ -6,19 +6,20 @@ import (
 	"goreact/ent"
 	"goreact/ent/album"
 	"goreact/ent/artist"
-	"goreact/ent/track"
 	"goreact/indexFiles"
 
 	"github.com/gosimple/slug"
 )
 
-func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) ([]*ent.Track, error) {
+type TrackIds = []int
+
+func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) (TrackIds, error) {
 	tx, err := client.Tx(context)
 	if err != nil {
 		return nil, err
 	}
 
-	added_tracks := []*ent.Track{}
+	addedTrackIds := TrackIds{}
 
 	for _, track_on_disk := range tracks {
 		artists := []*ent.Artist{}
@@ -75,11 +76,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 			Save(context)
 
 		if err == nil {
-			track, err := GetTrackById(added_track.ID, context, tx)
-
-			if err == nil {
-				added_tracks = append(added_tracks, track)
-			}
+			addedTrackIds = append(addedTrackIds, added_track.ID)
 		} else {
 			_, ok := err.(*ent.ConstraintError)
 			if !ok {
@@ -94,19 +91,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 		return nil, err
 	}
 
-	return added_tracks, nil
-}
-
-func GetTrackById(id int, context context.Context, client *ent.Tx) (*ent.Track, error) {
-	return client.
-		Track.
-		Query().
-		Where(track.ID(id)).
-		WithAlbum(func(aq *ent.AlbumQuery) {
-			aq.Select(album.FieldName)
-		}).
-		WithArtists().
-		Only(context)
+	return addedTrackIds, nil
 }
 
 func GetOrCreateAlbum(albumName string, albumImage *indexFiles.Image, albumArtist *ent.Artist, context context.Context, client *ent.Tx) (*ent.Album, error) {
