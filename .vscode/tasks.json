@@ -16,7 +16,7 @@
         {
             "label": "watch client",
             "type": "shell",
-            "command": "cd web/ && npm start",
+            "command": "cd web/ && npm install && npm start",
             "problemMatcher": [],
             "runOptions": {
                 "runOn": "folderOpen"
