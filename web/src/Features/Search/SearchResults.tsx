@@ -15,7 +15,7 @@ const Container = styled.div`
     }
 `
 
-const UnorderedListWithNoDots = styled.ul`
+const UnorderedListWithNoBullets = styled.ul`
     list-style: none;
     padding: 0;
     margin: 0;
@@ -91,33 +91,33 @@ export default function SearchResults({ query }: { query: string }) {
             <h1>Tracks</h1>
             {searchResults.tracks.length === 0
                 ? <p>No tracks found</p>
-                : <UnorderedListWithNoDots>{
+                : <UnorderedListWithNoBullets>{
                     searchResults.tracks.map(track =>
                         <TrackRow key={track.id} track={track} />
                     )}
-                </UnorderedListWithNoDots>
+                </UnorderedListWithNoBullets>
             }
         </div>
         <div>
             <h1>Albums</h1>
             {searchResults.albums.length === 0
                 ? <p>No albums found</p>
-                : <UnorderedListWithNoDots>
+                : <UnorderedListWithNoBullets>
                     {searchResults.albums.map(album =>
                         <AlbumLink {...album} key={album.id}><li>{album.name}</li></AlbumLink>
                     )}
-                </UnorderedListWithNoDots>
+                </UnorderedListWithNoBullets>
             }
         </div>
         <div>
             <h1>Artists</h1>
             {searchResults.artists.length === 0
                 ? <p>No artists found</p>
-                : <UnorderedListWithNoDots>
+                : <UnorderedListWithNoBullets>
                     {searchResults.artists.map(artist =>
                         <ArtistLink {...artist} key={artist.id}><li>{artist.name}</li></ArtistLink>
                     )}
-                </UnorderedListWithNoDots>
+                </UnorderedListWithNoBullets>
             }
         </div>
     </Container>
