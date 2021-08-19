@@ -23,9 +23,10 @@ interface ITrackRow {
     columns: IColumn[]
     track: ITrack
     onLikedChanged?: (liked: boolean, trackId: number) => void
+    index: number
 }
 
-export function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
+export function TrackRow({ columns, track, onLikedChanged, index }: ITrackRow) {
     const { play } = useAppContext()
 
     return <li
@@ -62,6 +63,8 @@ export function TrackRow({ columns, track, onLikedChanged }: ITrackRow) {
                         return secondsToTimeFormat(track.length)
                     case "date":
                         return formatDate(new Date(Date.parse(track.date)))
+                    case "index":
+                        return (index + 1).toString()
                     default:
                         return track[column.key]
                 }
