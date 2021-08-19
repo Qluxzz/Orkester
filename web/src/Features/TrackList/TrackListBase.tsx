@@ -6,7 +6,7 @@ import { TrackRow } from "./TrackRow"
 
 
 
-type IColumnKey = ITrackKeys | "albumCover"
+type IColumnKey = ITrackKeys | "albumCover" | "index"
 
 export interface IColumn {
     display: string
@@ -41,12 +41,13 @@ export default function TrackListBase({
             })}
         </header>
         <StyledList>
-            {tracks.map(track =>
+            {tracks.map((track, index) =>
                 <TrackRow
                     key={track.id}
                     track={track}
                     columns={columns}
                     onLikedChanged={onLikedChanged}
+                    index={index}
                 />
             )}
         </StyledList>

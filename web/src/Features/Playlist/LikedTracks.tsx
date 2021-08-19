@@ -51,8 +51,10 @@ export default function LikedTracks() {
                         removeLikedTrack(trackId)
                 }}
                 columns={[
+                    { display: "#", key: "index", width: 50 },
                     { display: "", key: "albumCover" },
-                    { display: "TITLE", key: "title", width: "grow" },
+                    { display: "TITLE", key: "title", width: 400 },
+                    { display: "ALBUM", key: "album", width: "grow" },
                     { display: "ADDED", key: "date", width: 100, centered: true },
                     { display: "", key: "liked", width: 100, centered: true },
                     { display: "🕒", key: "length", width: 60, centered: true }
