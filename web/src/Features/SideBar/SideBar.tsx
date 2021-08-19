@@ -11,6 +11,8 @@ const Container = styled.ul`
         list-style: none;
         padding: 10px;
     }
+
+    width: 200px;
 `
 
 
