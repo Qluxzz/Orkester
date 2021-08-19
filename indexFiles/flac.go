@@ -51,7 +51,21 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 						track.TrackNumber = trackNumber
 					}
 				case "date":
-					date, err := ParseDateToIsoDate(value)
+					// The date must be in ISO 8601 format
+					// but may be followed by a space character
+					// then any text you wish
+
+					var dateString string
+
+					// If value contains optional text
+					if strings.Index(value, " ") != -1 {
+						parts := strings.SplitN(value, " ", 2)
+						dateString = parts[0]
+					} else {
+						dateString = value
+					}
+
+					date, err := ParseDateToIsoDate(dateString)
 
 					if err != nil {
 						log.Printf("%s invalid date format", value)
