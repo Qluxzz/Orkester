@@ -9,7 +9,6 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"log"
 	"math"
 	"math/rand"
 	"strconv"
@@ -295,7 +294,7 @@ func AddFakeTracks(client *ent.Client, context context.Context) fiber.Handler {
 		_, err = repositories.AddTracks(fakeTracks, client, context)
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		return nil
