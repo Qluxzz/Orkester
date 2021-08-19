@@ -4,6 +4,7 @@ interface ILink {
     id: number
     urlName: string
     children: React.ReactNode
+    hideDecoration?: boolean
 }
 
 type ILinkType = "artist" | "album"
@@ -20,6 +21,8 @@ function createLink(type: ILinkType, props: ILink) {
     return <Link
         to={`/${type}/${props.id}/${props.urlName}`}
         onClick={e => e.stopPropagation()}
+        style={{ textDecoration: props.hideDecoration ? "none" : "inital" }}
+
     >
         {props.children}
     </Link>

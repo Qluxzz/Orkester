@@ -13,7 +13,8 @@ interface IArtist {
     albums: {
         id: number,
         name: string,
-        urlName: string
+        urlName: string,
+        released: string
     }[]
 }
 
@@ -118,13 +119,20 @@ function ArtistView(artist: IArtist) {
             gridTemplateRows: "1fr"
         }}>
             {artist.albums.map(album =>
-                <AlbumLink key={album.id} {...album}>
+                <AlbumLink key={album.id} {...album} hideDecoration>
                     <Album>
                         <AlbumImage album={album} />
                         <p>{album.name}</p>
+                        <p>{formatReleaseDate(album.released)}</p>
                     </Album>
                 </AlbumLink>
             )}
         </div>
     </>
+}
+
+function formatReleaseDate(date: string): string {
+    const d = new Date(date)
+
+    return d.getFullYear().toString()
 }

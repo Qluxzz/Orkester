@@ -4,12 +4,19 @@ import (
 	"context"
 	"goreact/ent"
 	"goreact/ent/artist"
-	"goreact/models"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
+
+type AlbumWithReleaseDate struct {
+	Id       int       `json:"id"`
+	Name     string    `json:"name"`
+	UrlName  string    `json:"urlName"`
+	Released time.Time `json:"released"`
+}
 
 func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -32,27 +39,29 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 			return err
 		}
 
-		deduplicatedAlbums := make(map[int]models.Album)
+		deduplicatedAlbums := make(map[int]AlbumWithReleaseDate)
 
 		for _, album := range artistInfo.Edges.Albums {
-			deduplicatedAlbums[album.ID] = models.Album{
-				Id:      album.ID,
-				Name:    album.Name,
-				UrlName: album.URLName,
+			deduplicatedAlbums[album.ID] = AlbumWithReleaseDate{
+				Id:       album.ID,
+				Name:     album.Name,
+				UrlName:  album.URLName,
+				Released: album.Released,
 			}
 		}
 
 		for _, track := range artistInfo.Edges.Tracks {
 			album := track.Edges.Album
 
-			deduplicatedAlbums[album.ID] = models.Album{
-				Id:      album.ID,
-				Name:    album.Name,
-				UrlName: album.URLName,
+			deduplicatedAlbums[album.ID] = AlbumWithReleaseDate{
+				Id:       album.ID,
+				Name:     album.Name,
+				UrlName:  album.URLName,
+				Released: album.Released,
 			}
 		}
 
-		albums := []models.Album{}
+		albums := []AlbumWithReleaseDate{}
 
 		for _, album := range deduplicatedAlbums {
 			albums = append(albums, album)
@@ -61,7 +70,7 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 		// Maps don't have a specified sort order
 		// So we sort the array by id so it's the same between requests
 		sort.SliceStable(albums, func(i, j int) bool {
-			return albums[i].Id < albums[j].Id
+			return albums[i].Released.After(albums[j].Released)
 		})
 
 		return c.JSON(&fiber.Map{
