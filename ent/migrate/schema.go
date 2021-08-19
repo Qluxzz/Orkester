@@ -13,7 +13,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "url_name", Type: field.TypeString},
-		{Name: "album_album_image", Type: field.TypeInt, Nullable: true},
+		{Name: "released", Type: field.TypeTime},
+		{Name: "album_cover", Type: field.TypeInt, Nullable: true},
 		{Name: "artist_albums", Type: field.TypeInt, Nullable: true},
 	}
 	// AlbumsTable holds the schema information for the "albums" table.
@@ -23,23 +24,23 @@ var (
 		PrimaryKey: []*schema.Column{AlbumsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "albums_album_images_album_image",
-				Columns:    []*schema.Column{AlbumsColumns[3]},
+				Symbol:     "albums_album_images_cover",
+				Columns:    []*schema.Column{AlbumsColumns[4]},
 				RefColumns: []*schema.Column{AlbumImagesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "albums_artists_albums",
-				Columns:    []*schema.Column{AlbumsColumns[4]},
+				Columns:    []*schema.Column{AlbumsColumns[5]},
 				RefColumns: []*schema.Column{ArtistsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "album_name_artist_albums",
+				Name:    "album_name_released_artist_albums",
 				Unique:  true,
-				Columns: []*schema.Column{AlbumsColumns[1], AlbumsColumns[4]},
+				Columns: []*schema.Column{AlbumsColumns[1], AlbumsColumns[3], AlbumsColumns[5]},
 			},
 		},
 	}
@@ -48,21 +49,12 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "image", Type: field.TypeBytes},
 		{Name: "image_mime_type", Type: field.TypeString},
-		{Name: "album_image_album", Type: field.TypeInt, Nullable: true},
 	}
 	// AlbumImagesTable holds the schema information for the "album_images" table.
 	AlbumImagesTable = &schema.Table{
 		Name:       "album_images",
 		Columns:    AlbumImagesColumns,
 		PrimaryKey: []*schema.Column{AlbumImagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "album_images_albums_album",
-				Columns:    []*schema.Column{AlbumImagesColumns[3]},
-				RefColumns: []*schema.Column{AlbumsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 	}
 	// ArtistsColumns holds the columns for the "artists" table.
 	ArtistsColumns = []*schema.Column{
@@ -166,7 +158,6 @@ var (
 func init() {
 	AlbumsTable.ForeignKeys[0].RefTable = AlbumImagesTable
 	AlbumsTable.ForeignKeys[1].RefTable = ArtistsTable
-	AlbumImagesTable.ForeignKeys[0].RefTable = AlbumsTable
 	LikedTracksTable.ForeignKeys[0].RefTable = TracksTable
 	TracksTable.ForeignKeys[0].RefTable = AlbumsTable
 	TrackArtistsTable.ForeignKeys[0].RefTable = TracksTable

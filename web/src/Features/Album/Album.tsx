@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import ITrack from "types/track";
-import { secondsToTimeFormat } from "utilities/secondsToTimeFormat";
+import { secondsToHumanReadableFormat } from "utilities/secondsToTimeFormat";
 import { useHistory } from "react-router";
 import CenteredDotLoader from "CenteredDotLoader";
 import { ArtistLink } from "utilities/Links";
@@ -13,7 +13,7 @@ interface IAlbum {
     id: number
     name: string
     urlName: string
-    date: string
+    released: string
     artist: {
         id: number
         name: string
@@ -68,12 +68,11 @@ export function GetAlbumById({ id }: IGetAlbumById) {
 }
 
 const AlbumInfo = styled.div`
-    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
 
-    *:not(:last-child) {
-        display: block;
-        margin-bottom: 10px;
-    }
+    padding-left: 10px;
 `
 
 const Container = styled.div`
@@ -89,20 +88,29 @@ interface IAlbumView {
 function AlbumView({ album }: IAlbumView) {
     const totalPlayTime = album.tracks.reduce((acc, x) => (acc += x.length), 0)
 
+    const releaseDate = new Date(album.released)
+
     return <Container>
         <header style={{ display: "flex", marginBottom: 20 }}>
-            <div>
-                <AlbumImage album={album} size={192} />
-            </div>
+            <AlbumImage album={album} size={192} />
             <AlbumInfo>
                 <h1>{album.name}</h1>
-                <p>{album.tracks.length} track{album.tracks.length !== 1 && "s"}, {secondsToTimeFormat(totalPlayTime)}</p>
-                <ArtistLink {...album.artist} key={album.artist.id}>
-                    <p>{album.artist.name}</p>
-                </ArtistLink>
-                <p>{album.date}</p>
+                <div style={{ display: "flex", gap: 10 }}>
+                    <ArtistLink {...album.artist} key={album.artist.id}>
+                        <p>{album.artist.name}</p>
+                    </ArtistLink>
+                    <p>{formatReleaseDate(releaseDate)}</p>
+                    <p>{album.tracks.length} song{album.tracks.length !== 1 && "s"}, {secondsToHumanReadableFormat(totalPlayTime)}</p>
+
+                </div>
             </AlbumInfo>
         </header>
         <TrackList tracks={album.tracks} />
     </Container >
+}
+
+function formatReleaseDate(date: Date) {
+    const year = date.getFullYear()
+
+    return `${year}`
 }

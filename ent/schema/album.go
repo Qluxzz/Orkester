@@ -17,6 +17,7 @@ func (Album) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").Immutable(),
 		field.String("url_name").Immutable(),
+		field.Time("released").Immutable(),
 	}
 }
 
@@ -25,12 +26,12 @@ func (Album) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("artist", Artist.Type).Ref("albums").Unique().Required(),
 		edge.To("tracks", Track.Type),
-		edge.From("album_image", AlbumImage.Type).Unique().Required(),
+		edge.To("cover", AlbumImage.Type).Unique(),
 	}
 }
 
 func (Album) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("name").Edges("artist").Unique(),
+		index.Fields("name", "released").Edges("artist").Unique(),
 	}
 }

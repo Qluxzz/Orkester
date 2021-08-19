@@ -8,6 +8,7 @@ import (
 	"goreact/ent/albumimage"
 	"goreact/ent/artist"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -21,11 +22,13 @@ type Album struct {
 	Name string `json:"name,omitempty"`
 	// URLName holds the value of the "url_name" field.
 	URLName string `json:"url_name,omitempty"`
+	// Released holds the value of the "released" field.
+	Released time.Time `json:"released,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AlbumQuery when eager-loading is set.
-	Edges             AlbumEdges `json:"edges"`
-	album_album_image *int
-	artist_albums     *int
+	Edges         AlbumEdges `json:"edges"`
+	album_cover   *int
+	artist_albums *int
 }
 
 // AlbumEdges holds the relations/edges for other nodes in the graph.
@@ -34,8 +37,8 @@ type AlbumEdges struct {
 	Artist *Artist `json:"artist,omitempty"`
 	// Tracks holds the value of the tracks edge.
 	Tracks []*Track `json:"tracks,omitempty"`
-	// AlbumImage holds the value of the album_image edge.
-	AlbumImage *AlbumImage `json:"album_image,omitempty"`
+	// Cover holds the value of the cover edge.
+	Cover *AlbumImage `json:"cover,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
@@ -64,18 +67,18 @@ func (e AlbumEdges) TracksOrErr() ([]*Track, error) {
 	return nil, &NotLoadedError{edge: "tracks"}
 }
 
-// AlbumImageOrErr returns the AlbumImage value or an error if the edge
+// CoverOrErr returns the Cover value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AlbumEdges) AlbumImageOrErr() (*AlbumImage, error) {
+func (e AlbumEdges) CoverOrErr() (*AlbumImage, error) {
 	if e.loadedTypes[2] {
-		if e.AlbumImage == nil {
-			// The edge album_image was loaded in eager-loading,
+		if e.Cover == nil {
+			// The edge cover was loaded in eager-loading,
 			// but was not found.
 			return nil, &NotFoundError{label: albumimage.Label}
 		}
-		return e.AlbumImage, nil
+		return e.Cover, nil
 	}
-	return nil, &NotLoadedError{edge: "album_image"}
+	return nil, &NotLoadedError{edge: "cover"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -87,7 +90,9 @@ func (*Album) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case album.FieldName, album.FieldURLName:
 			values[i] = new(sql.NullString)
-		case album.ForeignKeys[0]: // album_album_image
+		case album.FieldReleased:
+			values[i] = new(sql.NullTime)
+		case album.ForeignKeys[0]: // album_cover
 			values[i] = new(sql.NullInt64)
 		case album.ForeignKeys[1]: // artist_albums
 			values[i] = new(sql.NullInt64)
@@ -124,12 +129,18 @@ func (a *Album) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				a.URLName = value.String
 			}
+		case album.FieldReleased:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field released", values[i])
+			} else if value.Valid {
+				a.Released = value.Time
+			}
 		case album.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field album_album_image", value)
+				return fmt.Errorf("unexpected type %T for edge-field album_cover", value)
 			} else if value.Valid {
-				a.album_album_image = new(int)
-				*a.album_album_image = int(value.Int64)
+				a.album_cover = new(int)
+				*a.album_cover = int(value.Int64)
 			}
 		case album.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -153,9 +164,9 @@ func (a *Album) QueryTracks() *TrackQuery {
 	return (&AlbumClient{config: a.config}).QueryTracks(a)
 }
 
-// QueryAlbumImage queries the "album_image" edge of the Album entity.
-func (a *Album) QueryAlbumImage() *AlbumImageQuery {
-	return (&AlbumClient{config: a.config}).QueryAlbumImage(a)
+// QueryCover queries the "cover" edge of the Album entity.
+func (a *Album) QueryCover() *AlbumImageQuery {
+	return (&AlbumClient{config: a.config}).QueryCover(a)
 }
 
 // Update returns a builder for updating this Album.
@@ -185,6 +196,8 @@ func (a *Album) String() string {
 	builder.WriteString(a.Name)
 	builder.WriteString(", url_name=")
 	builder.WriteString(a.URLName)
+	builder.WriteString(", released=")
+	builder.WriteString(a.Released.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

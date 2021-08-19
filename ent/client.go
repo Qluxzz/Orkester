@@ -267,15 +267,15 @@ func (c *AlbumClient) QueryTracks(a *Album) *TrackQuery {
 	return query
 }
 
-// QueryAlbumImage queries the album_image edge of a Album.
-func (c *AlbumClient) QueryAlbumImage(a *Album) *AlbumImageQuery {
+// QueryCover queries the cover edge of a Album.
+func (c *AlbumClient) QueryCover(a *Album) *AlbumImageQuery {
 	query := &AlbumImageQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(album.Table, album.FieldID, id),
 			sqlgraph.To(albumimage.Table, albumimage.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, album.AlbumImageTable, album.AlbumImageColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, album.CoverTable, album.CoverColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -371,22 +371,6 @@ func (c *AlbumImageClient) GetX(ctx context.Context, id int) *AlbumImage {
 		panic(err)
 	}
 	return obj
-}
-
-// QueryAlbum queries the album edge of a AlbumImage.
-func (c *AlbumImageClient) QueryAlbum(ai *AlbumImage) *AlbumQuery {
-	query := &AlbumQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := ai.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(albumimage.Table, albumimage.FieldID, id),
-			sqlgraph.To(album.Table, album.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, albumimage.AlbumTable, albumimage.AlbumColumn),
-		)
-		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // Hooks returns the client hooks.

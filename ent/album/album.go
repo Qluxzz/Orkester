@@ -11,12 +11,14 @@ const (
 	FieldName = "name"
 	// FieldURLName holds the string denoting the url_name field in the database.
 	FieldURLName = "url_name"
+	// FieldReleased holds the string denoting the released field in the database.
+	FieldReleased = "released"
 	// EdgeArtist holds the string denoting the artist edge name in mutations.
 	EdgeArtist = "artist"
 	// EdgeTracks holds the string denoting the tracks edge name in mutations.
 	EdgeTracks = "tracks"
-	// EdgeAlbumImage holds the string denoting the album_image edge name in mutations.
-	EdgeAlbumImage = "album_image"
+	// EdgeCover holds the string denoting the cover edge name in mutations.
+	EdgeCover = "cover"
 	// Table holds the table name of the album in the database.
 	Table = "albums"
 	// ArtistTable is the table the holds the artist relation/edge.
@@ -33,13 +35,13 @@ const (
 	TracksInverseTable = "tracks"
 	// TracksColumn is the table column denoting the tracks relation/edge.
 	TracksColumn = "album_tracks"
-	// AlbumImageTable is the table the holds the album_image relation/edge.
-	AlbumImageTable = "albums"
-	// AlbumImageInverseTable is the table name for the AlbumImage entity.
+	// CoverTable is the table the holds the cover relation/edge.
+	CoverTable = "albums"
+	// CoverInverseTable is the table name for the AlbumImage entity.
 	// It exists in this package in order to avoid circular dependency with the "albumimage" package.
-	AlbumImageInverseTable = "album_images"
-	// AlbumImageColumn is the table column denoting the album_image relation/edge.
-	AlbumImageColumn = "album_album_image"
+	CoverInverseTable = "album_images"
+	// CoverColumn is the table column denoting the cover relation/edge.
+	CoverColumn = "album_cover"
 )
 
 // Columns holds all SQL columns for album fields.
@@ -47,12 +49,13 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldURLName,
+	FieldReleased,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "albums"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"album_album_image",
+	"album_cover",
 	"artist_albums",
 }
 

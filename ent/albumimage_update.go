@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"goreact/ent/album"
 	"goreact/ent/albumimage"
 	"goreact/ent/predicate"
 
@@ -27,34 +26,9 @@ func (aiu *AlbumImageUpdate) Where(ps ...predicate.AlbumImage) *AlbumImageUpdate
 	return aiu
 }
 
-// SetAlbumID sets the "album" edge to the Album entity by ID.
-func (aiu *AlbumImageUpdate) SetAlbumID(id int) *AlbumImageUpdate {
-	aiu.mutation.SetAlbumID(id)
-	return aiu
-}
-
-// SetNillableAlbumID sets the "album" edge to the Album entity by ID if the given value is not nil.
-func (aiu *AlbumImageUpdate) SetNillableAlbumID(id *int) *AlbumImageUpdate {
-	if id != nil {
-		aiu = aiu.SetAlbumID(*id)
-	}
-	return aiu
-}
-
-// SetAlbum sets the "album" edge to the Album entity.
-func (aiu *AlbumImageUpdate) SetAlbum(a *Album) *AlbumImageUpdate {
-	return aiu.SetAlbumID(a.ID)
-}
-
 // Mutation returns the AlbumImageMutation object of the builder.
 func (aiu *AlbumImageUpdate) Mutation() *AlbumImageMutation {
 	return aiu.mutation
-}
-
-// ClearAlbum clears the "album" edge to the Album entity.
-func (aiu *AlbumImageUpdate) ClearAlbum() *AlbumImageUpdate {
-	aiu.mutation.ClearAlbum()
-	return aiu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -126,41 +100,6 @@ func (aiu *AlbumImageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if aiu.mutation.AlbumCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   albumimage.AlbumTable,
-			Columns: []string{albumimage.AlbumColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: album.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := aiu.mutation.AlbumIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   albumimage.AlbumTable,
-			Columns: []string{albumimage.AlbumColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: album.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, aiu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{albumimage.Label}
@@ -180,34 +119,9 @@ type AlbumImageUpdateOne struct {
 	mutation *AlbumImageMutation
 }
 
-// SetAlbumID sets the "album" edge to the Album entity by ID.
-func (aiuo *AlbumImageUpdateOne) SetAlbumID(id int) *AlbumImageUpdateOne {
-	aiuo.mutation.SetAlbumID(id)
-	return aiuo
-}
-
-// SetNillableAlbumID sets the "album" edge to the Album entity by ID if the given value is not nil.
-func (aiuo *AlbumImageUpdateOne) SetNillableAlbumID(id *int) *AlbumImageUpdateOne {
-	if id != nil {
-		aiuo = aiuo.SetAlbumID(*id)
-	}
-	return aiuo
-}
-
-// SetAlbum sets the "album" edge to the Album entity.
-func (aiuo *AlbumImageUpdateOne) SetAlbum(a *Album) *AlbumImageUpdateOne {
-	return aiuo.SetAlbumID(a.ID)
-}
-
 // Mutation returns the AlbumImageMutation object of the builder.
 func (aiuo *AlbumImageUpdateOne) Mutation() *AlbumImageMutation {
 	return aiuo.mutation
-}
-
-// ClearAlbum clears the "album" edge to the Album entity.
-func (aiuo *AlbumImageUpdateOne) ClearAlbum() *AlbumImageUpdateOne {
-	aiuo.mutation.ClearAlbum()
-	return aiuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -302,41 +216,6 @@ func (aiuo *AlbumImageUpdateOne) sqlSave(ctx context.Context) (_node *AlbumImage
 				ps[i](selector)
 			}
 		}
-	}
-	if aiuo.mutation.AlbumCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   albumimage.AlbumTable,
-			Columns: []string{albumimage.AlbumColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: album.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := aiuo.mutation.AlbumIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   albumimage.AlbumTable,
-			Columns: []string{albumimage.AlbumColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: album.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &AlbumImage{config: aiuo.config}
 	_spec.Assign = _node.assignValues

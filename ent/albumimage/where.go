@@ -6,7 +6,6 @@ import (
 	"goreact/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -290,34 +289,6 @@ func ImageMimeTypeEqualFold(v string) predicate.AlbumImage {
 func ImageMimeTypeContainsFold(v string) predicate.AlbumImage {
 	return predicate.AlbumImage(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldImageMimeType), v))
-	})
-}
-
-// HasAlbum applies the HasEdge predicate on the "album" edge.
-func HasAlbum() predicate.AlbumImage {
-	return predicate.AlbumImage(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AlbumTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, AlbumTable, AlbumColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAlbumWith applies the HasEdge predicate on the "album" edge with a given conditions (other predicates).
-func HasAlbumWith(preds ...predicate.Album) predicate.AlbumImage {
-	return predicate.AlbumImage(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AlbumInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, AlbumTable, AlbumColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
 	})
 }
 

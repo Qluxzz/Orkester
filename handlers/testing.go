@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"goreact/ent"
 	"goreact/indexFiles"
 	"goreact/repositories"
@@ -316,8 +315,10 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 	timeSpan := 2021 - startYear
 
 	year := rand.Intn(timeSpan) + startYear
-	month := rand.Intn(11)
-	day := rand.Intn(31)
+	month := rand.Intn(11) + 1
+	day := rand.Intn(31) + 1
+
+	date := time.Time{}.AddDate(year, month, day)
 
 	return &indexFiles.IndexedTrack{
 		Path: fakePath,
@@ -332,7 +333,7 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 		TrackNumber: rand.Intn(20) + 1,
 		MimeType:    "audio/flac",
 		Title:       trackTitles[rand.Intn(len(trackTitles))],
-		Date:        fmt.Sprintf("%d-%d-%d", year, month, day),
+		Date:        date,
 	}
 }
 
