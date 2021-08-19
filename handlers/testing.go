@@ -346,9 +346,9 @@ func generateFakeAlbumImage() []byte {
 	img := image.NewRGBA(image.Rect(0, 0, imageSize, imageSize))
 
 	baseColor := color.RGBA{
-		R: uint8(rand.Intn(255)),
-		G: uint8(rand.Intn(255)),
-		B: uint8(rand.Intn(255)),
+		R: uint8(rand.Intn(math.MaxUint8)),
+		G: uint8(rand.Intn(math.MaxUint8)),
+		B: uint8(rand.Intn(math.MaxUint8)),
 		A: math.MaxUint8,
 	}
 
