@@ -51,7 +51,13 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 						track.TrackNumber = trackNumber
 					}
 				case "date":
-					track.Date = value
+					date, err := ParseDateToIsoDate(value)
+
+					if err != nil {
+						log.Printf("%s invalid date format", value)
+					} else {
+						track.Date = date
+					}
 				}
 			}
 		case meta.TypePicture:

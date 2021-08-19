@@ -36,22 +36,23 @@ const (
 // AlbumMutation represents an operation that mutates the Album nodes in the graph.
 type AlbumMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int
-	name               *string
-	url_name           *string
-	clearedFields      map[string]struct{}
-	artist             *int
-	clearedartist      bool
-	tracks             map[int]struct{}
-	removedtracks      map[int]struct{}
-	clearedtracks      bool
-	album_image        *int
-	clearedalbum_image bool
-	done               bool
-	oldValue           func(context.Context) (*Album, error)
-	predicates         []predicate.Album
+	op            Op
+	typ           string
+	id            *int
+	name          *string
+	url_name      *string
+	released      *time.Time
+	clearedFields map[string]struct{}
+	artist        *int
+	clearedartist bool
+	tracks        map[int]struct{}
+	removedtracks map[int]struct{}
+	clearedtracks bool
+	cover         *int
+	clearedcover  bool
+	done          bool
+	oldValue      func(context.Context) (*Album, error)
+	predicates    []predicate.Album
 }
 
 var _ ent.Mutation = (*AlbumMutation)(nil)
@@ -205,6 +206,42 @@ func (m *AlbumMutation) ResetURLName() {
 	m.url_name = nil
 }
 
+// SetReleased sets the "released" field.
+func (m *AlbumMutation) SetReleased(t time.Time) {
+	m.released = &t
+}
+
+// Released returns the value of the "released" field in the mutation.
+func (m *AlbumMutation) Released() (r time.Time, exists bool) {
+	v := m.released
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReleased returns the old "released" field's value of the Album entity.
+// If the Album object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlbumMutation) OldReleased(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldReleased is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldReleased requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReleased: %w", err)
+	}
+	return oldValue.Released, nil
+}
+
+// ResetReleased resets all changes to the "released" field.
+func (m *AlbumMutation) ResetReleased() {
+	m.released = nil
+}
+
 // SetArtistID sets the "artist" edge to the Artist entity by id.
 func (m *AlbumMutation) SetArtistID(id int) {
 	m.artist = &id
@@ -297,43 +334,43 @@ func (m *AlbumMutation) ResetTracks() {
 	m.removedtracks = nil
 }
 
-// SetAlbumImageID sets the "album_image" edge to the AlbumImage entity by id.
-func (m *AlbumMutation) SetAlbumImageID(id int) {
-	m.album_image = &id
+// SetCoverID sets the "cover" edge to the AlbumImage entity by id.
+func (m *AlbumMutation) SetCoverID(id int) {
+	m.cover = &id
 }
 
-// ClearAlbumImage clears the "album_image" edge to the AlbumImage entity.
-func (m *AlbumMutation) ClearAlbumImage() {
-	m.clearedalbum_image = true
+// ClearCover clears the "cover" edge to the AlbumImage entity.
+func (m *AlbumMutation) ClearCover() {
+	m.clearedcover = true
 }
 
-// AlbumImageCleared reports if the "album_image" edge to the AlbumImage entity was cleared.
-func (m *AlbumMutation) AlbumImageCleared() bool {
-	return m.clearedalbum_image
+// CoverCleared reports if the "cover" edge to the AlbumImage entity was cleared.
+func (m *AlbumMutation) CoverCleared() bool {
+	return m.clearedcover
 }
 
-// AlbumImageID returns the "album_image" edge ID in the mutation.
-func (m *AlbumMutation) AlbumImageID() (id int, exists bool) {
-	if m.album_image != nil {
-		return *m.album_image, true
+// CoverID returns the "cover" edge ID in the mutation.
+func (m *AlbumMutation) CoverID() (id int, exists bool) {
+	if m.cover != nil {
+		return *m.cover, true
 	}
 	return
 }
 
-// AlbumImageIDs returns the "album_image" edge IDs in the mutation.
+// CoverIDs returns the "cover" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// AlbumImageID instead. It exists only for internal usage by the builders.
-func (m *AlbumMutation) AlbumImageIDs() (ids []int) {
-	if id := m.album_image; id != nil {
+// CoverID instead. It exists only for internal usage by the builders.
+func (m *AlbumMutation) CoverIDs() (ids []int) {
+	if id := m.cover; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetAlbumImage resets all changes to the "album_image" edge.
-func (m *AlbumMutation) ResetAlbumImage() {
-	m.album_image = nil
-	m.clearedalbum_image = false
+// ResetCover resets all changes to the "cover" edge.
+func (m *AlbumMutation) ResetCover() {
+	m.cover = nil
+	m.clearedcover = false
 }
 
 // Op returns the operation name.
@@ -350,12 +387,15 @@ func (m *AlbumMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlbumMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.name != nil {
 		fields = append(fields, album.FieldName)
 	}
 	if m.url_name != nil {
 		fields = append(fields, album.FieldURLName)
+	}
+	if m.released != nil {
+		fields = append(fields, album.FieldReleased)
 	}
 	return fields
 }
@@ -369,6 +409,8 @@ func (m *AlbumMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case album.FieldURLName:
 		return m.URLName()
+	case album.FieldReleased:
+		return m.Released()
 	}
 	return nil, false
 }
@@ -382,6 +424,8 @@ func (m *AlbumMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldName(ctx)
 	case album.FieldURLName:
 		return m.OldURLName(ctx)
+	case album.FieldReleased:
+		return m.OldReleased(ctx)
 	}
 	return nil, fmt.Errorf("unknown Album field %s", name)
 }
@@ -404,6 +448,13 @@ func (m *AlbumMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetURLName(v)
+		return nil
+	case album.FieldReleased:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReleased(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Album field %s", name)
@@ -460,6 +511,9 @@ func (m *AlbumMutation) ResetField(name string) error {
 	case album.FieldURLName:
 		m.ResetURLName()
 		return nil
+	case album.FieldReleased:
+		m.ResetReleased()
+		return nil
 	}
 	return fmt.Errorf("unknown Album field %s", name)
 }
@@ -473,8 +527,8 @@ func (m *AlbumMutation) AddedEdges() []string {
 	if m.tracks != nil {
 		edges = append(edges, album.EdgeTracks)
 	}
-	if m.album_image != nil {
-		edges = append(edges, album.EdgeAlbumImage)
+	if m.cover != nil {
+		edges = append(edges, album.EdgeCover)
 	}
 	return edges
 }
@@ -493,8 +547,8 @@ func (m *AlbumMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case album.EdgeAlbumImage:
-		if id := m.album_image; id != nil {
+	case album.EdgeCover:
+		if id := m.cover; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -533,8 +587,8 @@ func (m *AlbumMutation) ClearedEdges() []string {
 	if m.clearedtracks {
 		edges = append(edges, album.EdgeTracks)
 	}
-	if m.clearedalbum_image {
-		edges = append(edges, album.EdgeAlbumImage)
+	if m.clearedcover {
+		edges = append(edges, album.EdgeCover)
 	}
 	return edges
 }
@@ -547,8 +601,8 @@ func (m *AlbumMutation) EdgeCleared(name string) bool {
 		return m.clearedartist
 	case album.EdgeTracks:
 		return m.clearedtracks
-	case album.EdgeAlbumImage:
-		return m.clearedalbum_image
+	case album.EdgeCover:
+		return m.clearedcover
 	}
 	return false
 }
@@ -560,8 +614,8 @@ func (m *AlbumMutation) ClearEdge(name string) error {
 	case album.EdgeArtist:
 		m.ClearArtist()
 		return nil
-	case album.EdgeAlbumImage:
-		m.ClearAlbumImage()
+	case album.EdgeCover:
+		m.ClearCover()
 		return nil
 	}
 	return fmt.Errorf("unknown Album unique edge %s", name)
@@ -577,8 +631,8 @@ func (m *AlbumMutation) ResetEdge(name string) error {
 	case album.EdgeTracks:
 		m.ResetTracks()
 		return nil
-	case album.EdgeAlbumImage:
-		m.ResetAlbumImage()
+	case album.EdgeCover:
+		m.ResetCover()
 		return nil
 	}
 	return fmt.Errorf("unknown Album edge %s", name)
@@ -593,8 +647,6 @@ type AlbumImageMutation struct {
 	image           *[]byte
 	image_mime_type *string
 	clearedFields   map[string]struct{}
-	album           *int
-	clearedalbum    bool
 	done            bool
 	oldValue        func(context.Context) (*AlbumImage, error)
 	predicates      []predicate.AlbumImage
@@ -751,45 +803,6 @@ func (m *AlbumImageMutation) ResetImageMimeType() {
 	m.image_mime_type = nil
 }
 
-// SetAlbumID sets the "album" edge to the Album entity by id.
-func (m *AlbumImageMutation) SetAlbumID(id int) {
-	m.album = &id
-}
-
-// ClearAlbum clears the "album" edge to the Album entity.
-func (m *AlbumImageMutation) ClearAlbum() {
-	m.clearedalbum = true
-}
-
-// AlbumCleared reports if the "album" edge to the Album entity was cleared.
-func (m *AlbumImageMutation) AlbumCleared() bool {
-	return m.clearedalbum
-}
-
-// AlbumID returns the "album" edge ID in the mutation.
-func (m *AlbumImageMutation) AlbumID() (id int, exists bool) {
-	if m.album != nil {
-		return *m.album, true
-	}
-	return
-}
-
-// AlbumIDs returns the "album" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// AlbumID instead. It exists only for internal usage by the builders.
-func (m *AlbumImageMutation) AlbumIDs() (ids []int) {
-	if id := m.album; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetAlbum resets all changes to the "album" edge.
-func (m *AlbumImageMutation) ResetAlbum() {
-	m.album = nil
-	m.clearedalbum = false
-}
-
 // Op returns the operation name.
 func (m *AlbumImageMutation) Op() Op {
 	return m.op
@@ -920,77 +933,49 @@ func (m *AlbumImageMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AlbumImageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.album != nil {
-		edges = append(edges, albumimage.EdgeAlbum)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *AlbumImageMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case albumimage.EdgeAlbum:
-		if id := m.album; id != nil {
-			return []ent.Value{*id}
-		}
-	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AlbumImageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *AlbumImageMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AlbumImageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedalbum {
-		edges = append(edges, albumimage.EdgeAlbum)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *AlbumImageMutation) EdgeCleared(name string) bool {
-	switch name {
-	case albumimage.EdgeAlbum:
-		return m.clearedalbum
-	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *AlbumImageMutation) ClearEdge(name string) error {
-	switch name {
-	case albumimage.EdgeAlbum:
-		m.ClearAlbum()
-		return nil
-	}
 	return fmt.Errorf("unknown AlbumImage unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *AlbumImageMutation) ResetEdge(name string) error {
-	switch name {
-	case albumimage.EdgeAlbum:
-		m.ResetAlbum()
-		return nil
-	}
 	return fmt.Errorf("unknown AlbumImage edge %s", name)
 }
 

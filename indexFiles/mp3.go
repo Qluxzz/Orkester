@@ -2,6 +2,7 @@ package indexFiles
 
 import (
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 
@@ -51,7 +52,15 @@ func ParseMp3File(path string) (*IndexedTrack, error) {
 		}
 	}
 	track.Artists = append(track.Artists, trimNullFromString(mp3File.Artist()))
-	track.Date = trimNullFromString(mp3File.Year())
+
+	dateString := trimNullFromString(mp3File.Year())
+	parsedDate, err := ParseDateToIsoDate(dateString)
+
+	if err != nil {
+		log.Printf("%s invalid date string", dateString)
+	} else {
+		track.Date = parsedDate
+	}
 
 	if len(track.Artists) == 0 {
 		return nil, errors.New("track was missing artist")

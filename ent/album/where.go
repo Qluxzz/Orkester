@@ -4,6 +4,7 @@ package album
 
 import (
 	"goreact/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -103,6 +104,13 @@ func Name(v string) predicate.Album {
 func URLName(v string) predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldURLName), v))
+	})
+}
+
+// Released applies equality check predicate on the "released" field. It's identical to ReleasedEQ.
+func Released(v time.Time) predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReleased), v))
 	})
 }
 
@@ -328,6 +336,82 @@ func URLNameContainsFold(v string) predicate.Album {
 	})
 }
 
+// ReleasedEQ applies the EQ predicate on the "released" field.
+func ReleasedEQ(v time.Time) predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReleased), v))
+	})
+}
+
+// ReleasedNEQ applies the NEQ predicate on the "released" field.
+func ReleasedNEQ(v time.Time) predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldReleased), v))
+	})
+}
+
+// ReleasedIn applies the In predicate on the "released" field.
+func ReleasedIn(vs ...time.Time) predicate.Album {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Album(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldReleased), v...))
+	})
+}
+
+// ReleasedNotIn applies the NotIn predicate on the "released" field.
+func ReleasedNotIn(vs ...time.Time) predicate.Album {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Album(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldReleased), v...))
+	})
+}
+
+// ReleasedGT applies the GT predicate on the "released" field.
+func ReleasedGT(v time.Time) predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldReleased), v))
+	})
+}
+
+// ReleasedGTE applies the GTE predicate on the "released" field.
+func ReleasedGTE(v time.Time) predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldReleased), v))
+	})
+}
+
+// ReleasedLT applies the LT predicate on the "released" field.
+func ReleasedLT(v time.Time) predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldReleased), v))
+	})
+}
+
+// ReleasedLTE applies the LTE predicate on the "released" field.
+func ReleasedLTE(v time.Time) predicate.Album {
+	return predicate.Album(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldReleased), v))
+	})
+}
+
 // HasArtist applies the HasEdge predicate on the "artist" edge.
 func HasArtist() predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
@@ -384,25 +468,25 @@ func HasTracksWith(preds ...predicate.Track) predicate.Album {
 	})
 }
 
-// HasAlbumImage applies the HasEdge predicate on the "album_image" edge.
-func HasAlbumImage() predicate.Album {
+// HasCover applies the HasEdge predicate on the "cover" edge.
+func HasCover() predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AlbumImageTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, AlbumImageTable, AlbumImageColumn),
+			sqlgraph.To(CoverTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CoverTable, CoverColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasAlbumImageWith applies the HasEdge predicate on the "album_image" edge with a given conditions (other predicates).
-func HasAlbumImageWith(preds ...predicate.AlbumImage) predicate.Album {
+// HasCoverWith applies the HasEdge predicate on the "cover" edge with a given conditions (other predicates).
+func HasCoverWith(preds ...predicate.AlbumImage) predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AlbumImageInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, AlbumImageTable, AlbumImageColumn),
+			sqlgraph.To(CoverInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CoverTable, CoverColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

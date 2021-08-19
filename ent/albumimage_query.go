@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"goreact/ent/album"
 	"goreact/ent/albumimage"
 	"goreact/ent/predicate"
 	"math"
@@ -25,9 +24,6 @@ type AlbumImageQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.AlbumImage
-	// eager-loading edges.
-	withAlbum *AlbumQuery
-	withFKs   bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -62,28 +58,6 @@ func (aiq *AlbumImageQuery) Unique(unique bool) *AlbumImageQuery {
 func (aiq *AlbumImageQuery) Order(o ...OrderFunc) *AlbumImageQuery {
 	aiq.order = append(aiq.order, o...)
 	return aiq
-}
-
-// QueryAlbum chains the current query on the "album" edge.
-func (aiq *AlbumImageQuery) QueryAlbum() *AlbumQuery {
-	query := &AlbumQuery{config: aiq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := aiq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := aiq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(albumimage.Table, albumimage.FieldID, selector),
-			sqlgraph.To(album.Table, album.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, albumimage.AlbumTable, albumimage.AlbumColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(aiq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first AlbumImage entity from the query.
@@ -267,22 +241,10 @@ func (aiq *AlbumImageQuery) Clone() *AlbumImageQuery {
 		offset:     aiq.offset,
 		order:      append([]OrderFunc{}, aiq.order...),
 		predicates: append([]predicate.AlbumImage{}, aiq.predicates...),
-		withAlbum:  aiq.withAlbum.Clone(),
 		// clone intermediate query.
 		sql:  aiq.sql.Clone(),
 		path: aiq.path,
 	}
-}
-
-// WithAlbum tells the query-builder to eager-load the nodes that are connected to
-// the "album" edge. The optional arguments are used to configure the query builder of the edge.
-func (aiq *AlbumImageQuery) WithAlbum(opts ...func(*AlbumQuery)) *AlbumImageQuery {
-	query := &AlbumQuery{config: aiq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	aiq.withAlbum = query
-	return aiq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -348,19 +310,9 @@ func (aiq *AlbumImageQuery) prepareQuery(ctx context.Context) error {
 
 func (aiq *AlbumImageQuery) sqlAll(ctx context.Context) ([]*AlbumImage, error) {
 	var (
-		nodes       = []*AlbumImage{}
-		withFKs     = aiq.withFKs
-		_spec       = aiq.querySpec()
-		loadedTypes = [1]bool{
-			aiq.withAlbum != nil,
-		}
+		nodes = []*AlbumImage{}
+		_spec = aiq.querySpec()
 	)
-	if aiq.withAlbum != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, albumimage.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &AlbumImage{config: aiq.config}
 		nodes = append(nodes, node)
@@ -371,7 +323,6 @@ func (aiq *AlbumImageQuery) sqlAll(ctx context.Context) ([]*AlbumImage, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, aiq.driver, _spec); err != nil {
@@ -380,36 +331,6 @@ func (aiq *AlbumImageQuery) sqlAll(ctx context.Context) ([]*AlbumImage, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-
-	if query := aiq.withAlbum; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*AlbumImage)
-		for i := range nodes {
-			if nodes[i].album_image_album == nil {
-				continue
-			}
-			fk := *nodes[i].album_image_album
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
-		}
-		query.Where(album.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "album_image_album" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Album = n
-			}
-		}
-	}
-
 	return nodes, nil
 }
 

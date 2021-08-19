@@ -4,7 +4,6 @@ package ent
 
 import (
 	"fmt"
-	"goreact/ent/album"
 	"goreact/ent/albumimage"
 	"strings"
 
@@ -20,33 +19,6 @@ type AlbumImage struct {
 	Image []byte `json:"image,omitempty"`
 	// ImageMimeType holds the value of the "image_mime_type" field.
 	ImageMimeType string `json:"image_mime_type,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the AlbumImageQuery when eager-loading is set.
-	Edges             AlbumImageEdges `json:"edges"`
-	album_image_album *int
-}
-
-// AlbumImageEdges holds the relations/edges for other nodes in the graph.
-type AlbumImageEdges struct {
-	// Album holds the value of the album edge.
-	Album *Album `json:"album,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// AlbumOrErr returns the Album value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AlbumImageEdges) AlbumOrErr() (*Album, error) {
-	if e.loadedTypes[0] {
-		if e.Album == nil {
-			// The edge album was loaded in eager-loading,
-			// but was not found.
-			return nil, &NotFoundError{label: album.Label}
-		}
-		return e.Album, nil
-	}
-	return nil, &NotLoadedError{edge: "album"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -60,8 +32,6 @@ func (*AlbumImage) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case albumimage.FieldImageMimeType:
 			values[i] = new(sql.NullString)
-		case albumimage.ForeignKeys[0]: // album_image_album
-			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type AlbumImage", columns[i])
 		}
@@ -95,21 +65,9 @@ func (ai *AlbumImage) assignValues(columns []string, values []interface{}) error
 			} else if value.Valid {
 				ai.ImageMimeType = value.String
 			}
-		case albumimage.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field album_image_album", value)
-			} else if value.Valid {
-				ai.album_image_album = new(int)
-				*ai.album_image_album = int(value.Int64)
-			}
 		}
 	}
 	return nil
-}
-
-// QueryAlbum queries the "album" edge of the AlbumImage entity.
-func (ai *AlbumImage) QueryAlbum() *AlbumQuery {
-	return (&AlbumImageClient{config: ai.config}).QueryAlbum(ai)
 }
 
 // Update returns a builder for updating this AlbumImage.

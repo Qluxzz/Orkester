@@ -66,10 +66,11 @@ func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 		})
 
 		return c.JSON(&fiber.Map{
-			"id":      album.ID,
-			"name":    album.Name,
-			"urlName": album.URLName,
-			"tracks":  tracks,
+			"id":       album.ID,
+			"name":     album.Name,
+			"urlName":  album.URLName,
+			"tracks":   tracks,
+			"released": album.Released,
 			"artist": &models.Artist{
 				Id:      album.Edges.Artist.ID,
 				Name:    album.Edges.Artist.Name,
@@ -90,7 +91,7 @@ func GetAlbumCover(client *ent.Client, ctx context.Context) fiber.Handler {
 			Album.
 			Query().
 			Where(album.ID(id)).
-			QueryAlbumImage().
+			QueryCover().
 			Only(ctx)
 
 		if err != nil {

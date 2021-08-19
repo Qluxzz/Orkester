@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"goreact/ent/album"
 	"goreact/ent/albumimage"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -30,25 +29,6 @@ func (aic *AlbumImageCreate) SetImage(b []byte) *AlbumImageCreate {
 func (aic *AlbumImageCreate) SetImageMimeType(s string) *AlbumImageCreate {
 	aic.mutation.SetImageMimeType(s)
 	return aic
-}
-
-// SetAlbumID sets the "album" edge to the Album entity by ID.
-func (aic *AlbumImageCreate) SetAlbumID(id int) *AlbumImageCreate {
-	aic.mutation.SetAlbumID(id)
-	return aic
-}
-
-// SetNillableAlbumID sets the "album" edge to the Album entity by ID if the given value is not nil.
-func (aic *AlbumImageCreate) SetNillableAlbumID(id *int) *AlbumImageCreate {
-	if id != nil {
-		aic = aic.SetAlbumID(*id)
-	}
-	return aic
-}
-
-// SetAlbum sets the "album" edge to the Album entity.
-func (aic *AlbumImageCreate) SetAlbum(a *Album) *AlbumImageCreate {
-	return aic.SetAlbumID(a.ID)
 }
 
 // Mutation returns the AlbumImageMutation object of the builder.
@@ -153,26 +133,6 @@ func (aic *AlbumImageCreate) createSpec() (*AlbumImage, *sqlgraph.CreateSpec) {
 			Column: albumimage.FieldImageMimeType,
 		})
 		_node.ImageMimeType = value
-	}
-	if nodes := aic.mutation.AlbumIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   albumimage.AlbumTable,
-			Columns: []string{albumimage.AlbumColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: album.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.album_image_album = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

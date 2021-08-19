@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gabriel-vasile/mimetype"
 )
@@ -171,6 +172,6 @@ type IndexedTrack struct {
 	AlbumArtist string
 	TrackNumber int
 	Length      int
-	Date        string
+	Date        time.Time
 	MimeType    string
 }
