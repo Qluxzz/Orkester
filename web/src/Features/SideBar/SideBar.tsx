@@ -36,7 +36,7 @@ export interface IAlbumCoverSettings {
 }
 
 
-export default function SideBar(props: IAlbumCoverSettings) {
+export default function SideBar({ showAlbumCover, hideAlbumCover }: IAlbumCoverSettings) {
     const albumArtSize = 220
     const track = useTrackContext()
 
@@ -48,13 +48,13 @@ export default function SideBar(props: IAlbumCoverSettings) {
             <div
                 style={{
                     transition: "all 250ms",
-                    transform: `translateY(${props.showAlbumCover ? 0 : albumArtSize}px)`,
+                    transform: `translateY(${showAlbumCover ? 0 : albumArtSize}px)`,
                 }}
             >
                 <AlbumLink {...track.album}>
                     <AlbumImageWithToggle
                         album={track.album}
-                        onClick={props.hideAlbumCover}
+                        onClick={hideAlbumCover}
                         size={albumArtSize}
                         icon="⬇️"
                     />
