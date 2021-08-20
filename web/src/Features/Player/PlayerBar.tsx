@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import styled from "styled-components"
 
 import { AlbumLink } from "utilities/Links"
@@ -9,9 +9,6 @@ import Controls from "./Controls"
 
 import { useTrackContext } from "Context/TrackContext"
 import AlbumImageWithToggle from "Features/AlbumImageWithToggle"
-import { useControlsContext } from "Context/ControlsContext"
-import { useProgressContext } from "Context/ProgressContext"
-import { secondsToTimeFormat } from "utilities/secondsToTimeFormat"
 
 const Bar = styled.div`
   display: flex;
