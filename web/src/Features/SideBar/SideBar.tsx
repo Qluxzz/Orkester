@@ -1,23 +1,66 @@
 import React from "react"
-import { Link } from "react-router-dom"
+import { useTrackContext } from "Context/TrackContext"
 import styled from "styled-components"
 
-const Container = styled.ul`
-    background: #333;
-    padding: 10px;
-    margin: 0;
+import { AlbumLink } from "utilities/Links"
+import { Link } from "react-router-dom"
+import AlbumImageWithToggle from "Features/AlbumImageWithToggle"
 
-    li {
-        list-style: none;
-        padding: 10px;
-    }
+const Container = styled.div`
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: #333;
+    margin: 0;
+    overflow: hidden;
 
     width: 200px;
 `
 
+const List = styled.ul`
+    margin: 0;
+    padding: 0;
+    list-style: none;
 
-export default function SideBar() {
+    flex-grow: 1;
+
+    li {
+        padding: 10px 5px;
+        border: 1px solid grey;
+    }
+`
+
+export interface IAlbumCoverSettings {
+    showAlbumCover: boolean
+    hideAlbumCover: () => void
+}
+
+
+export default function SideBar(props: IAlbumCoverSettings) {
+    const albumArtSize = 220
+    const track = useTrackContext()
+
     return <Container>
-        <Link to="/collection/tracks"><li>Liked tracks</li></Link>
+        <List>
+            <Link to="/collection/tracks"><li>Liked tracks</li></Link>
+        </List>
+        {track &&
+            <div
+                style={{
+                    transition: "all 250ms",
+                    transform: `translateY(${props.showAlbumCover ? 0 : albumArtSize}px)`,
+                }}
+            >
+                <AlbumLink {...track.album}>
+                    <AlbumImageWithToggle
+                        album={track.album}
+                        onClick={props.hideAlbumCover}
+                        size={albumArtSize}
+                        icon="⬇️"
+                    />
+                </AlbumLink>
+            </div>
+        }
     </Container>
 }
+

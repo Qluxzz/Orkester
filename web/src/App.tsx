@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 
 import {
   BrowserRouter,
@@ -44,12 +44,19 @@ const ScrollableContent = styled.div`
   overflow: auto;
 `
 
+type AlbumCoverSize = "large" | "small"
+
 function App() {
+  const [albumCoverSize, setAlbumCoverSize] = useState<AlbumCoverSize>("small")
+
   return <AppContextProvider>
     <Container>
       <BrowserRouter>
         <Content>
-          <SideBar />
+          <SideBar
+            hideAlbumCover={() => setAlbumCoverSize("small")}
+            showAlbumCover={albumCoverSize === "large"}
+          />
           <MainContent>
             <Route path="/search/:query" children={() => <SearchBar />} />
             <ScrollableContent>
@@ -70,7 +77,10 @@ function App() {
             </ScrollableContent>
           </MainContent>
         </Content>
-        <PlayerBar />
+        <PlayerBar
+          showAlbumCover={albumCoverSize === "small"}
+          hideAlbumCover={() => setAlbumCoverSize("large")}
+        />
       </BrowserRouter>
     </Container>
   </AppContextProvider>
