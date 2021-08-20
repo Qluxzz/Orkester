@@ -121,7 +121,7 @@ function ArtistView(artist: IArtist) {
             {artist.albums.map(album =>
                 <AlbumLink key={album.id} {...album} hideDecoration>
                     <Album>
-                        <AlbumImage album={album} />
+                        <AlbumImage album={album} size="auto" />
                         <p>{album.name}</p>
                         <p>{formatReleaseDate(album.released)}</p>
                     </Album>
