@@ -26,6 +26,7 @@ globalStyle =
         , Css.Global.body
             [ height (pct 100)
             , color (hex "#FFF")
+            , fontFamily sansSerif
             ]
         ]
 
@@ -44,8 +45,8 @@ view model =
                 , div [] [ text "Main content" ]
                 ]
             ]
-        , div [ css [ backgroundColor (hex "#333"), padding (px 20) ] ]
-            [ text "Player"
+        , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
+            [ text "Nothing is currently playing..."
             ]
         ]
 
