@@ -36,10 +36,10 @@ view model =
         [ globalStyle
         , div
             [ css [ displayFlex, flexDirection row, backgroundColor (hex "#222"), height (pct 100) ] ]
-            [ aside [ css [ padding (px 20), backgroundColor (hex "#333") ] ] [ text "Sidebar" ]
+            [ aside [ css [ padding (px 10), backgroundColor (hex "#333"), width (px 200) ] ] [ text "Sidebar" ]
             , section [ css [ displayFlex, flexDirection column, padding (px 20), flexGrow (int 1) ] ]
-                [ div [ css [ marginBottom (px 20) ] ]
-                    [ input [ css [ width (pct 100) ], type_ "text" ] []
+                [ div [ css [ marginBottom (px 20), displayFlex ] ]
+                    [ input [ css [ flexGrow (int 1) ], type_ "text" ] []
                     ]
                 , div [] [ text "Main content" ]
                 ]
