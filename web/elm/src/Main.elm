@@ -93,7 +93,7 @@ view model =
 
 searchResultList : List { a | id : Int, name : String, urlName : String } -> Html Msg
 searchResultList entries =
-    ul [ css [ flexGrow (int 1), listStyle none, padding (px 0) ] ] (List.map searchResultEntry entries)
+    ul [ css [ flexGrow (int 1), listStyle none, padding (px 0), margin (px 0) ] ] (List.map searchResultEntry entries)
 
 
 searchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
