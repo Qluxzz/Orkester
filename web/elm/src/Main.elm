@@ -71,7 +71,7 @@ view model =
     div [ css [ height (pct 100), displayFlex, flexDirection column ] ]
         [ globalStyle
         , div
-            [ css [ displayFlex, flexDirection row, backgroundColor (hex "#222"), height (pct 100) ] ]
+            [ css [ displayFlex, flexDirection row, backgroundColor (hex "#222"), height (pct 100), overflow hidden ] ]
             [ aside [ css [ padding (px 10), backgroundColor (hex "#333"), width (px 200) ] ] [ text "Sidebar" ]
             , section [ css [ displayFlex, flexDirection column, padding (px 20), flexGrow (int 1) ] ]
                 [ div [ css [ displayFlex, flexDirection column, overflow auto ] ]
