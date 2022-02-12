@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Browser
 import Css exposing (..)
 import Css.Global
 import Html.Styled exposing (..)
