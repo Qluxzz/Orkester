@@ -1,11 +1,12 @@
 module Main exposing (..)
 
-import Browser
 import Css exposing (..)
 import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, type_, value)
 import Html.Styled.Events exposing (..)
+import Http
+import Json.Decode exposing (Decoder, Error(..))
 
 
 type alias IdNameAndUrlName =
@@ -42,15 +43,17 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { searchResult =
-        { albums = List.map (\_ -> { id = 1, name = "Maniac", urlName = "maniac" }) (List.range 1 100)
-        , artists = List.map (\_ -> { id = 1, name = "Carpenter Brut", urlName = "carpenter-brut" }) (List.range 1 50)
-        , tracks = [ { id = 1, title = "Maniac" } ]
-        }
-    , searchPhrase = ""
-    }
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { searchResult =
+            { albums = []
+            , artists = []
+            , tracks = []
+            }
+      , searchPhrase = ""
+      }
+    , Cmd.none
+    )
 
 
 globalStyle : Html msg
@@ -64,6 +67,10 @@ globalStyle =
             , color (hex "#FFF")
             , fontFamily sansSerif
             , overflow hidden
+            ]
+        , Css.Global.h1
+            [ margin (px 0)
+            , fontSize (px 32)
             ]
         ]
 
@@ -90,6 +97,7 @@ view model =
                     [ padding (px 10)
                     , backgroundColor (hex "#333")
                     , width (px 200)
+                    , flexShrink (int 0)
                     ]
                 ]
                 [ text "Sidebar" ]
@@ -125,9 +133,9 @@ view model =
                             , marginBottom (px 20)
                             ]
                         ]
-                        [ curriedSearchList model.searchResult.albums
-                        , curriedSearchList model.searchResult.artists
-                        , curriedSearchList (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
+                        [ curriedSearchList "Tracks" (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
+                        , curriedSearchList "Albums" model.searchResult.albums
+                        , curriedSearchList "Artists" model.searchResult.artists
                         ]
                     ]
                 , div [] [ text "Main content" ]
@@ -148,8 +156,8 @@ filter searchPhrase entry =
         String.contains (String.toLower searchPhrase) (String.toLower entry.name)
 
 
-searchResultList : String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
-searchResultList phrase entries =
+searchResultList : String -> String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultList phrase title entries =
     let
         filteredEntries =
             List.filter (filter phrase) entries
@@ -161,37 +169,93 @@ searchResultList phrase entries =
             else
                 List.map searchResultEntry filteredEntries
     in
-    ul
+    div
         [ css
             [ flexGrow (int 1)
-            , listStyle none
-            , padding (px 0)
-            , margin (px 0)
+            , flexShrink (int 1)
+            , flexBasis (px 0)
+            , maxWidth (px 300)
             ]
         ]
-        result
+        [ h1 [] [ text title ]
+        , ul
+            [ css
+                [ listStyle none
+                , padding (px 0)
+                , margin (px 0)
+                ]
+            ]
+            result
+        ]
 
 
 searchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
 searchResultEntry entry =
-    li [] [ text entry.name ]
+    li [ css [ margin2 (px 5) (px 0), padding2 (px 5) (px 0), textDecoration underline ] ] [ text entry.name ]
+
+
+albumDecoder : Decoder Album
+albumDecoder =
+    Json.Decode.map3 IdNameAndUrlName
+        (Json.Decode.field "id" Json.Decode.int)
+        (Json.Decode.field "name" Json.Decode.string)
+        (Json.Decode.field "urlName" Json.Decode.string)
+
+
+artistDecoder : Decoder Artist
+artistDecoder =
+    Json.Decode.map3 IdNameAndUrlName
+        (Json.Decode.field "id" Json.Decode.int)
+        (Json.Decode.field "name" Json.Decode.string)
+        (Json.Decode.field "urlName" Json.Decode.string)
+
+
+trackDecoder : Decoder Track
+trackDecoder =
+    Json.Decode.map2 Track
+        (Json.Decode.field "id" Json.Decode.int)
+        (Json.Decode.field "title" Json.Decode.string)
+
+
+searchResultDecoder : Decoder SearchResult
+searchResultDecoder =
+    Json.Decode.map3 SearchResult
+        (Json.Decode.field "albums" (Json.Decode.list albumDecoder))
+        (Json.Decode.field "artists" (Json.Decode.list artistDecoder))
+        (Json.Decode.field "tracks" (Json.Decode.list trackDecoder))
 
 
 type Msg
     = UpdateSearchPhrase String
+    | DataRecieved (Result Http.Error SearchResult)
 
 
-update : Msg -> Model -> Model
+getSearchResult : String -> Cmd Msg
+getSearchResult query =
+    Http.get
+        { url = "http://localhost:42000/api/v1/search/" ++ query
+        , expect = Http.expectJson DataRecieved searchResultDecoder
+        }
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         UpdateSearchPhrase phrase ->
-            { model | searchPhrase = phrase }
+            ( { model | searchPhrase = phrase }, getSearchResult phrase )
+
+        DataRecieved (Ok searchResult) ->
+            ( { model | searchResult = searchResult }, Cmd.none )
+
+        DataRecieved (Err _) ->
+            ( model, Cmd.none )
 
 
 main : Program () Model Msg
 main =
-    Browser.sandbox
+    Browser.element
         { init = init
         , view = \model -> toUnstyled (view model)
         , update = update
+        , subscriptions = \_ -> Sub.none
         }
