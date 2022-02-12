@@ -73,12 +73,54 @@ view model =
     div [ css [ height (pct 100), displayFlex, flexDirection column ] ]
         [ globalStyle
         , div
-            [ css [ displayFlex, flexDirection row, backgroundColor (hex "#222"), height (pct 100), overflow hidden ] ]
-            [ aside [ css [ padding (px 10), backgroundColor (hex "#333"), width (px 200) ] ] [ text "Sidebar" ]
-            , section [ css [ displayFlex, flexDirection column, padding (px 20), flexGrow (int 1) ] ]
-                [ div [ css [ displayFlex, flexDirection column, overflow auto ] ]
-                    [ input [ css [ flexGrow (int 1) ], type_ "text", value model.searchPhrase, onInput UpdateSearchPhrase ] []
-                    , div [ css [ displayFlex, overflow auto, marginTop (px 20), marginBottom (px 20) ] ]
+            [ css
+                [ displayFlex
+                , flexDirection row
+                , backgroundColor (hex "#222")
+                , height (pct 100)
+                , overflow hidden
+                ]
+            ]
+            [ aside
+                [ css
+                    [ padding (px 10)
+                    , backgroundColor (hex "#333")
+                    , width (px 200)
+                    ]
+                ]
+                [ text "Sidebar" ]
+            , section
+                [ css
+                    [ displayFlex
+                    , flexDirection column
+                    , padding (px 20)
+                    , flexGrow (int 1)
+                    ]
+                ]
+                [ div
+                    [ css
+                        [ displayFlex
+                        , flexDirection column
+                        , overflow auto
+                        ]
+                    ]
+                    [ input
+                        [ css
+                            [ flexGrow (int 1)
+                            ]
+                        , type_ "text"
+                        , value model.searchPhrase
+                        , onInput UpdateSearchPhrase
+                        ]
+                        []
+                    , div
+                        [ css
+                            [ displayFlex
+                            , overflow auto
+                            , marginTop (px 20)
+                            , marginBottom (px 20)
+                            ]
+                        ]
                         [ searchResultList model.searchPhrase model.searchResult.albums
                         , searchResultList model.searchPhrase model.searchResult.artists
                         , searchResultList model.searchPhrase (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
@@ -104,7 +146,15 @@ filter searchPhrase entry =
 
 searchResultList : String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
 searchResultList phrase entries =
-    ul [ css [ flexGrow (int 1), listStyle none, padding (px 0), margin (px 0) ] ] (List.map searchResultEntry (List.filter (filter phrase) entries))
+    ul
+        [ css
+            [ flexGrow (int 1)
+            , listStyle none
+            , padding (px 0)
+            , margin (px 0)
+            ]
+        ]
+        (entries |> List.filter (filter phrase) |> List.map searchResultEntry)
 
 
 searchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
