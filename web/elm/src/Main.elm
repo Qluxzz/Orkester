@@ -44,9 +44,9 @@ type alias Model =
 init : Model
 init =
     { searchResult =
-        { albums = [ { id = 1, name = "Maniac", urlName = "maniac" } ]
+        { albums = List.map (\_ -> { id = 1, name = "Maniac", urlName = "maniac" }) (List.range 1 100)
         , artists = [ { id = 1, name = "Carpenter Brut", urlName = "carpenter-brut" } ]
-        , tracks = []
+        , tracks = [ { id = 1, title = "Maniac" } ]
         }
     }
 
@@ -61,6 +61,7 @@ globalStyle =
             [ height (pct 100)
             , color (hex "#FFF")
             , fontFamily sansSerif
+            , overflow hidden
             ]
         ]
 
@@ -73,11 +74,12 @@ view model =
             [ css [ displayFlex, flexDirection row, backgroundColor (hex "#222"), height (pct 100) ] ]
             [ aside [ css [ padding (px 10), backgroundColor (hex "#333"), width (px 200) ] ] [ text "Sidebar" ]
             , section [ css [ displayFlex, flexDirection column, padding (px 20), flexGrow (int 1) ] ]
-                [ div [ css [ marginBottom (px 20), displayFlex, flexDirection column ] ]
+                [ div [ css [ marginBottom (px 20), displayFlex, flexDirection column, overflow auto ] ]
                     [ input [ css [ flexGrow (int 1) ], type_ "text" ] []
-                    , div [ css [ displayFlex ] ]
-                        [ ul [ css [ flexGrow (int 1) ] ] (List.map viewSearchResultEntry model.searchResult.albums)
-                        , ul [ css [ flexGrow (int 1) ] ] (List.map viewSearchResultEntry model.searchResult.artists)
+                    , div [ css [ displayFlex, overflow auto ] ]
+                        [ searchResultList model.searchResult.albums
+                        , searchResultList model.searchResult.artists
+                        , searchResultList (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
                         ]
                     ]
                 , div [] [ text "Main content" ]
@@ -89,8 +91,13 @@ view model =
         ]
 
 
-viewSearchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
-viewSearchResultEntry entry =
+searchResultList : List { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultList entries =
+    ul [ css [ flexGrow (int 1), listStyle none, padding (px 0) ] ] (List.map searchResultEntry entries)
+
+
+searchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultEntry entry =
     li [] [ text entry.name ]
 
 
