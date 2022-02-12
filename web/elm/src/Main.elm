@@ -3,9 +3,9 @@ module Main exposing (..)
 import Browser
 import Css exposing (..)
 import Css.Global
-import Html.Events exposing (..)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, type_)
+import Html.Styled.Attributes exposing (css, type_, value)
+import Html.Styled.Events exposing (..)
 
 
 type alias IdNameAndUrlName =
@@ -38,6 +38,7 @@ type alias SearchResult =
 
 type alias Model =
     { searchResult : SearchResult
+    , searchPhrase : String
     }
 
 
@@ -48,6 +49,7 @@ init =
         , artists = List.map (\_ -> { id = 1, name = "Carpenter Brut", urlName = "carpenter-brut" }) (List.range 1 50)
         , tracks = [ { id = 1, title = "Maniac" } ]
         }
+    , searchPhrase = ""
     }
 
 
@@ -75,11 +77,11 @@ view model =
             [ aside [ css [ padding (px 10), backgroundColor (hex "#333"), width (px 200) ] ] [ text "Sidebar" ]
             , section [ css [ displayFlex, flexDirection column, padding (px 20), flexGrow (int 1) ] ]
                 [ div [ css [ displayFlex, flexDirection column, overflow auto ] ]
-                    [ input [ css [ flexGrow (int 1) ], type_ "text" ] []
+                    [ input [ css [ flexGrow (int 1) ], type_ "text", value model.searchPhrase, onInput UpdateSearchPhrase ] []
                     , div [ css [ displayFlex, overflow auto, marginTop (px 20), marginBottom (px 20) ] ]
-                        [ searchResultList model.searchResult.albums
-                        , searchResultList model.searchResult.artists
-                        , searchResultList (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
+                        [ searchResultList model.searchPhrase model.searchResult.albums
+                        , searchResultList model.searchPhrase model.searchResult.artists
+                        , searchResultList model.searchPhrase (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
                         ]
                     ]
                 , div [] [ text "Main content" ]
@@ -91,9 +93,9 @@ view model =
         ]
 
 
-searchResultList : List { a | id : Int, name : String, urlName : String } -> Html Msg
-searchResultList entries =
-    ul [ css [ flexGrow (int 1), listStyle none, padding (px 0), margin (px 0) ] ] (List.map searchResultEntry entries)
+searchResultList : String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultList phrase entries =
+    ul [ css [ flexGrow (int 1), listStyle none, padding (px 0), margin (px 0) ] ] (List.map searchResultEntry (List.filter (\x -> String.startsWith phrase x.name) entries))
 
 
 searchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
@@ -102,14 +104,14 @@ searchResultEntry entry =
 
 
 type Msg
-    = Nothing
+    = UpdateSearchPhrase String
 
 
 update : Msg -> Model -> Model
 update message model =
     case message of
-        _ ->
-            model
+        UpdateSearchPhrase phrase ->
+            { model | searchPhrase = phrase }
 
 
 main : Program () Model Msg
