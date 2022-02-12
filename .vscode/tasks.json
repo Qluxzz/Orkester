@@ -23,6 +23,15 @@
             }
         },
         {
+            "label": "watch elm client",
+            "type": "shell",
+            "command": "cd web/elm && elm reactor",
+            "problemMatcher": [],
+            "presentation": {
+                "group": "watch"
+            }
+        },
+        {
             "label": "run tests",
             "type": "shell",
             "command": "go test ./...",
