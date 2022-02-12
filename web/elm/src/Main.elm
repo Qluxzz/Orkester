@@ -45,7 +45,7 @@ init : Model
 init =
     { searchResult =
         { albums = List.map (\_ -> { id = 1, name = "Maniac", urlName = "maniac" }) (List.range 1 100)
-        , artists = [ { id = 1, name = "Carpenter Brut", urlName = "carpenter-brut" } ]
+        , artists = List.map (\_ -> { id = 1, name = "Carpenter Brut", urlName = "carpenter-brut" }) (List.range 1 50)
         , tracks = [ { id = 1, title = "Maniac" } ]
         }
     }
@@ -74,9 +74,9 @@ view model =
             [ css [ displayFlex, flexDirection row, backgroundColor (hex "#222"), height (pct 100) ] ]
             [ aside [ css [ padding (px 10), backgroundColor (hex "#333"), width (px 200) ] ] [ text "Sidebar" ]
             , section [ css [ displayFlex, flexDirection column, padding (px 20), flexGrow (int 1) ] ]
-                [ div [ css [ marginBottom (px 20), displayFlex, flexDirection column, overflow auto ] ]
+                [ div [ css [ displayFlex, flexDirection column, overflow auto ] ]
                     [ input [ css [ flexGrow (int 1) ], type_ "text" ] []
-                    , div [ css [ displayFlex, overflow auto ] ]
+                    , div [ css [ displayFlex, overflow auto, marginTop (px 20), marginBottom (px 20) ] ]
                         [ searchResultList model.searchResult.albums
                         , searchResultList model.searchResult.artists
                         , searchResultList (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
