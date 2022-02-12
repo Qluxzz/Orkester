@@ -146,6 +146,17 @@ filter searchPhrase entry =
 
 searchResultList : String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
 searchResultList phrase entries =
+    let
+        filteredEntries =
+            List.filter (filter phrase) entries
+
+        result =
+            if List.isEmpty filteredEntries then
+                [ li [] [ text "No entry matched the prhase" ] ]
+
+            else
+                List.map searchResultEntry filteredEntries
+    in
     ul
         [ css
             [ flexGrow (int 1)
@@ -154,7 +165,7 @@ searchResultList phrase entries =
             , margin (px 0)
             ]
         ]
-        (entries |> List.filter (filter phrase) |> List.map searchResultEntry)
+        result
 
 
 searchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
