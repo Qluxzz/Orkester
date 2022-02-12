@@ -70,6 +70,10 @@ globalStyle =
 
 view : Model -> Html Msg
 view model =
+    let
+        curriedSearchList =
+            searchResultList model.searchPhrase
+    in
     div [ css [ height (pct 100), displayFlex, flexDirection column ] ]
         [ globalStyle
         , div
@@ -121,9 +125,9 @@ view model =
                             , marginBottom (px 20)
                             ]
                         ]
-                        [ searchResultList model.searchPhrase model.searchResult.albums
-                        , searchResultList model.searchPhrase model.searchResult.artists
-                        , searchResultList model.searchPhrase (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
+                        [ curriedSearchList model.searchResult.albums
+                        , curriedSearchList model.searchResult.artists
+                        , curriedSearchList (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
                         ]
                     ]
                 , div [] [ text "Main content" ]
