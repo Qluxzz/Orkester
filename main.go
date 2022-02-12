@@ -8,6 +8,7 @@ import (
 	"goreact/handlers"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -33,6 +34,8 @@ func main() {
 	// Middlewares
 
 	app.Use(logger.New())
+
+	app.Use(cors.New())
 
 	// Routes
 
