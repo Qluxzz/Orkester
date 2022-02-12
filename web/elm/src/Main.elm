@@ -93,9 +93,18 @@ view model =
         ]
 
 
+filter : String -> { a | name : String } -> Bool
+filter searchPhrase entry =
+    if String.isEmpty searchPhrase then
+        True
+
+    else
+        String.contains (String.toLower searchPhrase) (String.toLower entry.name)
+
+
 searchResultList : String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
 searchResultList phrase entries =
-    ul [ css [ flexGrow (int 1), listStyle none, padding (px 0), margin (px 0) ] ] (List.map searchResultEntry (List.filter (\x -> String.startsWith phrase x.name) entries))
+    ul [ css [ flexGrow (int 1), listStyle none, padding (px 0), margin (px 0) ] ] (List.map searchResultEntry (List.filter (filter phrase) entries))
 
 
 searchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
