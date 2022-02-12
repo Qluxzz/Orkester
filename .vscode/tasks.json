@@ -14,13 +14,10 @@
             }
         },
         {
-            "label": "watch client",
+            "label": "watch react client",
             "type": "shell",
-            "command": "cd web/ && npm install && npm start",
+            "command": "cd web/react && npm install && npm start",
             "problemMatcher": [],
-            "runOptions": {
-                "runOn": "folderOpen"
-            },
             "presentation": {
                 "group": "watch"
             }
