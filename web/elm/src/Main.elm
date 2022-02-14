@@ -78,10 +78,6 @@ globalStyle =
 
 view : Model -> Html Msg
 view model =
-    let
-        curriedSearchList =
-            searchResultList model.searchPhrase
-    in
     div [ css [ height (pct 100), displayFlex, flexDirection column ] ]
         [ globalStyle
         , div
@@ -110,40 +106,49 @@ view model =
                     , flexGrow (int 1)
                     ]
                 ]
-                [ div
-                    [ css
-                        [ displayFlex
-                        , flexDirection column
-                        , overflow auto
-                        ]
-                    ]
-                    [ input
-                        [ css
-                            [ flexGrow (int 1)
-                            ]
-                        , type_ "text"
-                        , value model.searchPhrase
-                        , onInput UpdateSearchPhrase
-                        ]
-                        []
-                    , div
-                        [ css
-                            [ displayFlex
-                            , overflow auto
-                            , marginTop (px 20)
-                            , marginBottom (px 20)
-                            ]
-                        ]
-                        [ curriedSearchList "Tracks" (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
-                        , curriedSearchList "Albums" model.searchResult.albums
-                        , curriedSearchList "Artists" model.searchResult.artists
-                        ]
-                    ]
+                [ search model
                 , div [] [ text "Main content" ]
                 ]
             ]
         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
             [ text "Nothing is currently playing..."
+            ]
+        ]
+
+
+search : Model -> Html Msg
+search model =
+    let
+        curriedSearchList =
+            searchResultList model.searchPhrase
+    in
+    div
+        [ css
+            [ displayFlex
+            , flexDirection column
+            , overflow auto
+            ]
+        ]
+        [ input
+            [ css
+                [ flexGrow (int 1)
+                ]
+            , type_ "text"
+            , value model.searchPhrase
+            , onInput UpdateSearchPhrase
+            ]
+            []
+        , div
+            [ css
+                [ displayFlex
+                , overflow auto
+                , marginTop (px 20)
+                , marginBottom (px 20)
+                ]
+            ]
+            [ curriedSearchList "Tracks" (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
+            , curriedSearchList "Albums" model.searchResult.albums
+            , curriedSearchList "Artists" model.searchResult.artists
             ]
         ]
 
@@ -243,7 +248,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         UpdateSearchPhrase phrase ->
-            ( { model | searchPhrase = phrase }, getSearchResult phrase )
+            if String.isEmpty phrase then
+                ( { model | searchPhrase = phrase }, Cmd.none )
+
+            else
+                ( { model | searchPhrase = phrase }, getSearchResult phrase )
 
         DataRecieved (Ok searchResult) ->
             ( { model | searchResult = searchResult }, Cmd.none )
