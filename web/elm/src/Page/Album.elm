@@ -74,9 +74,9 @@ type Msg
     | AlbumReceived (WebData Album)
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { album = RemoteData.Loading }, httpCommand 1 )
+init : Int -> ( Model, Cmd Msg )
+init albumId =
+    ( { album = RemoteData.Loading }, httpCommand albumId )
 
 
 httpCommand : Int -> Cmd Msg
