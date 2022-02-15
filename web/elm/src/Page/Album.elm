@@ -1,5 +1,6 @@
 module Page.Album exposing (Model, Msg, init, update, view)
 
+import BaseUrl exposing (baseUrl)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (href, src)
 import Http
@@ -82,7 +83,7 @@ init albumId =
 httpCommand : Int -> Cmd Msg
 httpCommand albumId =
     Http.get
-        { url = "http://localhost:42000/api/v1/album/" ++ String.fromInt albumId
+        { url = baseUrl ++ "/api/v1/album/" ++ String.fromInt albumId
         , expect =
             albumDecoder
                 |> Http.expectJson (RemoteData.fromResult >> AlbumReceived)
@@ -131,7 +132,7 @@ albumViewOrError model =
 albumView : Album -> Html msg
 albumView album =
     section []
-        [ img [ src ("http://localhost:42000/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+        [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
         , div []
             [ h1 [] [ text album.name ]
             , p []

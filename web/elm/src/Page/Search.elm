@@ -1,5 +1,7 @@
 module Page.Search exposing (..)
 
+import BaseUrl exposing (baseUrl)
+
 
 type alias IdNameAndUrlName =
     { id : Int
@@ -134,7 +136,7 @@ type Msg
 getSearchResult : String -> Cmd Msg
 getSearchResult query =
     Http.get
-        { url = "http://localhost:42000/api/v1/search/" ++ query
+        { url = baseUrl ++ "/api/v1/search/" ++ query
         , expect = Http.expectJson DataRecieved searchResultDecoder
         }
 
