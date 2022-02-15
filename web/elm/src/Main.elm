@@ -2,71 +2,71 @@ module Main exposing (..)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
+import Css exposing (..)
+import Css.Global
 import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (css)
 import Page.Album as AlbumPage
 import Route exposing (Route)
 import Url exposing (Url)
 
 
+globalStyle : Html msg
+globalStyle =
+    Css.Global.global
+        [ Css.Global.html
+            [ height (pct 100)
+            ]
+        , Css.Global.body
+            [ height (pct 100)
+            , color (hex "#FFF")
+            , fontFamily sansSerif
+            , overflow hidden
+            ]
+        , Css.Global.h1
+            [ margin (px 0)
+            , fontSize (px 32)
+            ]
+        ]
 
--- globalStyle : Html msg
--- globalStyle =
---     Css.Global.global
---         [ Css.Global.html
---             [ height (pct 100)
---             ]
---         , Css.Global.body
---             [ height (pct 100)
---             , color (hex "#FFF")
---             , fontFamily sansSerif
---             , overflow hidden
---             ]
---         , Css.Global.h1
---             [ margin (px 0)
---             , fontSize (px 32)
---             ]
---         ]
--- type Msg
---     = Nothing
--- type alias Model =
---     {}
--- view : Model -> Html Msg
--- view model =
---     div [ css [ height (pct 100), displayFlex, flexDirection column ] ]
---         [ globalStyle
---         , div
---             [ css
---                 [ displayFlex
---                 , flexDirection row
---                 , backgroundColor (hex "#222")
---                 , height (pct 100)
---                 , overflow hidden
---                 ]
---             ]
---             [ aside
---                 [ css
---                     [ padding (px 10)
---                     , backgroundColor (hex "#333")
---                     , width (px 200)
---                     , flexShrink (int 0)
---                     ]
---                 ]
---                 [ text "Sidebar" ]
---             , section
---                 [ css
---                     [ displayFlex
---                     , flexDirection column
---                     , padding (px 20)
---                     , flexGrow (int 1)
---                     ]
---                 ]
---                 [ div [] [ text "Main content" ]
---                 ]
---             ]
---         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
---             [ text "Nothing is currently playing..."
---             ]
---         ]
+
+baseView : Html Msg -> Html Msg
+baseView mainContent =
+    div [ css [ height (pct 100), displayFlex, flexDirection column ] ]
+        [ globalStyle
+        , div
+            [ css
+                [ displayFlex
+                , flexDirection row
+                , backgroundColor (hex "#222")
+                , height (pct 100)
+                , overflow hidden
+                ]
+            ]
+            [ aside
+                [ css
+                    [ padding (px 10)
+                    , backgroundColor (hex "#333")
+                    , width (px 200)
+                    , flexShrink (int 0)
+                    ]
+                ]
+                [ text "Sidebar" ]
+            , section
+                [ css
+                    [ displayFlex
+                    , flexDirection column
+                    , padding (px 20)
+                    , flexGrow (int 1)
+                    ]
+                ]
+                [ mainContent
+                ]
+            ]
+        , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
+            [ text "Nothing is currently playing..."
+            ]
+        ]
 
 
 type alias Model =
@@ -162,7 +162,7 @@ initCurrentPage ( model, existingCmds ) =
 view : Model -> Document Msg
 view model =
     { title = "Orkester"
-    , body = [ currentView model |> toUnstyled ]
+    , body = [ baseView (currentView model) |> toUnstyled ]
     }
 
 
