@@ -1,4 +1,4 @@
-module Page.Album exposing (Model, Msg, init, update, view)
+module Page.Album exposing (Model, Msg, formatReleaseDate, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Html.Styled exposing (..)
@@ -7,7 +7,6 @@ import Http
 import Json.Decode as Decode exposing (Decoder, bool, int, list, string)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
-import Time
 
 
 type alias Album =

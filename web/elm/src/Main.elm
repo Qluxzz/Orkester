@@ -7,6 +7,7 @@ import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
 import Page.Album as AlbumPage
+import Page.Artist as ArtistPage
 import Route exposing (Route)
 import Url exposing (Url)
 
@@ -80,10 +81,12 @@ type Page
     = NotFoundPage
     | IndexPage
     | AlbumPage AlbumPage.Model
+    | ArtistPage ArtistPage.Model
 
 
 type Msg
     = AlbumPageMsg AlbumPage.Msg
+    | ArtistPageMsg ArtistPage.Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
 
@@ -98,6 +101,15 @@ update msg model =
             in
             ( { model | page = AlbumPage updatedPageModel }
             , Cmd.map AlbumPageMsg updatedCmd
+            )
+
+        ( ArtistPageMsg subMsg, ArtistPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    ArtistPage.update subMsg pageModel
+            in
+            ( { model | page = ArtistPage updatedPageModel }
+            , Cmd.map ArtistPageMsg updatedCmd
             )
 
         ( LinkClicked urlRequest, _ ) ->
@@ -144,12 +156,19 @@ initCurrentPage ( model, existingCmds ) =
                 Route.NotFound ->
                     ( NotFoundPage, Cmd.none )
 
-                Route.Album id ->
+                Route.Album id _ ->
                     let
                         ( pageModel, pageCmds ) =
                             AlbumPage.init id
                     in
                     ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
+
+                Route.Artist id _ ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            ArtistPage.init id
+                    in
+                    ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
 
                 Route.HomePage ->
                     ( IndexPage, Cmd.none )
@@ -175,6 +194,10 @@ currentView model =
         AlbumPage albumModel ->
             AlbumPage.view albumModel
                 |> map AlbumPageMsg
+
+        ArtistPage artistModel ->
+            ArtistPage.view artistModel
+                |> map ArtistPageMsg
 
         IndexPage ->
             indexView
