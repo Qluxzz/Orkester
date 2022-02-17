@@ -1,10 +1,11 @@
 module Page.Album exposing (Model, Msg, formatReleaseDate, init, update, view)
 
 import BaseUrl exposing (baseUrl)
+import Css exposing (displayFlex, flexGrow, int, paddingTop, px, width)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (href, src)
+import Html.Styled.Attributes exposing (css, href, src)
 import Http
-import Json.Decode as Decode exposing (Decoder, bool, int, list, string)
+import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
 
@@ -38,7 +39,7 @@ type alias Artist =
 albumDecoder : Decoder Album
 albumDecoder =
     Decode.succeed Album
-        |> required "id" int
+        |> required "id" Decode.int
         |> required "name" string
         |> required "urlName" string
         |> required "tracks" (list trackDecoder)
@@ -49,17 +50,17 @@ albumDecoder =
 trackDecoder : Decoder Track
 trackDecoder =
     Decode.succeed Track
-        |> required "id" int
-        |> required "trackNumber" int
+        |> required "id" Decode.int
+        |> required "trackNumber" Decode.int
         |> required "title" string
-        |> required "length" int
+        |> required "length" Decode.int
         |> required "liked" bool
 
 
 artistDecoder : Decoder Artist
 artistDecoder =
     Decode.succeed Artist
-        |> required "id" int
+        |> required "id" Decode.int
         |> required "name" string
         |> required "urlName" string
 
@@ -124,7 +125,7 @@ albumViewOrError model =
         RemoteData.Success album ->
             albumView album
 
-        RemoteData.Failure httpError ->
+        RemoteData.Failure _ ->
             text "Failed to load album"
 
 
@@ -134,36 +135,34 @@ albumView album =
         [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
         , div []
             [ h1 [] [ text album.name ]
-            , p []
-                [ a [ href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
-                , span [] [ text (formatReleaseDate album.released) ]
-                , span [] [ text (formatTracksDisplay album.tracks) ]
-                , span [] [ text (calculateAlbumLength album.tracks) ]
+            , div [ css [ displayFlex ] ]
+                [ a [ css [ Css.padding2 (px 5) (px 5) ], href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
+                , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (formatReleaseDate album.released) ]
+                , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (formatTracksDisplay album.tracks) ]
+                , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (calculateAlbumLength album.tracks) ]
                 ]
             ]
-        , table []
-            [ thead []
-                [ th []
-                    [ td [] [ text "#" ]
-                    , td [] [ text "TITLE" ]
-                    , td [] [ text "DURATION" ]
-                    ]
-                ]
-            , tbody []
-                (List.map
-                    albumTrackTableRow
-                    album.tracks
-                )
-            ]
+        , div []
+            (table
+                album.tracks
+            )
         ]
 
 
-albumTrackTableRow : Track -> Html msg
-albumTrackTableRow track =
-    tr []
-        [ td [] [ text (String.fromInt track.trackNumber) ]
-        , td [] [ text track.title ]
-        , td [] [ text (String.fromInt track.length) ]
+table : List Track -> List (Html msg)
+table tracks =
+    tableRow "#" "TITLE" "DURATION"
+        :: List.map
+            (\track -> tableRow (String.fromInt track.trackNumber) track.title (calculateTrackLength track.length))
+            tracks
+
+
+tableRow : String -> String -> String -> Html msg
+tableRow col1 col2 col3 =
+    div [ css [ displayFlex, paddingTop (px 5) ] ]
+        [ div [ css [ width (px 50) ] ] [ text col1 ]
+        , div [ css [ flexGrow (int 1) ] ] [ text col2 ]
+        , div [ css [] ] [ text col3 ]
         ]
 
 
@@ -182,17 +181,23 @@ formatTracksDisplay tracks =
 
 calculateAlbumLength : List Track -> String
 calculateAlbumLength tracks =
-    let
-        totalSeconds =
-            List.foldl (\track acc -> acc + track.length) 0 tracks
+    calculateTrackLength <| List.foldl (\track acc -> acc + track.length) 0 tracks
 
+
+calculateTrackLength : Int -> String
+calculateTrackLength length =
+    let
         minutes =
-            totalSeconds // 60
+            length // 60
 
         seconds =
-            totalSeconds - minutes * 60
+            length - minutes * 60
     in
-    String.fromInt minutes ++ " min " ++ String.fromInt seconds ++ " sec"
+    if minutes > 0 then
+        String.fromInt minutes ++ " min " ++ String.fromInt seconds ++ " sec"
+
+    else
+        String.fromInt seconds ++ " sec"
 
 
 {-| Format release date
