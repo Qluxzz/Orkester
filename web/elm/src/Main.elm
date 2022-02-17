@@ -12,6 +12,11 @@ import Route exposing (Route)
 import Url exposing (Url)
 
 
+textColor : Color
+textColor =
+    hex "#FFF"
+
+
 globalStyle : Html msg
 globalStyle =
     Css.Global.global
@@ -20,13 +25,17 @@ globalStyle =
             ]
         , Css.Global.body
             [ height (pct 100)
-            , color (hex "#FFF")
+            , color textColor
             , fontFamily sansSerif
             , overflow hidden
             ]
         , Css.Global.h1
             [ margin (px 0)
             , fontSize (px 32)
+            ]
+        , Css.Global.a
+            [ color textColor
+            , textDecoration none
             ]
         ]
 
