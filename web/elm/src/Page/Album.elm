@@ -71,17 +71,16 @@ type alias Model =
 
 
 type Msg
-    = FetchAlbum
-    | AlbumReceived (WebData Album)
+    = AlbumReceived (WebData Album)
 
 
 init : Int -> ( Model, Cmd Msg )
 init albumId =
-    ( { album = RemoteData.Loading }, httpCommand albumId )
+    ( { album = RemoteData.Loading }, getAlbumById albumId )
 
 
-httpCommand : Int -> Cmd Msg
-httpCommand albumId =
+getAlbumById : Int -> Cmd Msg
+getAlbumById albumId =
     Http.get
         { url = baseUrl ++ "/api/v1/album/" ++ String.fromInt albumId
         , expect =
@@ -97,9 +96,6 @@ httpCommand albumId =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        FetchAlbum ->
-            ( { model | album = RemoteData.Loading }, httpCommand 1 )
-
         AlbumReceived response ->
             ( { model | album = response }, Cmd.none )
 
@@ -151,19 +147,29 @@ albumView album =
 
 table : List Track -> List (Html msg)
 table tracks =
-    tableRow "#" "TITLE" "DURATION"
+    tableRow "#" "TITLE" "LIKED" "DURATION"
         :: List.map
-            (\track -> tableRow (String.fromInt track.trackNumber) track.title (formatTrackLength track.length))
+            (\track -> tableRow (String.fromInt track.trackNumber) track.title (likedDisplay track.liked) (formatTrackLength track.length))
             tracks
 
 
-tableRow : String -> String -> String -> Html msg
-tableRow col1 col2 col3 =
+tableRow : String -> String -> String -> String -> Html msg
+tableRow col1 col2 col3 col4 =
     div [ css [ displayFlex, paddingTop (px 5) ] ]
         [ div [ css [ width (px 50) ] ] [ text col1 ]
         , div [ css [ flexGrow (int 1) ] ] [ text col2 ]
-        , div [ css [] ] [ text col3 ]
+        , div [ css [ width (px 50) ] ] [ text col3 ]
+        , div [ css [] ] [ text col4 ]
         ]
+
+
+likedDisplay : Bool -> String
+likedDisplay liked =
+    if liked then
+        "Liked"
+
+    else
+        "Like"
 
 
 formatTracksDisplay : List Track -> String
