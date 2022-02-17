@@ -1,7 +1,7 @@
 module Page.Artist exposing (Model, Msg, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (displayFlex, flexWrap, wrap)
+import Css exposing (displayFlex, flexWrap, px, width, wrap)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
@@ -123,7 +123,7 @@ artistView artist =
 
 albumView : Album -> Html Msg
 albumView album =
-    div []
+    div [ css [ width (px 300) ] ]
         [ a [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ]
             [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
             , h2 [] [ text album.name ]
