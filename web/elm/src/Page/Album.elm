@@ -139,7 +139,7 @@ albumView album =
                 [ a [ css [ Css.padding2 (px 5) (px 5) ], href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
                 , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (formatReleaseDate album.released) ]
                 , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (formatTracksDisplay album.tracks) ]
-                , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (calculateAlbumLength album.tracks) ]
+                , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (formatAlbumLength album.tracks) ]
                 ]
             ]
         , div []
@@ -153,7 +153,7 @@ table : List Track -> List (Html msg)
 table tracks =
     tableRow "#" "TITLE" "DURATION"
         :: List.map
-            (\track -> tableRow (String.fromInt track.trackNumber) track.title (calculateTrackLength track.length))
+            (\track -> tableRow (String.fromInt track.trackNumber) track.title (formatTrackLength track.length))
             tracks
 
 
@@ -179,13 +179,13 @@ formatTracksDisplay tracks =
         amountOfTracks ++ " track"
 
 
-calculateAlbumLength : List Track -> String
-calculateAlbumLength tracks =
-    calculateTrackLength <| List.foldl (\track acc -> acc + track.length) 0 tracks
+formatAlbumLength : List Track -> String
+formatAlbumLength tracks =
+    formatTrackLength <| List.foldl (\track acc -> acc + track.length) 0 tracks
 
 
-calculateTrackLength : Int -> String
-calculateTrackLength length =
+formatTrackLength : Int -> String
+formatTrackLength length =
     let
         minutes =
             length // 60
