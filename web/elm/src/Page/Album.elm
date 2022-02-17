@@ -184,6 +184,9 @@ formatAlbumLength tracks =
     formatTrackLength <| List.foldl (\track acc -> acc + track.length) 0 tracks
 
 
+{-| Format track length
+Returns track length formatted as x min x sec
+-}
 formatTrackLength : Int -> String
 formatTrackLength length =
     let
