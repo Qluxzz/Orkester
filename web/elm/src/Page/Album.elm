@@ -73,10 +73,10 @@ type alias Model =
 
 type Msg
     = AlbumReceived (WebData Album)
-    | LikedTrack Int (Result Http.Error ())
     | LikeTrack Int
+    | LikeTrackResponse Int (Result Http.Error ())
     | UnlikeTrack Int
-    | UnlikedTrack Int (Result Http.Error ())
+    | UnlikeTrackResponse Int (Result Http.Error ())
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -101,7 +101,7 @@ likeTrackById trackId =
         , headers = []
         , url = baseUrl ++ "/api/v1/track/" ++ String.fromInt trackId ++ "/like"
         , body = Http.emptyBody
-        , expect = Http.expectWhatever (LikedTrack trackId)
+        , expect = Http.expectWhatever (LikeTrackResponse trackId)
         , timeout = Nothing
         , tracker = Nothing
         }
@@ -114,7 +114,7 @@ unlikeTrackById trackId =
         , headers = []
         , url = baseUrl ++ "/api/v1/track/" ++ String.fromInt trackId ++ "/like"
         , body = Http.emptyBody
-        , expect = Http.expectWhatever (UnlikedTrack trackId)
+        , expect = Http.expectWhatever (UnlikeTrackResponse trackId)
         , timeout = Nothing
         , tracker = Nothing
         }
@@ -147,7 +147,7 @@ update msg model =
         AlbumReceived response ->
             ( { model | album = response }, Cmd.none )
 
-        LikedTrack trackId response ->
+        LikeTrackResponse trackId response ->
             let
                 ( album, cmd ) =
                     RemoteData.update (setTrackLikeStatus trackId True) model.album
@@ -165,7 +165,7 @@ update msg model =
         UnlikeTrack trackId ->
             ( model, unlikeTrackById trackId )
 
-        UnlikedTrack trackId response ->
+        UnlikeTrackResponse trackId response ->
             let
                 ( album, cmd ) =
                     RemoteData.update (setTrackLikeStatus trackId False) model.album
