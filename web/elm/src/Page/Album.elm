@@ -4,6 +4,7 @@ import BaseUrl exposing (baseUrl)
 import Css exposing (displayFlex, flexGrow, int, paddingTop, px, width)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
+import Html.Styled.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
@@ -72,6 +73,10 @@ type alias Model =
 
 type Msg
     = AlbumReceived (WebData Album)
+    | LikedTrack Int (Result Http.Error ())
+    | LikeTrack Int
+    | UnlikeTrack Int
+    | UnlikedTrack Int (Result Http.Error ())
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -89,6 +94,49 @@ getAlbumById albumId =
         }
 
 
+likeTrackById : Int -> Cmd Msg
+likeTrackById trackId =
+    Http.request
+        { method = "PUT"
+        , headers = []
+        , url = baseUrl ++ "/api/v1/track/" ++ String.fromInt trackId ++ "/like"
+        , body = Http.emptyBody
+        , expect = Http.expectWhatever (LikedTrack trackId)
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+unlikeTrackById : Int -> Cmd Msg
+unlikeTrackById trackId =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = baseUrl ++ "/api/v1/track/" ++ String.fromInt trackId ++ "/like"
+        , body = Http.emptyBody
+        , expect = Http.expectWhatever (UnlikedTrack trackId)
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+setTrackLikeStatus : Int -> Bool -> Album -> ( Album, Cmd msg )
+setTrackLikeStatus trackId liked album =
+    let
+        updatedTracks =
+            List.map
+                (\track ->
+                    if track.id == trackId then
+                        { track | liked = liked }
+
+                    else
+                        track
+                )
+                album.tracks
+    in
+    ( { album | tracks = updatedTracks }, Cmd.none )
+
+
 
 -- UPDATE
 
@@ -98,6 +146,36 @@ update msg model =
     case msg of
         AlbumReceived response ->
             ( { model | album = response }, Cmd.none )
+
+        LikedTrack trackId response ->
+            let
+                ( album, cmd ) =
+                    RemoteData.update (setTrackLikeStatus trackId True) model.album
+            in
+            case response of
+                Ok _ ->
+                    ( { model | album = album }, cmd )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        LikeTrack trackId ->
+            ( model, likeTrackById trackId )
+
+        UnlikeTrack trackId ->
+            ( model, unlikeTrackById trackId )
+
+        UnlikedTrack trackId response ->
+            let
+                ( album, cmd ) =
+                    RemoteData.update (setTrackLikeStatus trackId False) model.album
+            in
+            case response of
+                Ok _ ->
+                    ( { model | album = album }, cmd )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 
@@ -125,7 +203,7 @@ albumViewOrError model =
             text "Failed to load album"
 
 
-albumView : Album -> Html msg
+albumView : Album -> Html Msg
 albumView album =
     section []
         [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
@@ -145,11 +223,11 @@ albumView album =
         ]
 
 
-table : List Track -> List (Html msg)
+table : List Track -> List (Html Msg)
 table tracks =
     tableRow "#" "TITLE" "LIKED" "DURATION"
         :: List.map
-            (\track -> tableRow (String.fromInt track.trackNumber) track.title (likedDisplay track.liked) (formatTrackLength track.length))
+            (\track -> trackRow track)
             tracks
 
 
@@ -160,6 +238,24 @@ tableRow col1 col2 col3 col4 =
         , div [ css [ flexGrow (int 1) ] ] [ text col2 ]
         , div [ css [ width (px 50) ] ] [ text col3 ]
         , div [ css [] ] [ text col4 ]
+        ]
+
+
+trackRow : Track -> Html Msg
+trackRow track =
+    let
+        onClickLike =
+            if track.liked then
+                UnlikeTrack track.id
+
+            else
+                LikeTrack track.id
+    in
+    div [ css [ displayFlex, paddingTop (px 5) ] ]
+        [ div [ css [ width (px 50) ] ] [ text (String.fromInt track.trackNumber) ]
+        , div [ css [ flexGrow (int 1) ] ] [ text track.title ]
+        , div [ css [ width (px 50) ], onClick onClickLike ] [ text (likedDisplay track.liked) ]
+        , div [ css [] ] [ text (formatTrackLength track.length) ]
         ]
 
 
@@ -210,9 +306,7 @@ formatTrackLength length =
 
 
 {-| Format release date
-
 Removes time part from date time string
-
 -}
 formatReleaseDate : String -> String
 formatReleaseDate date =
