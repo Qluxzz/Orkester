@@ -8,6 +8,7 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
 import Page.Album as AlbumPage
 import Page.Artist as ArtistPage
+import RemoteData
 import Route exposing (Route)
 import Url exposing (Url)
 
@@ -108,18 +109,35 @@ update msg model =
                 ( updatedPageModel, updatedCmd ) =
                     AlbumPage.update subMsg pageModel
             in
-            ( { model | page = AlbumPage updatedPageModel }
-            , Cmd.map AlbumPageMsg updatedCmd
-            )
+            case subMsg of
+                AlbumPage.AlbumReceived (RemoteData.Success album) ->
+                    ( { model | page = AlbumPage updatedPageModel }
+                    , Cmd.batch
+                        [ Cmd.map AlbumPageMsg updatedCmd
+                        , Nav.replaceUrl model.navKey ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName)
+                        ]
+                    )
+
+                _ ->
+                    ( { model | page = AlbumPage updatedPageModel }
+                    , Cmd.map AlbumPageMsg updatedCmd
+                    )
 
         ( ArtistPageMsg subMsg, ArtistPage pageModel ) ->
             let
                 ( updatedPageModel, updatedCmd ) =
                     ArtistPage.update subMsg pageModel
             in
-            ( { model | page = ArtistPage updatedPageModel }
-            , Cmd.map ArtistPageMsg updatedCmd
-            )
+            case subMsg of
+                ArtistPage.ArtistRecieved (RemoteData.Success artist) ->
+                    ( { model | page = ArtistPage updatedPageModel }
+                    , Cmd.batch [ Cmd.map ArtistPageMsg updatedCmd, Nav.replaceUrl model.navKey ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName) ]
+                    )
+
+                _ ->
+                    ( { model | page = ArtistPage updatedPageModel }
+                    , Cmd.map ArtistPageMsg updatedCmd
+                    )
 
         ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
@@ -138,8 +156,12 @@ update msg model =
                 newRoute =
                     Route.parseUrl url
             in
-            ( { model | route = newRoute }, Cmd.none )
-                |> initCurrentPage
+            if newRoute /= model.route then
+                ( { model | route = newRoute }, Cmd.none )
+                    |> initCurrentPage
+
+            else
+                ( model, Cmd.none )
 
         ( _, _ ) ->
             ( model, Cmd.none )
@@ -165,31 +187,31 @@ initCurrentPage ( model, existingCmds ) =
                 Route.NotFound ->
                     ( NotFoundPage, Cmd.none )
 
-                Route.AlbumWithId id ->
+                Route.AlbumWithIdAndUrlName id _ ->
                     let
                         ( pageModel, pageCmds ) =
-                            AlbumPage.init id Nothing
+                            AlbumPage.init id
                     in
                     ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
 
-                Route.AlbumWithIdAndUrlName id urlName ->
+                Route.AlbumWithId id ->
                     let
                         ( pageModel, pageCmds ) =
-                            AlbumPage.init id (Just urlName)
+                            AlbumPage.init id
                     in
                     ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
 
                 Route.ArtistWithId id ->
                     let
                         ( pageModel, pageCmds ) =
-                            ArtistPage.init id Nothing
+                            ArtistPage.init id
                     in
                     ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
 
-                Route.ArtistWithIdAndUrlName id urlName ->
+                Route.ArtistWithIdAndUrlName id _ ->
                     let
                         ( pageModel, pageCmds ) =
-                            ArtistPage.init id (Just urlName)
+                            ArtistPage.init id
                     in
                     ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
 

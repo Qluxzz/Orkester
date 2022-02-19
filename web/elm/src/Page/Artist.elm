@@ -1,4 +1,4 @@
-module Page.Artist exposing (Model, Msg, init, update, view)
+module Page.Artist exposing (Model, Msg(..), init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (displayFlex, flexWrap, px, width, wrap)
@@ -55,8 +55,8 @@ type Msg
     | ArtistRecieved (WebData Artist)
 
 
-init : Int -> Maybe String -> ( Model, Cmd Msg )
-init artistId urlName =
+init : Int -> ( Model, Cmd Msg )
+init artistId =
     ( { artist = RemoteData.Loading }, getArtist artistId )
 
 

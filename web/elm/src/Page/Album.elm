@@ -1,4 +1,4 @@
-module Page.Album exposing (Model, Msg, formatReleaseDate, init, update, view)
+module Page.Album exposing (Model, Msg(..), formatReleaseDate, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (displayFlex, flexGrow, int, paddingTop, px, width)
@@ -79,8 +79,8 @@ type Msg
     | UnlikeTrackResponse Int (WebData ())
 
 
-init : Int -> Maybe String -> ( Model, Cmd Msg )
-init albumId urlName =
+init : Int -> ( Model, Cmd Msg )
+init albumId =
     ( { album = RemoteData.Loading }, getAlbumById albumId )
 
 
