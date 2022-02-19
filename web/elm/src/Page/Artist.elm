@@ -1,7 +1,7 @@
 module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (displayFlex, flexWrap, px, width, wrap)
+import Css exposing (auto, column, displayFlex, flexDirection, flexWrap, hidden, marginTop, overflow, px, width, wrap)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
@@ -111,9 +111,9 @@ artistViewOrError model =
 
 artistView : Artist -> Html Msg
 artistView artist =
-    section []
+    section [ css [ displayFlex, flexDirection column, overflow hidden ] ]
         [ h1 [] [ text artist.name ]
-        , div [ css [ displayFlex, flexWrap wrap ] ]
+        , div [ css [ displayFlex, flexWrap wrap, overflow auto, marginTop (px 10) ] ]
             (List.map
                 albumView
                 artist.albums
@@ -130,6 +130,10 @@ albumView album =
             , h3 [] [ text (formatReleaseDate album.released) ]
             ]
         ]
+
+
+
+-- HELPER FUNCTIONS
 
 
 getArtistUrl : Artist -> String
