@@ -219,7 +219,9 @@ indexView =
 
 notFoundView : Html Msg
 notFoundView =
-    h3 [] [ text "Page was not found" ]
+    div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
+        [ h1 [] [ text "Page was not found" ]
+        ]
 
 
 main : Program () Model Msg
