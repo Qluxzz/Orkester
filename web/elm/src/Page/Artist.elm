@@ -1,13 +1,13 @@
 module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (auto, column, displayFlex, flexDirection, flexWrap, hidden, marginTop, overflow, px, width, wrap)
+import Css exposing (alignItems, alignSelf, auto, backgroundColor, center, column, content, displayFlex, ellipsis, flex, flexDirection, flexGrow, flexWrap, hex, hidden, justifyContent, margin, marginTop, noWrap, overflow, padding, px, rgb, start, textOverflow, whiteSpace, width, wrap)
+import Css.Transitions exposing (gridGap)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
 import Json.Decode as Decode exposing (Decoder, int, list, string)
 import Json.Decode.Pipeline exposing (required)
-import Page.Album exposing (formatReleaseDate)
 import RemoteData exposing (WebData)
 
 
@@ -123,17 +123,34 @@ artistView artist =
 
 albumView : Album -> Html Msg
 albumView album =
-    div [ css [ width (px 300) ] ]
-        [ a [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ]
-            [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
-            , h2 [] [ text album.name ]
-            , h3 [] [ text (formatReleaseDate album.released) ]
+    div
+        [ css
+            [ flexGrow (Css.int 1)
+            , overflow hidden
+            , textOverflow ellipsis
+            , padding (px 10)
+            , backgroundColor (hex "#333")
+            , margin (px 10)
+            , flex content
             ]
+        ]
+        [ div [ css [ displayFlex, justifyContent center ] ]
+            [ a [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName), css [ margin (px 0), padding (px 0) ] ]
+                [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+                ]
+            ]
+        , p [ css [ overflow hidden, textOverflow ellipsis, whiteSpace noWrap, alignSelf start, marginTop (px 5) ] ] [ text album.name ]
+        , p [] [ text (formatReleaseDate album.released) ]
         ]
 
 
 
 -- HELPER FUNCTIONS
+
+
+formatReleaseDate : String -> String
+formatReleaseDate releseDate =
+    String.split "-" releseDate |> List.head |> Maybe.withDefault "XXXX"
 
 
 getArtistUrl : Artist -> String
