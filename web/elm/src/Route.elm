@@ -7,8 +7,10 @@ import Url.Parser exposing (..)
 type Route
     = NotFound
     | HomePage
-    | Album Int String
-    | Artist Int String
+    | AlbumWithId Int
+    | AlbumWithIdAndUrlName Int String
+    | ArtistWithId Int
+    | ArtistWithIdAndUrlName Int String
 
 
 parseUrl : Url -> Route
@@ -25,6 +27,8 @@ matchRoute : Parser (Route -> a) a
 matchRoute =
     oneOf
         [ map HomePage top
-        , map Album (s "album" </> int </> string)
-        , map Artist (s "artist" </> int </> string)
+        , map AlbumWithIdAndUrlName (s "album" </> int </> string)
+        , map AlbumWithId (s "album" </> int)
+        , map ArtistWithIdAndUrlName (s "artist" </> int </> string)
+        , map ArtistWithId (s "artist" </> int)
         ]

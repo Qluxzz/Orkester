@@ -55,8 +55,8 @@ type Msg
     | ArtistRecieved (WebData Artist)
 
 
-init : Int -> ( Model, Cmd Msg )
-init artistId =
+init : Int -> Maybe String -> ( Model, Cmd Msg )
+init artistId urlName =
     ( { artist = RemoteData.Loading }, getArtist artistId )
 
 

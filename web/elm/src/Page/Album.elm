@@ -79,8 +79,8 @@ type Msg
     | UnlikeTrackResponse Int (WebData ())
 
 
-init : Int -> ( Model, Cmd Msg )
-init albumId =
+init : Int -> Maybe String -> ( Model, Cmd Msg )
+init albumId urlName =
     ( { album = RemoteData.Loading }, getAlbumById albumId )
 
 

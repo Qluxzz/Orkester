@@ -165,17 +165,31 @@ initCurrentPage ( model, existingCmds ) =
                 Route.NotFound ->
                     ( NotFoundPage, Cmd.none )
 
-                Route.Album id _ ->
+                Route.AlbumWithId id ->
                     let
                         ( pageModel, pageCmds ) =
-                            AlbumPage.init id
+                            AlbumPage.init id Nothing
                     in
                     ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
 
-                Route.Artist id _ ->
+                Route.AlbumWithIdAndUrlName id urlName ->
                     let
                         ( pageModel, pageCmds ) =
-                            ArtistPage.init id
+                            AlbumPage.init id (Just urlName)
+                    in
+                    ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
+
+                Route.ArtistWithId id ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            ArtistPage.init id Nothing
+                    in
+                    ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
+
+                Route.ArtistWithIdAndUrlName id urlName ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            ArtistPage.init id (Just urlName)
                     in
                     ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
 
