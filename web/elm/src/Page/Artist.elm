@@ -1,4 +1,4 @@
-module Page.Artist exposing (Model, Msg(..), init, update, view)
+module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (displayFlex, flexWrap, px, width, wrap)
@@ -130,3 +130,8 @@ albumView album =
             , h3 [] [ text (formatReleaseDate album.released) ]
             ]
         ]
+
+
+getArtistUrl : Artist -> String
+getArtistUrl artist =
+    "/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName

@@ -6,8 +6,8 @@ import Css exposing (..)
 import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
-import Page.Album as AlbumPage
-import Page.Artist as ArtistPage
+import Page.Album as AlbumPage exposing (getAlbumUrl)
+import Page.Artist as ArtistPage exposing (getArtistUrl)
 import RemoteData
 import Route exposing (Route)
 import Url exposing (Url)
@@ -114,9 +114,7 @@ update msg model =
                     ( { model | page = AlbumPage updatedPageModel }
                     , Cmd.batch
                         [ Cmd.map AlbumPageMsg updatedCmd
-
-                        -- How to do this better?, now Main has to be aware of the format of the url
-                        , Nav.replaceUrl model.navKey ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName)
+                        , Nav.replaceUrl model.navKey (getAlbumUrl album)
                         ]
                     )
 
@@ -135,9 +133,7 @@ update msg model =
                     ( { model | page = ArtistPage updatedPageModel }
                     , Cmd.batch
                         [ Cmd.map ArtistPageMsg updatedCmd
-
-                        -- How to do this better?, now Main has to be aware of the format of the url
-                        , Nav.replaceUrl model.navKey ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName)
+                        , Nav.replaceUrl model.navKey (getArtistUrl artist)
                         ]
                     )
 
@@ -163,6 +159,7 @@ update msg model =
                 newRoute =
                     Route.parseUrl url
             in
+            -- This fixes the problem with infinite loops on replaceUrl
             if newRoute /= model.route then
                 ( { model | route = newRoute }, Cmd.none )
                     |> initCurrentPage

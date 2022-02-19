@@ -1,4 +1,4 @@
-module Page.Album exposing (Model, Msg(..), formatReleaseDate, init, update, view)
+module Page.Album exposing (Model, Msg(..), formatReleaseDate, getAlbumUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (displayFlex, flexGrow, int, paddingTop, px, width)
@@ -307,3 +307,8 @@ Removes time part from date time string
 formatReleaseDate : String -> String
 formatReleaseDate date =
     date |> String.split "T" |> List.head |> Maybe.withDefault "Unknown release date"
+
+
+getAlbumUrl : Album -> String
+getAlbumUrl album =
+    "/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName
