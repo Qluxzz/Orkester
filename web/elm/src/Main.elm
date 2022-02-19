@@ -38,6 +38,9 @@ globalStyle =
             [ color textColor
             , textDecoration none
             ]
+        , Css.Global.p
+            [ margin (px 0)
+            ]
         ]
 
 
