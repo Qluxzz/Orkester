@@ -147,17 +147,15 @@ update msg model =
         AlbumReceived response ->
             ( { model | album = response }, Cmd.none )
 
-        LikeTrackResponse trackId response ->
+        LikeTrackResponse trackId (RemoteData.Success _) ->
             let
                 ( album, cmd ) =
                     RemoteData.update (setTrackLikeStatus trackId True) model.album
             in
-            case response of
-                RemoteData.Success _ ->
-                    ( { model | album = album }, cmd )
+            ( { model | album = album }, cmd )
 
-                _ ->
-                    ( model, Cmd.none )
+        LikeTrackResponse _ _ ->
+            ( model, Cmd.none )
 
         LikeTrack trackId ->
             ( model, likeTrackById trackId )
@@ -165,17 +163,15 @@ update msg model =
         UnlikeTrack trackId ->
             ( model, unlikeTrackById trackId )
 
-        UnlikeTrackResponse trackId response ->
+        UnlikeTrackResponse trackId (RemoteData.Success _) ->
             let
                 ( album, cmd ) =
                     RemoteData.update (setTrackLikeStatus trackId False) model.album
             in
-            case response of
-                RemoteData.Success _ ->
-                    ( { model | album = album }, cmd )
+            ( { model | album = album }, cmd )
 
-                _ ->
-                    ( model, Cmd.none )
+        UnlikeTrackResponse _ _ ->
+            ( model, Cmd.none )
 
 
 
