@@ -271,6 +271,13 @@ trackRow track =
 
             else
                 LikeTrack track.id
+
+        likedDisplay liked =
+            if liked then
+                "Liked"
+
+            else
+                "Like"
     in
     div [ trackRowStyle ]
         [ div [ trackNumberColStyle ] [ text (String.fromInt track.trackNumber) ]
@@ -278,15 +285,6 @@ trackRow track =
         , div [ trackLikedColStyle, onClick onClickLike ] [ text (likedDisplay track.liked) ]
         , div [ trackDurationColStyle ] [ text (formatTrackLength track.length) ]
         ]
-
-
-likedDisplay : Bool -> String
-likedDisplay liked =
-    if liked then
-        "Liked"
-
-    else
-        "Like"
 
 
 formatTracksDisplay : List Track -> String
