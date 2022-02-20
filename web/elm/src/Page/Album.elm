@@ -1,13 +1,14 @@
 module Page.Album exposing (Model, Msg(..), formatReleaseDate, getAlbumUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (displayFlex, flexGrow, int, paddingTop, px, right, textAlign, width)
+import Css exposing (column, displayFlex, flexDirection, flexGrow, int, marginRight, paddingTop, px, right, textAlign, width)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
+import Page.Artist exposing (getArtistUrl)
 import RemoteData exposing (WebData)
 
 
@@ -27,6 +28,7 @@ type alias Track =
     , title : String
     , length : Int
     , liked : Bool
+    , artists : List Artist
     }
 
 
@@ -56,6 +58,7 @@ trackDecoder =
         |> required "title" string
         |> required "length" Decode.int
         |> required "liked" bool
+        |> required "artists" (list artistDecoder)
 
 
 artistDecoder : Decoder Artist
@@ -281,10 +284,38 @@ trackRow track =
     in
     div [ trackRowStyle ]
         [ div [ trackNumberColStyle ] [ text (String.fromInt track.trackNumber) ]
-        , div [ trackTitleColStyle ] [ text track.title ]
+        , div [ trackTitleColStyle, css [ displayFlex, flexDirection column ] ]
+            [ div [] [ p [] [ text track.title ] ]
+            , div [] (formatTrackArtists track.artists)
+            ]
         , div [ trackLikedColStyle, onClick onClickLike ] [ text (likedDisplay track.liked) ]
         , div [ trackDurationColStyle ] [ text (formatTrackLength track.length) ]
         ]
+
+
+formatTrackArtists : List Artist -> List (Html msg)
+formatTrackArtists artists =
+    let
+        amountOfArtists =
+            List.length artists
+
+        elements =
+            List.indexedMap (formatTrackArtist amountOfArtists) artists
+    in
+    elements
+
+
+formatTrackArtist : Int -> Int -> Artist -> Html msg
+formatTrackArtist amount index artist =
+    let
+        linkText =
+            if index == amount - 1 then
+                artist.name
+
+            else
+                artist.name ++ ","
+    in
+    a [ href (getArtistUrl artist), css [ marginRight (px 10) ] ] [ text linkText ]
 
 
 formatTracksDisplay : List Track -> String

@@ -37,6 +37,7 @@ globalStyle =
         , Css.Global.a
             [ color textColor
             , textDecoration none
+            , hover [ textDecoration underline ]
             ]
         , Css.Global.p
             [ margin (px 0)

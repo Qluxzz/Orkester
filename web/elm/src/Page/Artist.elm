@@ -152,6 +152,6 @@ formatReleaseDate releseDate =
     String.split "-" releseDate |> List.head |> Maybe.withDefault "XXXX"
 
 
-getArtistUrl : Artist -> String
+getArtistUrl : { r | id : Int, urlName : String } -> String
 getArtistUrl artist =
     "/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName
