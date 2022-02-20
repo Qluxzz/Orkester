@@ -1,8 +1,7 @@
 module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (alignItems, alignSelf, auto, backgroundColor, center, column, content, displayFlex, ellipsis, flex, flexDirection, flexGrow, flexWrap, hex, hidden, justifyContent, margin, marginTop, noWrap, overflow, padding, px, rgb, start, textOverflow, whiteSpace, width, wrap)
-import Css.Transitions exposing (gridGap)
+import Css exposing (alignSelf, auto, backgroundColor, center, column, content, displayFlex, ellipsis, flex, flexDirection, flexWrap, hex, hidden, justifyContent, margin, marginTop, noWrap, overflow, padding, px, start, textOverflow, whiteSpace, width, wrap)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
