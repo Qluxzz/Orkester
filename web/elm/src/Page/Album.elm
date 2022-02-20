@@ -1,7 +1,7 @@
 module Page.Album exposing (Model, Msg(..), formatReleaseDate, getAlbumUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (displayFlex, flexGrow, int, paddingTop, px, width)
+import Css exposing (displayFlex, flexGrow, int, paddingTop, px, right, textAlign, width)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
@@ -227,13 +227,38 @@ table tracks =
             tracks
 
 
+trackNumberColStyle : Attribute msg
+trackNumberColStyle =
+    css [ width (px 50) ]
+
+
+trackTitleColStyle : Attribute msg
+trackTitleColStyle =
+    css [ flexGrow (int 1) ]
+
+
+trackLikedColStyle : Attribute msg
+trackLikedColStyle =
+    css [ width (px 50) ]
+
+
+trackDurationColStyle : Attribute msg
+trackDurationColStyle =
+    css [ width (px 125), textAlign right ]
+
+
+trackRowStyle : Attribute msg
+trackRowStyle =
+    css [ displayFlex, paddingTop (px 5) ]
+
+
 tableRow : String -> String -> String -> String -> Html msg
-tableRow col1 col2 col3 col4 =
-    div [ css [ displayFlex, paddingTop (px 5) ] ]
-        [ div [ css [ width (px 50) ] ] [ text col1 ]
-        , div [ css [ flexGrow (int 1) ] ] [ text col2 ]
-        , div [ css [ width (px 50) ] ] [ text col3 ]
-        , div [ css [] ] [ text col4 ]
+tableRow col1 col2 _ col4 =
+    div [ trackRowStyle ]
+        [ div [ trackNumberColStyle ] [ text col1 ]
+        , div [ trackTitleColStyle ] [ text col2 ]
+        , div [ trackLikedColStyle ] []
+        , div [ trackDurationColStyle ] [ text col4 ]
         ]
 
 
@@ -247,11 +272,11 @@ trackRow track =
             else
                 LikeTrack track.id
     in
-    div [ css [ displayFlex, paddingTop (px 5) ] ]
-        [ div [ css [ width (px 50) ] ] [ text (String.fromInt track.trackNumber) ]
-        , div [ css [ flexGrow (int 1) ] ] [ text track.title ]
-        , div [ css [ width (px 50) ], onClick onClickLike ] [ text (likedDisplay track.liked) ]
-        , div [ css [] ] [ text (formatTrackLength track.length) ]
+    div [ trackRowStyle ]
+        [ div [ trackNumberColStyle ] [ text (String.fromInt track.trackNumber) ]
+        , div [ trackTitleColStyle ] [ text track.title ]
+        , div [ trackLikedColStyle, onClick onClickLike ] [ text (likedDisplay track.liked) ]
+        , div [ trackDurationColStyle ] [ text (formatTrackLength track.length) ]
         ]
 
 
