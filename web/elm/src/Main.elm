@@ -175,7 +175,7 @@ update msg model =
 
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url navKey =
+init _ url navKey =
     let
         model =
             { route = Route.parseUrl url
@@ -280,7 +280,9 @@ currentView model =
 
 indexView : Html Msg
 indexView =
-    h1 [] [ text "Welcome!" ]
+    div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
+        [ h1 [] [ text "Welcome!" ]
+        ]
 
 
 notFoundView : Html Msg
