@@ -232,9 +232,32 @@ initCurrentPage ( model, existingCmds ) =
 
 view : Model -> Document Msg
 view model =
-    { title = "Orkester"
+    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page)
     , body = [ baseView (currentView model) |> toUnstyled ]
     }
+
+
+getDocumentTitle : Page -> Maybe String
+getDocumentTitle page =
+    case page of
+        ArtistPage { artist } ->
+            case artist of
+                RemoteData.Success a ->
+                    Just a.name
+
+                _ ->
+                    Nothing
+
+        AlbumPage { album } ->
+            case album of
+                RemoteData.Success a ->
+                    Just a.name
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
 
 
 currentView : Model -> Html Msg
