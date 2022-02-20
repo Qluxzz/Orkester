@@ -123,24 +123,24 @@ artistView artist =
 
 albumView : Album -> Html Msg
 albumView album =
-    div
-        [ css
-            [ flexGrow (Css.int 1)
-            , overflow hidden
-            , textOverflow ellipsis
-            , padding (px 10)
-            , backgroundColor (hex "#333")
-            , margin (px 10)
-            , flex content
-            ]
-        ]
-        [ div [ css [ displayFlex, justifyContent center ] ]
-            [ a [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName), css [ margin (px 0), padding (px 0) ] ]
-                [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+    a [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ]
+        [ div
+            [ css
+                [ width (px 128)
+                , overflow hidden
+                , textOverflow ellipsis
+                , padding (px 10)
+                , backgroundColor (hex "#333")
+                , margin (px 10)
+                , flex content
                 ]
             ]
-        , p [ css [ overflow hidden, textOverflow ellipsis, whiteSpace noWrap, alignSelf start, marginTop (px 5) ] ] [ text album.name ]
-        , p [] [ text (formatReleaseDate album.released) ]
+            [ div [ css [ displayFlex, justifyContent center ] ]
+                [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+                ]
+            , p [ css [ overflow hidden, textOverflow ellipsis, whiteSpace noWrap, alignSelf start, marginTop (px 5) ] ] [ text album.name ]
+            , p [] [ text (formatReleaseDate album.released) ]
+            ]
         ]
 
 
