@@ -300,22 +300,24 @@ formatTrackArtists artists =
             List.length artists
 
         elements =
-            List.indexedMap (formatTrackArtist amountOfArtists) artists
+            List.concat (List.indexedMap (formatTrackArtist amountOfArtists) artists)
     in
     elements
 
 
-formatTrackArtist : Int -> Int -> Artist -> Html msg
+formatTrackArtist : Int -> Int -> Artist -> List (Html msg)
 formatTrackArtist amount index artist =
     let
-        linkText =
+        spanText =
             if index == amount - 1 then
-                artist.name
+                ""
 
             else
-                artist.name ++ ","
+                ","
     in
-    a [ href (getArtistUrl artist), css [ marginRight (px 10) ] ] [ text linkText ]
+    [ a [ href (getArtistUrl artist) ] [ text artist.name ]
+    , span [ css [ marginRight (px 10) ] ] [ text spanText ]
+    ]
 
 
 formatTracksDisplay : List Track -> String
