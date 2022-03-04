@@ -1,7 +1,7 @@
 module Page.Album exposing (Model, Msg(..), formatReleaseDate, getAlbumUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (column, displayFlex, flexDirection, flexGrow, int, marginRight, paddingTop, px, right, textAlign, width)
+import Css exposing (alignItems, column, displayFlex, end, flexDirection, flexGrow, int, marginLeft, marginRight, marginTop, padding, paddingTop, px, right, textAlign, width)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
@@ -205,17 +205,19 @@ albumViewOrError model =
 albumView : Album -> Html Msg
 albumView album =
     section []
-        [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
-        , div []
-            [ h1 [] [ text album.name ]
-            , div [ css [ displayFlex ] ]
-                [ a [ css [ Css.padding2 (px 5) (px 5) ], href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
-                , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (formatReleaseDate album.released) ]
-                , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (formatTracksDisplay album.tracks) ]
-                , div [ css [ Css.padding2 (px 5) (px 5) ] ] [ text (formatAlbumLength album.tracks) ]
+        [ div [ css [ displayFlex, alignItems end ] ]
+            [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+            , div [ css [ Css.paddingLeft (px 10) ] ]
+                [ h1 [] [ text album.name ]
+                , div [ css [ displayFlex ] ]
+                    [ a [ css [], href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
+                    , div [ css [ marginLeft (px 5) ] ] [ text (formatReleaseDate album.released) ]
+                    , div [ css [ marginLeft (px 5) ] ] [ text (formatTracksDisplay album.tracks) ]
+                    , div [ css [ marginLeft (px 5) ] ] [ text (formatAlbumLength album.tracks) ]
+                    ]
                 ]
             ]
-        , div []
+        , div [ css [ marginTop (px 10) ] ]
             (table
                 album.tracks
             )
