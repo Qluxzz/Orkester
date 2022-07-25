@@ -5,10 +5,11 @@ import Browser.Navigation as Nav
 import Css exposing (..)
 import Css.Global
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, href)
+import Html.Styled.Attributes exposing (css, href, style)
 import Page.Album as AlbumPage exposing (getAlbumUrl)
 import Page.Artist as ArtistPage exposing (getArtistUrl)
 import Page.LikedTracks as LikedTracksPage
+import Page.Search as SearchPage
 import RemoteData
 import Route exposing (Route)
 import Url exposing (Url)
@@ -65,9 +66,13 @@ baseView mainContent =
                     , backgroundColor (hex "#333")
                     , width (px 200)
                     , flexShrink (int 0)
+                    , displayFlex
+                    , flexDirection column
                     ]
+                , style "gap" "10px"
                 ]
                 [ a [ href "/liked-tracks" ] [ text "Liked Tracks" ]
+                , a [ href "/search" ] [ text "Search" ]
                 ]
             , section
                 [ css
@@ -99,12 +104,14 @@ type Page
     | AlbumPage AlbumPage.Model
     | ArtistPage ArtistPage.Model
     | LikedTracksPage LikedTracksPage.Model
+    | SearchPage SearchPage.Model
 
 
 type Msg
     = AlbumPageMsg AlbumPage.Msg
     | ArtistPageMsg ArtistPage.Msg
     | LikedTracksPageMsg LikedTracksPage.Msg
+    | SearchPageMsg SearchPage.Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
 
@@ -157,6 +164,15 @@ update msg model =
             in
             ( { model | page = LikedTracksPage updatedModel }
             , Cmd.map LikedTracksPageMsg updatedCmd
+            )
+
+        ( SearchPageMsg searchPageMsg, SearchPage searchPageModel ) ->
+            let
+                ( updatedModel, updatedCmd ) =
+                    SearchPage.update searchPageMsg searchPageModel
+            in
+            ( { model | page = SearchPage updatedModel }
+            , Cmd.map SearchPageMsg updatedCmd
             )
 
         ( LinkClicked urlRequest, _ ) ->
@@ -245,6 +261,13 @@ initCurrentPage ( model, existingCmds ) =
                             LikedTracksPage.init
                     in
                     ( LikedTracksPage pageModel, Cmd.map LikedTracksPageMsg pageCmds )
+
+                Route.Search ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            SearchPage.init
+                    in
+                    ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
     in
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedPageCmds ]
@@ -286,6 +309,9 @@ getDocumentTitle page =
         LikedTracksPage _ ->
             Just "Liked Tracks"
 
+        SearchPage { searchPhrase } ->
+            Just searchPhrase
+
 
 currentView : Model -> Html Msg
 currentView model =
@@ -304,6 +330,10 @@ currentView model =
         LikedTracksPage likedTracksModel ->
             LikedTracksPage.view likedTracksModel
                 |> map LikedTracksPageMsg
+
+        SearchPage searchPageModel ->
+            SearchPage.view searchPageModel
+                |> map SearchPageMsg
 
         IndexPage ->
             indexView

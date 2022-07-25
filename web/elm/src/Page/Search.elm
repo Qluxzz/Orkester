@@ -1,6 +1,14 @@
 module Page.Search exposing (..)
 
 import BaseUrl exposing (baseUrl)
+import Css exposing (auto, displayFlex, flexBasis, flexGrow, flexShrink, int, listStyle, margin, margin2, marginBottom, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
+import Html.Styled exposing (Html, div, h1, input, li, text, ul)
+import Html.Styled.Attributes exposing (css, type_, value)
+import Html.Styled.Events exposing (onInput)
+import Http
+import Json.Decode as Decode exposing (Decoder, list)
+import Json.Decode.Pipeline exposing (required)
+import RemoteData exposing (WebData)
 
 
 type alias IdNameAndUrlName =
@@ -32,18 +40,14 @@ type alias SearchResult =
 
 
 type alias Model =
-    { searchResult : SearchResult
+    { searchResult : WebData SearchResult
     , searchPhrase : String
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { searchResult =
-            { albums = []
-            , artists = []
-            , tracks = []
-            }
+init : ( Model, Cmd Msg )
+init =
+    ( { searchResult = RemoteData.NotAsked
       , searchPhrase = ""
       }
     , Cmd.none
@@ -99,45 +103,47 @@ searchResultEntry entry =
 
 albumDecoder : Decoder Album
 albumDecoder =
-    Json.Decode.map3 IdNameAndUrlName
-        (Json.Decode.field "id" Json.Decode.int)
-        (Json.Decode.field "name" Json.Decode.string)
-        (Json.Decode.field "urlName" Json.Decode.string)
+    Decode.succeed IdNameAndUrlName
+        |> required "id" Decode.int
+        |> required "name" Decode.string
+        |> required "urlName" Decode.string
 
 
 artistDecoder : Decoder Artist
 artistDecoder =
-    Json.Decode.map3 IdNameAndUrlName
-        (Json.Decode.field "id" Json.Decode.int)
-        (Json.Decode.field "name" Json.Decode.string)
-        (Json.Decode.field "urlName" Json.Decode.string)
+    Decode.succeed IdNameAndUrlName
+        |> required "id" Decode.int
+        |> required "name" Decode.string
+        |> required "urlName" Decode.string
 
 
 trackDecoder : Decoder Track
 trackDecoder =
-    Json.Decode.map2 Track
-        (Json.Decode.field "id" Json.Decode.int)
-        (Json.Decode.field "title" Json.Decode.string)
+    Decode.succeed Track
+        |> required "id" Decode.int
+        |> required "title" Decode.string
 
 
 searchResultDecoder : Decoder SearchResult
 searchResultDecoder =
-    Json.Decode.map3 SearchResult
-        (Json.Decode.field "albums" (Json.Decode.list albumDecoder))
-        (Json.Decode.field "artists" (Json.Decode.list artistDecoder))
-        (Json.Decode.field "tracks" (Json.Decode.list trackDecoder))
+    Decode.succeed SearchResult
+        |> required "albums" (list albumDecoder)
+        |> required "artists" (list artistDecoder)
+        |> required "tracks" (list trackDecoder)
 
 
 type Msg
     = UpdateSearchPhrase String
-    | DataRecieved (Result Http.Error SearchResult)
+    | SearchResultsRecieved (WebData SearchResult)
 
 
 getSearchResult : String -> Cmd Msg
 getSearchResult query =
     Http.get
         { url = baseUrl ++ "/api/v1/search/" ++ query
-        , expect = Http.expectJson DataRecieved searchResultDecoder
+        , expect =
+            searchResultDecoder
+                |> Http.expectJson (RemoteData.fromResult >> SearchResultsRecieved)
         }
 
 
@@ -151,34 +157,52 @@ update message model =
             else
                 ( { model | searchPhrase = phrase }, getSearchResult phrase )
 
-        DataRecieved (Ok searchResult) ->
+        SearchResultsRecieved searchResult ->
             ( { model | searchResult = searchResult }, Cmd.none )
 
-        DataRecieved (Err _) ->
-            ( model, Cmd.none )
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ input
+            [ css
+                [ flexGrow (int 1)
+                ]
+            , type_ "text"
+            , value model.searchPhrase
+            , onInput UpdateSearchPhrase
+            ]
+            []
+        , div
+            [ css
+                [ displayFlex
+                , overflow auto
+                , marginTop (px 20)
+                , marginBottom (px 20)
+                ]
+            ]
+            (case model.searchResult of
+                RemoteData.Success data ->
+                    [ searchList "Tracks" (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) data.tracks)
+                    , searchList "Albums" data.albums
+                    , searchList "Artists" data.artists
+                    ]
+
+                _ ->
+                    []
+            )
+        ]
 
 
-searchView : Model -> Html Msg
-searchView model =
-    [ input
-        [ css
-            [ flexGrow (int 1)
-            ]
-        , type_ "text"
-        , value model.searchPhrase
-        , onInput UpdateSearchPhrase
+searchList : String -> List IdNameAndUrlName -> Html Msg
+searchList title media =
+    div []
+        [ h1 [] [ text title ]
+        , ul []
+            (List.map
+                (\entry ->
+                    li [] [ text entry.name ]
+                )
+                media
+            )
         ]
-        []
-    , div
-        [ css
-            [ displayFlex
-            , overflow auto
-            , marginTop (px 20)
-            , marginBottom (px 20)
-            ]
-        ]
-        [ curriedSearchList "Tracks" (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) model.searchResult.tracks)
-        , curriedSearchList "Albums" model.searchResult.albums
-        , curriedSearchList "Artists" model.searchResult.artists
-        ]
-    ]
