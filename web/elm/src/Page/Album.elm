@@ -8,8 +8,11 @@ import Html.Styled.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
+import Like
 import Page.Artist exposing (getArtistUrl)
 import RemoteData exposing (WebData)
+import TrackId exposing (TrackId)
+import Unlike
 
 
 type alias Album =
@@ -23,7 +26,7 @@ type alias Album =
 
 
 type alias Track =
-    { id : Int
+    { id : TrackId
     , trackNumber : Int
     , title : String
     , length : Int
@@ -76,10 +79,10 @@ type alias Model =
 
 type Msg
     = AlbumReceived (WebData Album)
-    | LikeTrack Int
-    | LikeTrackResponse Int (WebData ())
-    | UnlikeTrack Int
-    | UnlikeTrackResponse Int (WebData ())
+    | LikeTrack TrackId
+    | UnlikeTrack TrackId
+    | Like Like.Msg
+    | Unlike Unlike.Msg
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -94,32 +97,6 @@ getAlbumById albumId =
         , expect =
             albumDecoder
                 |> Http.expectJson (RemoteData.fromResult >> AlbumReceived)
-        }
-
-
-likeTrackById : Int -> Cmd Msg
-likeTrackById trackId =
-    Http.request
-        { method = "PUT"
-        , headers = []
-        , url = baseUrl ++ "/api/v1/track/" ++ String.fromInt trackId ++ "/like"
-        , body = Http.emptyBody
-        , expect = Http.expectWhatever (RemoteData.fromResult >> LikeTrackResponse trackId)
-        , timeout = Nothing
-        , tracker = Nothing
-        }
-
-
-unlikeTrackById : Int -> Cmd Msg
-unlikeTrackById trackId =
-    Http.request
-        { method = "DELETE"
-        , headers = []
-        , url = baseUrl ++ "/api/v1/track/" ++ String.fromInt trackId ++ "/like"
-        , body = Http.emptyBody
-        , expect = Http.expectWhatever (RemoteData.fromResult >> UnlikeTrackResponse trackId)
-        , timeout = Nothing
-        , tracker = Nothing
         }
 
 
@@ -140,6 +117,16 @@ setTrackLikeStatus trackId liked album =
     ( { album | tracks = updatedTracks }, Cmd.none )
 
 
+unlikeTrack : TrackId -> Album -> ( Album, Cmd msg )
+unlikeTrack trackId album =
+    setTrackLikeStatus trackId False album
+
+
+likeTrack : TrackId -> Album -> ( Album, Cmd msg )
+likeTrack trackId album =
+    setTrackLikeStatus trackId True album
+
+
 
 -- UPDATE
 
@@ -150,30 +137,27 @@ update msg model =
         AlbumReceived response ->
             ( { model | album = response }, Cmd.none )
 
-        LikeTrackResponse trackId (RemoteData.Success _) ->
+        Like (Like.LikeTrackResponse trackId (RemoteData.Success _)) ->
             let
                 ( album, cmd ) =
-                    RemoteData.update (setTrackLikeStatus trackId True) model.album
+                    RemoteData.update (likeTrack trackId) model.album
             in
             ( { model | album = album }, cmd )
 
-        LikeTrackResponse _ _ ->
-            ( model, Cmd.none )
+        Unlike (Unlike.UnlikeTrackResponse trackId (RemoteData.Success _)) ->
+            let
+                ( album, cmd ) =
+                    RemoteData.update (unlikeTrack trackId) model.album
+            in
+            ( { model | album = album }, cmd )
 
         LikeTrack trackId ->
-            ( model, likeTrackById trackId )
+            ( model, Cmd.map Like (Like.likeTrackById trackId) )
 
         UnlikeTrack trackId ->
-            ( model, unlikeTrackById trackId )
+            ( model, Cmd.map Unlike (Unlike.unlikeTrackById trackId) )
 
-        UnlikeTrackResponse trackId (RemoteData.Success _) ->
-            let
-                ( album, cmd ) =
-                    RemoteData.update (setTrackLikeStatus trackId False) model.album
-            in
-            ( { model | album = album }, cmd )
-
-        UnlikeTrackResponse _ _ ->
+        _ ->
             ( model, Cmd.none )
 
 

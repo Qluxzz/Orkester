@@ -5,9 +5,10 @@ import Browser.Navigation as Nav
 import Css exposing (..)
 import Css.Global
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css)
+import Html.Styled.Attributes exposing (css, href)
 import Page.Album as AlbumPage exposing (getAlbumUrl)
 import Page.Artist as ArtistPage exposing (getArtistUrl)
+import Page.LikedTracks as LikedTracksPage
 import RemoteData
 import Route exposing (Route)
 import Url exposing (Url)
@@ -66,7 +67,8 @@ baseView mainContent =
                     , flexShrink (int 0)
                     ]
                 ]
-                [ text "Sidebar" ]
+                [ a [ href "/liked-tracks" ] [ text "Liked Tracks" ]
+                ]
             , section
                 [ css
                     [ displayFlex
@@ -96,11 +98,13 @@ type Page
     | IndexPage
     | AlbumPage AlbumPage.Model
     | ArtistPage ArtistPage.Model
+    | LikedTracksPage LikedTracksPage.Model
 
 
 type Msg
     = AlbumPageMsg AlbumPage.Msg
     | ArtistPageMsg ArtistPage.Msg
+    | LikedTracksPageMsg LikedTracksPage.Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
 
@@ -108,12 +112,12 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.page ) of
-        ( AlbumPageMsg subMsg, AlbumPage pageModel ) ->
+        ( AlbumPageMsg albumMsg, AlbumPage pageModel ) ->
             let
                 ( updatedPageModel, updatedCmd ) =
-                    AlbumPage.update subMsg pageModel
+                    AlbumPage.update albumMsg pageModel
             in
-            case subMsg of
+            case albumMsg of
                 AlbumPage.AlbumReceived (RemoteData.Success album) ->
                     ( { model | page = AlbumPage updatedPageModel }
                     , Cmd.batch
@@ -127,12 +131,12 @@ update msg model =
                     , Cmd.map AlbumPageMsg updatedCmd
                     )
 
-        ( ArtistPageMsg subMsg, ArtistPage pageModel ) ->
+        ( ArtistPageMsg artistMsg, ArtistPage pageModel ) ->
             let
                 ( updatedPageModel, updatedCmd ) =
-                    ArtistPage.update subMsg pageModel
+                    ArtistPage.update artistMsg pageModel
             in
-            case subMsg of
+            case artistMsg of
                 ArtistPage.ArtistRecieved (RemoteData.Success artist) ->
                     ( { model | page = ArtistPage updatedPageModel }
                     , Cmd.batch
@@ -145,6 +149,15 @@ update msg model =
                     ( { model | page = ArtistPage updatedPageModel }
                     , Cmd.map ArtistPageMsg updatedCmd
                     )
+
+        ( LikedTracksPageMsg likedTracksMsg, LikedTracksPage likedTracksModel ) ->
+            let
+                ( updatedModel, updatedCmd ) =
+                    LikedTracksPage.update likedTracksMsg likedTracksModel
+            in
+            ( { model | page = LikedTracksPage updatedModel }
+            , Cmd.map LikedTracksPageMsg updatedCmd
+            )
 
         ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
@@ -225,6 +238,13 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.HomePage ->
                     ( IndexPage, Cmd.none )
+
+                Route.LikedTracks ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            LikedTracksPage.init
+                    in
+                    ( LikedTracksPage pageModel, Cmd.map LikedTracksPageMsg pageCmds )
     in
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedPageCmds ]
@@ -257,8 +277,14 @@ getDocumentTitle page =
                 _ ->
                     Nothing
 
-        _ ->
+        NotFoundPage ->
+            Just "Not Found"
+
+        IndexPage ->
             Nothing
+
+        LikedTracksPage _ ->
+            Just "Liked Tracks"
 
 
 currentView : Model -> Html Msg
@@ -274,6 +300,10 @@ currentView model =
         ArtistPage artistModel ->
             ArtistPage.view artistModel
                 |> map ArtistPageMsg
+
+        LikedTracksPage likedTracksModel ->
+            LikedTracksPage.view likedTracksModel
+                |> map LikedTracksPageMsg
 
         IndexPage ->
             indexView

@@ -11,6 +11,7 @@ type Route
     | AlbumWithIdAndUrlName Int String
     | ArtistWithId Int
     | ArtistWithIdAndUrlName Int String
+    | LikedTracks
 
 
 parseUrl : Url -> Route
@@ -27,6 +28,7 @@ matchRoute : Parser (Route -> a) a
 matchRoute =
     oneOf
         [ map HomePage top
+        , map LikedTracks (s "liked-tracks")
         , map AlbumWithIdAndUrlName (s "album" </> int </> string)
         , map AlbumWithId (s "album" </> int)
         , map ArtistWithIdAndUrlName (s "artist" </> int </> string)
