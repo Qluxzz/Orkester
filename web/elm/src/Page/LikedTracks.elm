@@ -89,15 +89,17 @@ update msg model =
         UnlikeTrack trackId ->
             ( model, Cmd.map Unlike (Unlike.unlikeTrackById trackId) )
 
-        Unlike (Unlike.UnlikeTrackResponse trackId (RemoteData.Success _)) ->
-            let
-                ( tracks, cmd ) =
-                    RemoteData.update (removeTrackById trackId) model.likedTracks
-            in
-            ( { model | likedTracks = tracks }, cmd )
+        Unlike (Unlike.UnlikeTrackResponse trackId state) ->
+            case state of
+                RemoteData.Success _ ->
+                    let
+                        ( tracks, cmd ) =
+                            RemoteData.update (removeTrackById trackId) model.likedTracks
+                    in
+                    ( { model | likedTracks = tracks }, cmd )
 
-        _ ->
-            ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
 
 removeTrackById : TrackId -> List Track -> ( List Track, Cmd Msg )
