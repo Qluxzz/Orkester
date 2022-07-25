@@ -54,27 +54,15 @@ init =
     )
 
 
-filter : String -> { a | name : String } -> Bool
-filter searchPhrase entry =
-    if String.isEmpty searchPhrase then
-        True
-
-    else
-        String.contains (String.toLower searchPhrase) (String.toLower entry.name)
-
-
-searchResultList : String -> String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
-searchResultList phrase title entries =
+searchResultList : String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultList title entries =
     let
-        filteredEntries =
-            List.filter (filter phrase) entries
-
         result =
-            if List.isEmpty filteredEntries then
-                [ li [] [ text "No entry matched the prhase" ] ]
+            if List.isEmpty entries then
+                [ li [] [ text "No entry matched the phrase" ] ]
 
             else
-                List.map searchResultEntry filteredEntries
+                List.map searchResultEntry entries
     in
     div
         [ css
@@ -152,7 +140,12 @@ update message model =
     case message of
         UpdateSearchPhrase phrase ->
             if String.isEmpty phrase then
-                ( { model | searchPhrase = phrase }, Cmd.none )
+                ( { model
+                    | searchPhrase = phrase
+                    , searchResult = RemoteData.NotAsked
+                  }
+                , Cmd.none
+                )
 
             else
                 ( { model | searchPhrase = phrase }, getSearchResult phrase )
@@ -183,26 +176,15 @@ view model =
             ]
             (case model.searchResult of
                 RemoteData.Success data ->
-                    [ searchList "Tracks" (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) data.tracks)
-                    , searchList "Albums" data.albums
-                    , searchList "Artists" data.artists
+                    [ searchResultList "Tracks" (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) data.tracks)
+                    , searchResultList "Albums" data.albums
+                    , searchResultList "Artists" data.artists
                     ]
 
+                RemoteData.Failure _ ->
+                    [ h1 [] [ text "Search failed" ] ]
+
                 _ ->
-                    []
-            )
-        ]
-
-
-searchList : String -> List IdNameAndUrlName -> Html Msg
-searchList title media =
-    div []
-        [ h1 [] [ text title ]
-        , ul []
-            (List.map
-                (\entry ->
-                    li [] [ text entry.name ]
-                )
-                media
+                    [ h1 [] [ text "Start typing to search..." ] ]
             )
         ]
