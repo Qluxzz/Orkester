@@ -1,4 +1,4 @@
-module Page.Search exposing (..)
+module Page.Search exposing (Model, Msg, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (auto, displayFlex, flexBasis, flexGrow, flexShrink, int, listStyle, margin, margin2, marginBottom, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
