@@ -13,6 +13,7 @@ type Route
     | ArtistWithIdAndUrlName Int String
     | LikedTracks
     | Search
+    | SearchWithQuery String
 
 
 parseUrl : Url -> Route
@@ -30,6 +31,7 @@ matchRoute =
     oneOf
         [ map HomePage top
         , map LikedTracks (s "liked-tracks")
+        , map SearchWithQuery (s "search" </> string)
         , map Search (s "search")
         , map AlbumWithIdAndUrlName (s "album" </> int </> string)
         , map AlbumWithId (s "album" </> int)

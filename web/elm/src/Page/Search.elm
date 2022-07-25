@@ -2,8 +2,8 @@ module Page.Search exposing (Model, Msg, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (auto, displayFlex, flexBasis, flexGrow, flexShrink, int, listStyle, margin, margin2, marginBottom, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
-import Html.Styled exposing (Html, div, h1, input, li, text, ul)
-import Html.Styled.Attributes exposing (css, type_, value)
+import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
+import Html.Styled.Attributes exposing (css, href, type_, value)
 import Html.Styled.Events exposing (onInput)
 import Http
 import Json.Decode as Decode exposing (Decoder, list)
@@ -32,6 +32,12 @@ type alias Track =
     }
 
 
+type Type
+    = AlbumLink
+    | ArtistLink
+    | TrackLink
+
+
 type alias SearchResult =
     { albums : List Album
     , artists : List Artist
@@ -45,24 +51,32 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { searchResult = RemoteData.NotAsked
-      , searchPhrase = ""
-      }
-    , Cmd.none
-    )
+init : String -> ( Model, Cmd Msg )
+init phrase =
+    if String.isEmpty phrase then
+        ( { searchResult = RemoteData.NotAsked
+          , searchPhrase = phrase
+          }
+        , Cmd.none
+        )
+
+    else
+        ( { searchResult = RemoteData.Loading
+          , searchPhrase = phrase
+          }
+        , getSearchResult phrase
+        )
 
 
-searchResultList : String -> List { a | id : Int, name : String, urlName : String } -> Html Msg
-searchResultList title entries =
+searchResultList : Type -> List { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultList type_ entries =
     let
         result =
             if List.isEmpty entries then
                 [ li [] [ text "No entry matched the phrase" ] ]
 
             else
-                List.map searchResultEntry entries
+                List.map (searchResultEntry type_) entries
     in
     div
         [ css
@@ -72,7 +86,19 @@ searchResultList title entries =
             , maxWidth (px 300)
             ]
         ]
-        [ h1 [] [ text title ]
+        [ h1 []
+            [ text
+                (case type_ of
+                    AlbumLink ->
+                        "Albums"
+
+                    TrackLink ->
+                        "Tracks"
+
+                    ArtistLink ->
+                        "Artists"
+                )
+            ]
         , ul
             [ css
                 [ listStyle none
@@ -84,9 +110,32 @@ searchResultList title entries =
         ]
 
 
-searchResultEntry : { a | id : Int, name : String, urlName : String } -> Html Msg
-searchResultEntry entry =
-    li [ css [ margin2 (px 5) (px 0), padding2 (px 5) (px 0), textDecoration underline ] ] [ text entry.name ]
+searchResultEntry : Type -> { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultEntry type_ entry =
+    let
+        linkType : String
+        linkType =
+            case type_ of
+                ArtistLink ->
+                    "artist"
+
+                AlbumLink ->
+                    "album"
+
+                TrackLink ->
+                    "track"
+
+        link : String
+        link =
+            "/"
+                ++ linkType
+                ++ "/"
+                ++ String.fromInt entry.id
+                ++ "/"
+                ++ entry.urlName
+    in
+    li [ css [ margin2 (px 5) (px 0), padding2 (px 5) (px 0), textDecoration underline ] ]
+        [ a [ href link ] [ text entry.name ] ]
 
 
 albumDecoder : Decoder Album
@@ -148,7 +197,7 @@ update message model =
                 )
 
             else
-                ( { model | searchPhrase = phrase }, getSearchResult phrase )
+                ( { model | searchPhrase = phrase, searchResult = RemoteData.Loading }, getSearchResult phrase )
 
         SearchResultsRecieved searchResult ->
             ( { model | searchResult = searchResult }, Cmd.none )
@@ -176,15 +225,18 @@ view model =
             ]
             (case model.searchResult of
                 RemoteData.Success data ->
-                    [ searchResultList "Tracks" (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) data.tracks)
-                    , searchResultList "Albums" data.albums
-                    , searchResultList "Artists" data.artists
+                    [ searchResultList TrackLink (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) data.tracks)
+                    , searchResultList AlbumLink data.albums
+                    , searchResultList ArtistLink data.artists
                     ]
 
                 RemoteData.Failure _ ->
                     [ h1 [] [ text "Search failed" ] ]
 
-                _ ->
+                RemoteData.NotAsked ->
                     [ h1 [] [ text "Start typing to search..." ] ]
+
+                _ ->
+                    []
             )
         ]

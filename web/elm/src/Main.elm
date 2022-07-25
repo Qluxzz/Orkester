@@ -172,7 +172,17 @@ update msg model =
                     SearchPage.update searchPageMsg searchPageModel
             in
             ( { model | page = SearchPage updatedModel }
-            , Cmd.map SearchPageMsg updatedCmd
+            , Cmd.batch
+                (Cmd.map
+                    SearchPageMsg
+                    updatedCmd
+                    :: (if searchPageModel.searchPhrase /= updatedModel.searchPhrase then
+                            [ Nav.replaceUrl model.navKey ("/search/" ++ updatedModel.searchPhrase) ]
+
+                        else
+                            []
+                       )
+                )
             )
 
         ( LinkClicked urlRequest, _ ) ->
@@ -265,7 +275,14 @@ initCurrentPage ( model, existingCmds ) =
                 Route.Search ->
                     let
                         ( pageModel, pageCmds ) =
-                            SearchPage.init
+                            SearchPage.init ""
+                    in
+                    ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
+
+                Route.SearchWithQuery query ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            SearchPage.init query
                     in
                     ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
     in
