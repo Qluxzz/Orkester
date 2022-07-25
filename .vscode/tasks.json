@@ -25,7 +25,7 @@
         {
             "label": "watch elm client",
             "type": "shell",
-            "command": "cd web/elm && elm-live src/Main.elm --push-state",
+            "command": "cd web/elm && elm-live src/Main.elm --pushstate",
             "problemMatcher": [],
             "presentation": {
                 "group": "watch"
