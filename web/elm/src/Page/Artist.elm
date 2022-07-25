@@ -1,7 +1,7 @@
 module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (alignSelf, auto, backgroundColor, center, column, content, displayFlex, ellipsis, flex, flexDirection, flexWrap, hex, hidden, justifyContent, margin, marginTop, noWrap, overflow, padding, px, start, textOverflow, whiteSpace, width, wrap)
+import Css exposing (alignSelf, auto, backgroundColor, center, column, content, displayFlex, ellipsis, flex, flexDirection, flexWrap, hex, hidden, hover, justifyContent, margin, marginTop, noWrap, none, overflow, padding, px, start, textDecoration, textOverflow, whiteSpace, width, wrap)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
@@ -138,7 +138,7 @@ albumView album =
                 [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
                 ]
             , p [ css [ overflow hidden, textOverflow ellipsis, whiteSpace noWrap, alignSelf start, marginTop (px 5) ] ] [ text album.name ]
-            , p [] [ text (formatReleaseDate album.released) ]
+            , p [ css [ textDecoration none ] ] [ text (getReleaseYear album.released |> Maybe.withDefault "XXXX") ]
             ]
         ]
 
@@ -147,9 +147,9 @@ albumView album =
 -- HELPER FUNCTIONS
 
 
-formatReleaseDate : String -> String
-formatReleaseDate releseDate =
-    String.split "-" releseDate |> List.head |> Maybe.withDefault "XXXX"
+getReleaseYear : String -> Maybe String
+getReleaseYear releaseDate =
+    String.split "-" releaseDate |> List.head
 
 
 getArtistUrl : { r | id : Int, urlName : String } -> String
