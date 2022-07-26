@@ -2,6 +2,7 @@ module Page.Search exposing (Model, Msg, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (auto, displayFlex, flexBasis, flexGrow, flexShrink, int, listStyle, margin, margin2, marginBottom, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
+import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
 import Html.Styled.Attributes exposing (css, href, type_, value)
 import Html.Styled.Events exposing (onInput)
@@ -235,8 +236,8 @@ view model =
                     , searchResultList ArtistLink data.artists
                     ]
 
-                RemoteData.Failure _ ->
-                    [ h1 [] [ text "Search failed" ] ]
+                RemoteData.Failure error ->
+                    [ errorMessage "Search failed" error ]
 
                 RemoteData.NotAsked ->
                     [ h1 [] [ text "Start typing to search..." ] ]

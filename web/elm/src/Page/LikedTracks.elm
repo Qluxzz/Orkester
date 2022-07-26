@@ -2,6 +2,7 @@ module Page.LikedTracks exposing (Model, Msg, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (marginBottom, px)
+import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
 import Http
@@ -128,8 +129,8 @@ likedTracksViewOrError model =
         RemoteData.Success tracks ->
             likedTracksView tracks
 
-        RemoteData.Failure _ ->
-            text "Failed to load liked tracks"
+        RemoteData.Failure error ->
+            errorMessage "Failed to load liked tracks" error
 
 
 likedTracksView : List Track -> Html Msg

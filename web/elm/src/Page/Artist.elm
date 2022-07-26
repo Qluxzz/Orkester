@@ -2,6 +2,7 @@ module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (alignSelf, auto, backgroundColor, center, column, content, displayFlex, ellipsis, flex, flexDirection, flexWrap, hex, hidden, hover, justifyContent, margin, marginTop, noWrap, none, overflow, padding, px, start, textDecoration, textOverflow, whiteSpace, width, wrap)
+import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
@@ -104,8 +105,8 @@ artistViewOrError model =
         RemoteData.Success artist ->
             artistView artist
 
-        RemoteData.Failure _ ->
-            text "Failed to load artist"
+        RemoteData.Failure error ->
+            errorMessage "Failed to load artist" error
 
 
 artistView : Artist -> Html Msg

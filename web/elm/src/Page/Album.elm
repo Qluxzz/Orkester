@@ -2,6 +2,7 @@ module Page.Album exposing (Model, Msg(..), formatReleaseDate, getAlbumUrl, init
 
 import BaseUrl exposing (baseUrl)
 import Css exposing (alignItems, column, displayFlex, end, flexDirection, flexGrow, int, marginLeft, marginRight, marginTop, padding, paddingTop, px, right, textAlign, width)
+import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
@@ -189,8 +190,8 @@ albumViewOrError model =
         RemoteData.Success album ->
             albumView album
 
-        RemoteData.Failure _ ->
-            text "Failed to load album"
+        RemoteData.Failure err ->
+            errorMessage "Failed to load album" err
 
 
 albumView : Album -> Html Msg
