@@ -25,6 +25,7 @@ func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 			Where(track.ID(id)).
 			WithAlbum().
 			WithArtists().
+			WithLiked().
 			Only(context)
 
 		if err != nil {
@@ -76,7 +77,7 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		liked, err := client.
+		_, err = client.
 			LikedTrack.
 			Create().
 			SetTrackID(id).
@@ -85,8 +86,6 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 		if err != nil {
 			return err
 		}
-
-		client.Track.UpdateOneID(id).SetLiked(liked).Save(context)
 
 		return c.SendStatus(fiber.StatusOK)
 	}
