@@ -51,20 +51,25 @@ type alias Model =
     }
 
 
-init : String -> ( Model, Cmd Msg )
+init : Maybe String -> ( Model, Cmd Msg )
 init phrase =
-    if String.isEmpty phrase then
+    let
+        p : String
+        p =
+            Maybe.withDefault "" phrase
+    in
+    if String.isEmpty p then
         ( { searchResult = RemoteData.NotAsked
-          , searchPhrase = phrase
+          , searchPhrase = p
           }
         , Cmd.none
         )
 
     else
         ( { searchResult = RemoteData.Loading
-          , searchPhrase = phrase
+          , searchPhrase = p
           }
-        , getSearchResult phrase
+        , getSearchResult p
         )
 
 

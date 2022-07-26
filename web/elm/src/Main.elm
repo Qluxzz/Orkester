@@ -275,14 +275,14 @@ initCurrentPage ( model, existingCmds ) =
                 Route.Search ->
                     let
                         ( pageModel, pageCmds ) =
-                            SearchPage.init ""
+                            SearchPage.init Nothing
                     in
                     ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
 
                 Route.SearchWithQuery query ->
                     let
                         ( pageModel, pageCmds ) =
-                            SearchPage.init query
+                            SearchPage.init (Just query)
                     in
                     ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
     in
