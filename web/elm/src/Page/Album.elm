@@ -1,7 +1,7 @@
 module Page.Album exposing (Model, Msg(..), formatReleaseDate, getAlbumUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (alignItems, column, displayFlex, end, flexDirection, flexGrow, int, marginLeft, marginRight, marginTop, padding, paddingTop, px, right, textAlign, width)
+import Css exposing (alignItems, backgroundColor, column, displayFlex, end, flexDirection, flexGrow, hex, int, marginLeft, marginRight, marginTop, nthChild, padding, px, right, textAlign, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -246,7 +246,13 @@ trackDurationColStyle =
 
 trackRowStyle : Attribute msg
 trackRowStyle =
-    css [ displayFlex, paddingTop (px 5) ]
+    css
+        [ displayFlex
+        , padding (px 10)
+        , nthChild "even"
+            [ backgroundColor (hex "#333")
+            ]
+        ]
 
 
 tableRow : String -> String -> String -> String -> Html msg
