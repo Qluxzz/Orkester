@@ -1,7 +1,7 @@
 module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (alignSelf, auto, backgroundColor, center, column, content, displayFlex, ellipsis, flex, flexDirection, flexWrap, hex, hidden, hover, justifyContent, margin, marginTop, noWrap, none, overflow, padding, px, start, textDecoration, textOverflow, whiteSpace, width, wrap)
+import Css exposing (Style, absolute, alignSelf, auto, backgroundColor, block, bold, column, display, displayFlex, ellipsis, flex3, flexDirection, fontWeight, height, hex, hidden, left, lineHeight, marginTop, noWrap, none, overflow, padding, padding4, paddingTop, pct, position, property, px, relative, start, textDecoration, textOverflow, top, whiteSpace, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -113,7 +113,16 @@ artistView : Artist -> Html Msg
 artistView artist =
     section [ css [ displayFlex, flexDirection column, overflow hidden ] ]
         [ h1 [] [ text artist.name ]
-        , div [ css [ displayFlex, flexWrap wrap, overflow auto, marginTop (px 10) ] ]
+        , div
+            [ css
+                [ property "display" "grid"
+                , property "gap" "24px"
+                , property "grid-template-columns" "repeat(auto-fill, minmax(256px, 1fr))"
+                , property "grid-template-rows" "1fr"
+                , overflow auto
+                , marginTop (px 10)
+                ]
+            ]
             (List.map
                 albumView
                 artist.albums
@@ -121,25 +130,56 @@ artistView artist =
         ]
 
 
+pStyle : Style
+pStyle =
+    Css.batch
+        [ whiteSpace noWrap
+        , overflow hidden
+        , textOverflow ellipsis
+        , fontWeight bold
+        , padding4 (px 10) (px 0) (px 5) (px 0)
+        , lineHeight (px 10)
+        ]
+
+
 albumView : Album -> Html Msg
 albumView album =
-    a [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ]
+    a
+        [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName)
+        ]
         [ div
             [ css
-                [ width (px 128)
-                , overflow hidden
-                , textOverflow ellipsis
-                , padding (px 10)
+                [ displayFlex
+                , flexDirection column
+                , flex3 (Css.int 1) (Css.int 1) (Css.int 0)
                 , backgroundColor (hex "#333")
-                , margin (px 10)
-                , flex content
+                , padding (px 10)
+                , overflow hidden
                 ]
             ]
-            [ div [ css [ displayFlex, justifyContent center ] ]
-                [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+            [ node "picture"
+                [ css
+                    [ position relative
+                    , overflow hidden
+                    , paddingTop (pct 100)
+                    , height (px 0)
+                    ]
                 ]
-            , p [ css [ overflow hidden, textOverflow ellipsis, whiteSpace noWrap, alignSelf start, marginTop (px 5) ] ] [ text album.name ]
-            , p [ css [ textDecoration none ] ] [ text (getReleaseYear album.released |> Maybe.withDefault "XXXX") ]
+                [ img
+                    [ css
+                        [ display block
+                        , position absolute
+                        , top (px 0)
+                        , left (px 0)
+                        , width (pct 100)
+                        , height (pct 100)
+                        ]
+                    , src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image")
+                    ]
+                    []
+                ]
+            , p [ css [ pStyle ] ] [ text album.name ]
+            , p [ css [ pStyle ] ] [ text (getReleaseYear album.released |> Maybe.withDefault "XXXX") ]
             ]
         ]
 
