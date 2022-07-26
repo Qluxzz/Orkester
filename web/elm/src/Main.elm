@@ -356,18 +356,21 @@ currentView model =
             indexView
 
 
+emptyView : String -> Html Msg
+emptyView text_ =
+    div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
+        [ h1 [] [ text text_ ]
+        ]
+
+
 indexView : Html Msg
 indexView =
-    div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
-        [ h1 [] [ text "Welcome!" ]
-        ]
+    emptyView "Welcome!"
 
 
 notFoundView : Html Msg
 notFoundView =
-    div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
-        [ h1 [] [ text "Page was not found" ]
-        ]
+    emptyView "Page was not found"
 
 
 main : Program () Model Msg
