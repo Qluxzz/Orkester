@@ -1,7 +1,7 @@
 module Page.Search exposing (Model, Msg, init, update, view)
 
 import BaseUrl exposing (baseUrl)
-import Css exposing (auto, displayFlex, flexBasis, flexGrow, flexShrink, int, listStyle, margin, margin2, marginBottom, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
+import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, margin2, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
 import Html.Styled.Attributes exposing (css, href, type_, value)
@@ -211,7 +211,7 @@ update message model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ css [ overflow hidden, displayFlex, flexDirection column ] ]
         [ input
             [ css
                 [ flexGrow (int 1)
@@ -226,7 +226,6 @@ view model =
                 [ displayFlex
                 , overflow auto
                 , marginTop (px 20)
-                , marginBottom (px 20)
                 ]
             ]
             (case model.searchResult of
