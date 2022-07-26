@@ -68,8 +68,8 @@ baseView mainContent =
                     , flexShrink (int 0)
                     , displayFlex
                     , flexDirection column
+                    , property "gap" "10px"
                     ]
-                , style "gap" "10px"
                 ]
                 [ a [ href "/liked-tracks" ] [ text "Liked Tracks" ]
                 , a [ href "/search" ] [ text "Search" ]
