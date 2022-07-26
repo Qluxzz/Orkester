@@ -26,11 +26,15 @@ type alias Album =
     }
 
 
+type alias Seconds =
+    Int
+
+
 type alias Track =
     { id : TrackId
     , trackNumber : Int
     , title : String
-    , length : Int
+    , length : Seconds
     , liked : Bool
     , artists : List Artist
     }
@@ -289,7 +293,7 @@ trackRow track =
             , div [] (formatTrackArtists track.artists)
             ]
         , div [ trackLikedColStyle, onClick onClickLike ] [ text (likedDisplay track.liked) ]
-        , div [ trackDurationColStyle ] [ text (formatTrackLength track.length) ]
+        , div [ trackDurationColStyle ] [ text (durationDisplay track.length) ]
         ]
 
 
@@ -335,26 +339,37 @@ formatTracksDisplay tracks =
 
 formatAlbumLength : List Track -> String
 formatAlbumLength tracks =
-    formatTrackLength <| List.foldl (\track acc -> acc + track.length) 0 tracks
+    durationDisplay <| List.foldl (\track acc -> acc + track.length) 0 tracks
 
 
-{-| Format track length
-Returns track length formatted as x min x sec
+{-| durationDisplay
+Returns seconds formatted as hour:min:sec
 -}
-formatTrackLength : Int -> String
-formatTrackLength length =
+durationDisplay : Seconds -> String
+durationDisplay length =
     let
+        hours =
+            length // 3600
+
         minutes =
-            length // 60
+            (length - (hours * 3600)) // 60
 
         seconds =
             length - minutes * 60
-    in
-    if minutes > 0 then
-        String.fromInt minutes ++ " min " ++ String.fromInt seconds ++ " sec"
 
-    else
-        String.fromInt seconds ++ " sec"
+        padTime : Int -> String
+        padTime time =
+            String.padLeft 2 '0' (String.fromInt time)
+    in
+    (if hours > 0 then
+        padTime hours ++ ":"
+
+     else
+        ""
+    )
+        ++ padTime minutes
+        ++ ":"
+        ++ padTime seconds
 
 
 {-| Format release date
