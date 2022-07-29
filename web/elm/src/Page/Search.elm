@@ -1,15 +1,17 @@
 module Page.Search exposing (Model, Msg, init, update, view)
 
 import BaseUrl exposing (baseUrl)
+import Browser.Dom
 import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, margin2, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
-import Html.Styled.Attributes exposing (css, href, type_, value)
+import Html.Styled.Attributes exposing (css, href, id, type_, value)
 import Html.Styled.Events exposing (onInput)
 import Http
 import Json.Decode as Decode exposing (Decoder, list)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
+import Task
 
 
 type alias IdNameAndUrlName =
@@ -63,15 +65,23 @@ init phrase =
         ( { searchResult = RemoteData.NotAsked
           , searchPhrase = p
           }
-        , Cmd.none
+        , focusSearchField
         )
 
     else
         ( { searchResult = RemoteData.Loading
           , searchPhrase = p
           }
-        , getSearchResult p
+        , Cmd.batch
+            [ getSearchResult p
+            , focusSearchField
+            ]
         )
+
+
+focusSearchField : Cmd Msg
+focusSearchField =
+    Task.attempt (\_ -> FocusedSearchField) (Browser.Dom.focus "search-field")
 
 
 searchResultList : Type -> List { a | id : Int, name : String, urlName : String } -> Html Msg
@@ -178,6 +188,7 @@ searchResultDecoder =
 type Msg
     = UpdateSearchPhrase String
     | SearchResultsRecieved (WebData SearchResult)
+    | FocusedSearchField
 
 
 getSearchResult : String -> Cmd Msg
@@ -208,6 +219,9 @@ update message model =
         SearchResultsRecieved searchResult ->
             ( { model | searchResult = searchResult }, Cmd.none )
 
+        FocusedSearchField ->
+            ( model, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -219,6 +233,7 @@ view model =
             , type_ "text"
             , value model.searchPhrase
             , onInput UpdateSearchPhrase
+            , id "search-field"
             ]
             []
         , div
