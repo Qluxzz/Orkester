@@ -1,6 +1,6 @@
 module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
-import BaseUrl exposing (baseUrl)
+import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (Style, absolute, alignSelf, auto, backgroundColor, block, bold, column, display, displayFlex, ellipsis, flex3, flexDirection, fontWeight, height, hex, hidden, left, lineHeight, marginTop, noWrap, none, overflow, padding, padding4, paddingTop, pct, position, property, px, relative, start, textDecoration, textOverflow, top, whiteSpace, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
@@ -63,7 +63,7 @@ init artistId =
 getArtist : Int -> Cmd Msg
 getArtist artistId =
     Http.get
-        { url = baseUrl ++ "/api/v1/artist/" ++ String.fromInt artistId
+        { url = apiBaseUrl ++ "/api/v1/artist/" ++ String.fromInt artistId
         , expect =
             artistDecoder
                 |> Http.expectJson (RemoteData.fromResult >> ArtistRecieved)

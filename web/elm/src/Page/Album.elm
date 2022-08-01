@@ -1,6 +1,6 @@
 module Page.Album exposing (Model, Msg(..), formatReleaseDate, getAlbumUrl, init, update, view)
 
-import BaseUrl exposing (baseUrl)
+import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (alignItems, backgroundColor, column, displayFlex, end, flexDirection, flexGrow, hex, int, marginLeft, marginRight, marginTop, nthChild, padding, px, right, textAlign, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
@@ -98,7 +98,7 @@ init albumId =
 getAlbumById : Int -> Cmd Msg
 getAlbumById albumId =
     Http.get
-        { url = baseUrl ++ "/api/v1/album/" ++ String.fromInt albumId
+        { url = apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt albumId
         , expect =
             albumDecoder
                 |> Http.expectJson (RemoteData.fromResult >> AlbumReceived)
@@ -202,7 +202,7 @@ albumView : Album -> Html Msg
 albumView album =
     section []
         [ div [ css [ displayFlex, alignItems end ] ]
-            [ img [ src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+            [ img [ src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
             , div [ css [ Css.paddingLeft (px 10) ] ]
                 [ h1 [] [ text album.name ]
                 , div [ css [ displayFlex ] ]

@@ -1,6 +1,6 @@
 module Page.LikedTracks exposing (Model, Msg, init, update, view)
 
-import BaseUrl exposing (baseUrl)
+import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (marginBottom, px)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
@@ -70,7 +70,7 @@ init =
 getLikedTracks : Cmd Msg
 getLikedTracks =
     Http.get
-        { url = baseUrl ++ "/api/v1/playlist/liked"
+        { url = apiBaseUrl ++ "/api/v1/playlist/liked"
         , expect =
             Decode.list trackDecoder
                 |> Http.expectJson (RemoteData.fromResult >> TracksRecieved)

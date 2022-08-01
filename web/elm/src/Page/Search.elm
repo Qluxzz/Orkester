@@ -1,6 +1,6 @@
 module Page.Search exposing (Model, Msg, init, update, view)
 
-import BaseUrl exposing (baseUrl)
+import ApiBaseUrl exposing (apiBaseUrl)
 import Browser.Dom
 import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, margin2, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
 import ErrorMessage exposing (errorMessage)
@@ -194,7 +194,7 @@ type Msg
 getSearchResult : String -> Cmd Msg
 getSearchResult query =
     Http.get
-        { url = baseUrl ++ "/api/v1/search/" ++ query
+        { url = apiBaseUrl ++ "/api/v1/search/" ++ query
         , expect =
             searchResultDecoder
                 |> Http.expectJson (RemoteData.fromResult >> SearchResultsRecieved)
