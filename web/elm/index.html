@@ -21,6 +21,36 @@
 	const app = Elm.Main.init({
 		node: document.getElementById("app")
 	})
+
+	console.log(app)
+
+	const audio = new Audio()
+
+	function _play(timestamp) {
+		audio.play()
+			.then(_ => {
+				if (timestamp)
+					audio.fastSeek(timestamp)
+			})
+			.catch(error => {
+				if (error.name === "AbortError")
+					return
+
+				// if (error.name === "NotSupportedError")
+				// 	return
+
+				app.ports.playbackFailed.send(error.message)
+			})
+	}
+
+	audio.addEventListener("timeupdate", event =>
+		app.ports.progressChanged.send({ currentTime: audio.currentTime, duration: audio.duration })
+	)
+
+	app.ports.playTrack.subscribe(({ id, timestamp }) => {
+		audio.src = `/api/v1/track/${id}/stream`
+		_play(timestamp)
+	})
 </script>
 
 </body>

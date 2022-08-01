@@ -1,17 +1,22 @@
 module Main exposing (..)
 
+import ApiBaseUrl exposing (apiBaseUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (..)
+import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, pct, property, px, row, sansSerif, textDecoration, underline, width)
 import Css.Global
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, href)
+import Html.Styled.Attributes exposing (css, href, src)
+import Http
 import Page.Album as AlbumPage exposing (getAlbumUrl)
 import Page.Artist as ArtistPage exposing (getArtistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
-import RemoteData
+import Player
+import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
+import TrackId exposing (TrackId)
+import TrackInfo exposing (Track, trackInfoDecoder)
 import Url exposing (Url)
 
 
@@ -25,10 +30,19 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , onUrlRequest = LinkClicked
         , onUrlChange = UrlChanged
         }
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.map Player (Player.playbackFailed Player.PlaybackFailed)
 
 
 
@@ -74,12 +88,12 @@ globalStyle =
 view : Model -> Document Msg
 view model =
     { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page)
-    , body = [ baseView (currentView model.page) |> toUnstyled ]
+    , body = [ baseView model (currentView model.page) |> toUnstyled ]
     }
 
 
-baseView : Html Msg -> Html Msg
-baseView mainContent =
+baseView : Model -> Html Msg -> Html Msg
+baseView model mainContent =
     div [ css [ height (pct 100), displayFlex, flexDirection column ] ]
         [ globalStyle
         , div
@@ -117,7 +131,30 @@ baseView mainContent =
                 ]
             ]
         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
-            [ div [] [ text "Nothing is playing right now..." ]
+            [ div [ css [ displayFlex ] ]
+                (case model.currentlyPlaying of
+                    RemoteData.Success track ->
+                        [ a [ href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName) ]
+                            [ img [ src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt track.album.id ++ "/image") ] []
+                            ]
+                        , div [ css [ marginLeft (px 10), overflow hidden ] ]
+                            [ h1 [] [ text track.title ]
+                            , h2 []
+                                (List.map
+                                    (\artist ->
+                                        a
+                                            [ href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName)
+                                            ]
+                                            [ text artist.name ]
+                                    )
+                                    track.artists
+                                )
+                            ]
+                        ]
+
+                    _ ->
+                        [ text "Nothing is playing right now..." ]
+                )
             ]
         ]
 
@@ -173,6 +210,7 @@ type alias Model =
     { route : Route
     , page : Page
     , navKey : Nav.Key
+    , currentlyPlaying : WebData Track
     }
 
 
@@ -193,6 +231,7 @@ init _ url navKey =
             { route = Route.parseUrl url
             , page = NotFoundPage
             , navKey = navKey
+            , currentlyPlaying = NotAsked
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -274,6 +313,9 @@ type Msg
     | SearchPageMsg SearchPage.Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
+    | PlaybackFailed String
+    | Player Player.Msg
+    | TrackInfoRecieved (WebData Track)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -331,19 +373,31 @@ update msg model =
                 ( updatedModel, updatedCmd ) =
                     SearchPage.update searchPageMsg searchPageModel
             in
-            ( { model | page = SearchPage updatedModel }
-            , Cmd.batch
-                (Cmd.map
-                    SearchPageMsg
-                    updatedCmd
-                    :: (if searchPageModel.searchPhrase /= updatedModel.searchPhrase then
-                            [ Nav.replaceUrl model.navKey ("/search/" ++ updatedModel.searchPhrase) ]
+            case searchPageMsg of
+                SearchPage.Player (Player.PlayTrack track) ->
+                    ( { model
+                        | page = SearchPage updatedModel
+                      }
+                    , Cmd.batch
+                        [ Player.playTrack track
+                        , getTrackInfo track.id
+                        ]
+                    )
 
-                        else
-                            []
-                       )
-                )
-            )
+                _ ->
+                    ( { model | page = SearchPage updatedModel }
+                    , Cmd.batch
+                        (Cmd.map
+                            SearchPageMsg
+                            updatedCmd
+                            :: (if searchPageModel.searchPhrase /= updatedModel.searchPhrase then
+                                    [ Nav.replaceUrl model.navKey ("/search/" ++ updatedModel.searchPhrase) ]
+
+                                else
+                                    []
+                               )
+                        )
+                    )
 
         ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
@@ -370,12 +424,37 @@ update msg model =
             else
                 ( model, Cmd.none )
 
+        -- ( Player (Player.PlaybackFailed _), _ ) ->
+        --     ( { model | currentlyPlaying = NotAsked }, Cmd.none )
+        ( TrackInfoRecieved trackInfo, _ ) ->
+            let
+                cmd : Cmd Msg
+                cmd =
+                    case trackInfo of
+                        RemoteData.Success t ->
+                            Player.playTrack { id = t.id, timestamp = 0 }
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | currentlyPlaying = trackInfo }, cmd )
+
         ( _, _ ) ->
             ( model, Cmd.none )
 
 
 
 -- HELPER FUNCTIONS
+
+
+getTrackInfo : TrackId -> Cmd Msg
+getTrackInfo trackId =
+    Http.get
+        { url = apiBaseUrl ++ "/api/v1/track/" ++ String.fromInt trackId
+        , expect =
+            trackInfoDecoder
+                |> Http.expectJson (RemoteData.fromResult >> TrackInfoRecieved)
+        }
 
 
 getDocumentTitle : Page -> Maybe String

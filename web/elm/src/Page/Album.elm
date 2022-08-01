@@ -1,4 +1,4 @@
-module Page.Album exposing (Model, Msg(..), formatReleaseDate, getAlbumUrl, init, update, view)
+module Page.Album exposing (Model, Msg(..), getAlbumUrl, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (alignItems, backgroundColor, column, displayFlex, end, flexDirection, flexGrow, hex, int, marginLeft, marginRight, marginTop, nthChild, padding, px, right, textAlign, width)

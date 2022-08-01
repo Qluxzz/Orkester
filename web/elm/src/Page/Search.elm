@@ -1,4 +1,4 @@
-module Page.Search exposing (Model, Msg, init, update, view)
+module Page.Search exposing (Model, Msg(..), init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser.Dom
@@ -6,10 +6,11 @@ import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGr
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
 import Html.Styled.Attributes exposing (css, href, id, type_, value)
-import Html.Styled.Events exposing (onInput)
+import Html.Styled.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Decode exposing (Decoder, list)
 import Json.Decode.Pipeline exposing (required)
+import Player
 import RemoteData exposing (WebData)
 import Task
 
@@ -151,7 +152,18 @@ searchResultEntry type_ entry =
                 ++ entry.urlName
     in
     li [ css [ margin2 (px 5) (px 0), padding2 (px 5) (px 0), textDecoration underline ] ]
-        [ a [ href link ] [ text entry.name ] ]
+        [ a
+            (case type_ of
+                TrackLink ->
+                    [ onClick (Player (Player.PlayTrack { id = entry.id, timestamp = 0 }))
+                    , href ""
+                    ]
+
+                _ ->
+                    [ href link ]
+            )
+            [ text entry.name ]
+        ]
 
 
 albumDecoder : Decoder Album
@@ -189,6 +201,7 @@ type Msg
     = UpdateSearchPhrase String
     | SearchResultsRecieved (WebData SearchResult)
     | FocusedSearchField
+    | Player Player.Msg
 
 
 getSearchResult : String -> Cmd Msg
@@ -220,6 +233,9 @@ update message model =
             ( { model | searchResult = searchResult }, Cmd.none )
 
         FocusedSearchField ->
+            ( model, Cmd.none )
+
+        Player _ ->
             ( model, Cmd.none )
 
 
