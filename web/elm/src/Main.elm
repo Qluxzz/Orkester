@@ -5,7 +5,7 @@ import Browser.Navigation as Nav
 import Css exposing (..)
 import Css.Global
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, href, style)
+import Html.Styled.Attributes exposing (css, href)
 import Page.Album as AlbumPage exposing (getAlbumUrl)
 import Page.Artist as ArtistPage exposing (getArtistUrl)
 import Page.LikedTracks as LikedTracksPage
@@ -13,6 +13,26 @@ import Page.Search as SearchPage
 import RemoteData
 import Route exposing (Route)
 import Url exposing (Url)
+
+
+
+-- MAIN
+
+
+main : Program () Model Msg
+main =
+    Browser.application
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = \_ -> Sub.none
+        , onUrlRequest = LinkClicked
+        , onUrlChange = UrlChanged
+        }
+
+
+
+-- GLOBAL STYLES
 
 
 textColor : Color
@@ -45,6 +65,17 @@ globalStyle =
             [ margin (px 0)
             ]
         ]
+
+
+
+-- VIEW
+
+
+view : Model -> Document Msg
+view model =
+    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page)
+    , body = [ baseView (currentView model.page) |> toUnstyled ]
+    }
 
 
 baseView : Html Msg -> Html Msg
@@ -86,9 +117,56 @@ baseView mainContent =
                 ]
             ]
         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
-            [ text "Nothing is currently playing..."
+            [ div [] [ text "Nothing is playing right now..." ]
             ]
         ]
+
+
+currentView : Page -> Html Msg
+currentView page =
+    case page of
+        NotFoundPage ->
+            notFoundView
+
+        AlbumPage albumModel ->
+            AlbumPage.view albumModel
+                |> map AlbumPageMsg
+
+        ArtistPage artistModel ->
+            ArtistPage.view artistModel
+                |> map ArtistPageMsg
+
+        LikedTracksPage likedTracksModel ->
+            LikedTracksPage.view likedTracksModel
+                |> map LikedTracksPageMsg
+
+        SearchPage searchPageModel ->
+            SearchPage.view searchPageModel
+                |> map SearchPageMsg
+
+        IndexPage ->
+            indexView
+
+
+emptyView : String -> Html Msg
+emptyView text_ =
+    div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
+        [ h1 [] [ text text_ ]
+        ]
+
+
+indexView : Html Msg
+indexView =
+    emptyView "Welcome!"
+
+
+notFoundView : Html Msg
+notFoundView =
+    emptyView "Page was not found"
+
+
+
+-- MODEL
 
 
 type alias Model =
@@ -105,6 +183,88 @@ type Page
     | ArtistPage ArtistPage.Model
     | LikedTracksPage LikedTracksPage.Model
     | SearchPage SearchPage.Model
+
+
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ url navKey =
+    let
+        model : Model
+        model =
+            { route = Route.parseUrl url
+            , page = NotFoundPage
+            , navKey = navKey
+            }
+    in
+    initCurrentPage ( model, Cmd.none )
+
+
+initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+initCurrentPage ( model, existingCmds ) =
+    let
+        ( currentPage, mappedPageCmds ) =
+            case model.route of
+                Route.NotFound ->
+                    ( NotFoundPage, Cmd.none )
+
+                Route.AlbumWithIdAndUrlName id _ ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            AlbumPage.init id
+                    in
+                    ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
+
+                Route.AlbumWithId id ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            AlbumPage.init id
+                    in
+                    ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
+
+                Route.ArtistWithId id ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            ArtistPage.init id
+                    in
+                    ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
+
+                Route.ArtistWithIdAndUrlName id _ ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            ArtistPage.init id
+                    in
+                    ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
+
+                Route.HomePage ->
+                    ( IndexPage, Cmd.none )
+
+                Route.LikedTracks ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            LikedTracksPage.init
+                    in
+                    ( LikedTracksPage pageModel, Cmd.map LikedTracksPageMsg pageCmds )
+
+                Route.Search ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            SearchPage.init Nothing
+                    in
+                    ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
+
+                Route.SearchWithQuery query ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            SearchPage.init (Just query)
+                    in
+                    ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
+    in
+    ( { model | page = currentPage }
+    , Cmd.batch [ existingCmds, mappedPageCmds ]
+    )
+
+
+
+-- UPDATE
 
 
 type Msg
@@ -214,88 +374,8 @@ update msg model =
             ( model, Cmd.none )
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url navKey =
-    let
-        model =
-            { route = Route.parseUrl url
-            , page = NotFoundPage
-            , navKey = navKey
-            }
-    in
-    initCurrentPage ( model, Cmd.none )
 
-
-initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-initCurrentPage ( model, existingCmds ) =
-    let
-        ( currentPage, mappedPageCmds ) =
-            case model.route of
-                Route.NotFound ->
-                    ( NotFoundPage, Cmd.none )
-
-                Route.AlbumWithIdAndUrlName id _ ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            AlbumPage.init id
-                    in
-                    ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
-
-                Route.AlbumWithId id ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            AlbumPage.init id
-                    in
-                    ( AlbumPage pageModel, Cmd.map AlbumPageMsg pageCmds )
-
-                Route.ArtistWithId id ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            ArtistPage.init id
-                    in
-                    ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
-
-                Route.ArtistWithIdAndUrlName id _ ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            ArtistPage.init id
-                    in
-                    ( ArtistPage pageModel, Cmd.map ArtistPageMsg pageCmds )
-
-                Route.HomePage ->
-                    ( IndexPage, Cmd.none )
-
-                Route.LikedTracks ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            LikedTracksPage.init
-                    in
-                    ( LikedTracksPage pageModel, Cmd.map LikedTracksPageMsg pageCmds )
-
-                Route.Search ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            SearchPage.init Nothing
-                    in
-                    ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
-
-                Route.SearchWithQuery query ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            SearchPage.init (Just query)
-                    in
-                    ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
-    in
-    ( { model | page = currentPage }
-    , Cmd.batch [ existingCmds, mappedPageCmds ]
-    )
-
-
-view : Model -> Document Msg
-view model =
-    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page)
-    , body = [ baseView (currentView model) |> toUnstyled ]
-    }
+-- HELPER FUNCTIONS
 
 
 getDocumentTitle : Page -> Maybe String
@@ -328,58 +408,3 @@ getDocumentTitle page =
 
         SearchPage { searchPhrase } ->
             Just searchPhrase
-
-
-currentView : Model -> Html Msg
-currentView model =
-    case model.page of
-        NotFoundPage ->
-            notFoundView
-
-        AlbumPage albumModel ->
-            AlbumPage.view albumModel
-                |> map AlbumPageMsg
-
-        ArtistPage artistModel ->
-            ArtistPage.view artistModel
-                |> map ArtistPageMsg
-
-        LikedTracksPage likedTracksModel ->
-            LikedTracksPage.view likedTracksModel
-                |> map LikedTracksPageMsg
-
-        SearchPage searchPageModel ->
-            SearchPage.view searchPageModel
-                |> map SearchPageMsg
-
-        IndexPage ->
-            indexView
-
-
-emptyView : String -> Html Msg
-emptyView text_ =
-    div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
-        [ h1 [] [ text text_ ]
-        ]
-
-
-indexView : Html Msg
-indexView =
-    emptyView "Welcome!"
-
-
-notFoundView : Html Msg
-notFoundView =
-    emptyView "Page was not found"
-
-
-main : Program () Model Msg
-main =
-    Browser.application
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = \_ -> Sub.none
-        , onUrlRequest = LinkClicked
-        , onUrlChange = UrlChanged
-        }
