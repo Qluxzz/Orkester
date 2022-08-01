@@ -1,7 +1,7 @@
 module Page.Album exposing (Model, Msg(..), getAlbumUrl, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (alignItems, backgroundColor, column, displayFlex, end, flexDirection, flexGrow, hex, int, marginLeft, marginRight, marginTop, nthChild, padding, px, right, textAlign, width)
+import Css exposing (Style, alignItems, backgroundColor, column, cursor, displayFlex, end, flexDirection, flexGrow, hex, int, marginLeft, marginRight, marginTop, nthChild, padding, pointer, px, right, textAlign, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -11,6 +11,7 @@ import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Like
 import Page.Artist exposing (getArtistUrl)
+import Player
 import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
 import Unlike
@@ -88,6 +89,7 @@ type Msg
     | UnlikeTrack TrackId
     | Like Like.Msg
     | Unlike Unlike.Msg
+    | Player Player.Msg
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -172,6 +174,14 @@ update msg model =
         UnlikeTrack trackId ->
             ( model, Cmd.map Unlike (Unlike.unlikeTrackById trackId) )
 
+        Player playerMsg ->
+            case playerMsg of
+                Player.PlaybackFailed _ ->
+                    ( model, Cmd.none )
+
+                Player.PlayTrack trackId ->
+                    ( model, Player.playTrack trackId )
+
 
 
 -- VIEWS
@@ -228,29 +238,29 @@ table tracks =
             tracks
 
 
-trackNumberColStyle : Attribute msg
+trackNumberColStyle : Style
 trackNumberColStyle =
-    css [ width (px 50) ]
+    Css.batch [ width (px 50), cursor pointer ]
 
 
-trackTitleColStyle : Attribute msg
+trackTitleColStyle : Style
 trackTitleColStyle =
-    css [ flexGrow (int 1) ]
+    Css.batch [ flexGrow (int 1) ]
 
 
-trackLikedColStyle : Attribute msg
+trackLikedColStyle : Style
 trackLikedColStyle =
-    css [ width (px 50) ]
+    Css.batch [ width (px 50) ]
 
 
-trackDurationColStyle : Attribute msg
+trackDurationColStyle : Style
 trackDurationColStyle =
-    css [ width (px 125), textAlign right ]
+    Css.batch [ width (px 125), textAlign right ]
 
 
-trackRowStyle : Attribute msg
+trackRowStyle : Style
 trackRowStyle =
-    css
+    Css.batch
         [ displayFlex
         , padding (px 10)
         , nthChild "even"
@@ -261,11 +271,11 @@ trackRowStyle =
 
 tableRow : String -> String -> String -> String -> Html msg
 tableRow col1 col2 _ col4 =
-    div [ trackRowStyle ]
-        [ div [ trackNumberColStyle ] [ text col1 ]
-        , div [ trackTitleColStyle ] [ text col2 ]
-        , div [ trackLikedColStyle ] []
-        , div [ trackDurationColStyle ] [ text col4 ]
+    div [ css [ trackRowStyle ] ]
+        [ div [ css [ trackNumberColStyle ] ] [ text col1 ]
+        , div [ css [ trackTitleColStyle ] ] [ text col2 ]
+        , div [ css [ trackLikedColStyle ] ] []
+        , div [ css [ trackDurationColStyle ] ] [ text col4 ]
         ]
 
 
@@ -286,14 +296,14 @@ trackRow track =
             else
                 "Like"
     in
-    div [ trackRowStyle ]
-        [ div [ trackNumberColStyle ] [ text (String.fromInt track.trackNumber) ]
-        , div [ trackTitleColStyle, css [ displayFlex, flexDirection column ] ]
+    div [ css [ trackRowStyle ] ]
+        [ div [ css [ trackNumberColStyle ], onClick (Player (Player.PlayTrack { id = track.id, timestamp = 0 })) ] [ text (String.fromInt track.trackNumber) ]
+        , div [ css [ trackTitleColStyle, displayFlex, flexDirection column ] ]
             [ div [] [ p [] [ text track.title ] ]
             , div [] (formatTrackArtists track.artists)
             ]
-        , div [ trackLikedColStyle, onClick onClickLike ] [ text (likedDisplay track.liked) ]
-        , div [ trackDurationColStyle ] [ text (durationDisplay track.length) ]
+        , div [ css [ trackLikedColStyle ], onClick onClickLike ] [ text (likedDisplay track.liked) ]
+        , div [ css [ trackDurationColStyle ] ] [ text (durationDisplay track.length) ]
         ]
 
 

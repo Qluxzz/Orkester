@@ -327,6 +327,16 @@ update msg model =
                     AlbumPage.update albumMsg pageModel
             in
             case albumMsg of
+                AlbumPage.Player (Player.PlayTrack track) ->
+                    ( { model
+                        | page = AlbumPage updatedPageModel
+                      }
+                    , Cmd.batch
+                        [ Player.playTrack track
+                        , getTrackInfo track.id
+                        ]
+                    )
+
                 AlbumPage.AlbumReceived (RemoteData.Success album) ->
                     ( { model | page = AlbumPage updatedPageModel }
                     , Cmd.batch
