@@ -174,7 +174,7 @@ albumView album =
                         , width (pct 100)
                         , height (pct 100)
                         ]
-                    , src (baseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image")
+                    , src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image")
                     ]
                     []
                 ]
