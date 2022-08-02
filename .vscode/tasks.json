@@ -25,8 +25,11 @@
         {
             "label": "watch elm client",
             "type": "shell",
-            "command": "cd web/elm && elm-live src/Main.elm --pushstate -- --output=elm.js",
+            "command": "cd web/elm && elm-live src/Main.elm --pushstate -- --output=elm.js --debug",
             "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
             "presentation": {
                 "group": "watch"
             }
