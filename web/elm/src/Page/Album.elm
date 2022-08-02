@@ -1,7 +1,7 @@
 module Page.Album exposing (Model, Msg(..), getAlbumUrl, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (Style, alignItems, backgroundColor, column, cursor, displayFlex, end, flexDirection, flexGrow, hex, int, marginLeft, marginRight, marginTop, nthChild, padding, pointer, px, right, textAlign, width)
+import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, end, flexDirection, flexGrow, hex, hidden, int, marginLeft, marginRight, marginTop, nthChild, overflow, padding, pointer, position, px, right, sticky, textAlign, top, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -210,7 +210,9 @@ albumViewOrError model =
 
 albumView : Album -> Html Msg
 albumView album =
-    section []
+    section
+        [ css [ displayFlex, flexDirection column, overflow hidden ]
+        ]
         [ div [ css [ displayFlex, alignItems end ] ]
             [ img [ src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
             , div [ css [ Css.paddingLeft (px 10) ] ]
@@ -223,7 +225,7 @@ albumView album =
                     ]
                 ]
             ]
-        , div [ css [ marginTop (px 10) ] ]
+        , div [ css [ marginTop (px 10), displayFlex, flexDirection column, overflow auto ] ]
             (table
                 album.tracks
             )
@@ -232,7 +234,7 @@ albumView album =
 
 table : List Track -> List (Html Msg)
 table tracks =
-    tableRow "#" "TITLE" "LIKED" "DURATION"
+    tableHeaderRow "#" "TITLE" "LIKED" "DURATION"
         :: List.map
             (\track -> trackRow track)
             tracks
@@ -264,14 +266,15 @@ trackRowStyle =
         [ displayFlex
         , padding (px 10)
         , nthChild "even"
-            [ backgroundColor (hex "#333")
-            ]
+            [ backgroundColor (hex "#333") ]
+        , nthChild "odd"
+            [ backgroundColor (hex "#222") ]
         ]
 
 
-tableRow : String -> String -> String -> String -> Html msg
-tableRow col1 col2 _ col4 =
-    div [ css [ trackRowStyle ] ]
+tableHeaderRow : String -> String -> String -> String -> Html msg
+tableHeaderRow col1 col2 _ col4 =
+    div [ css [ trackRowStyle, position sticky, top (px 0) ] ]
         [ div [ css [ trackNumberColStyle ] ] [ text col1 ]
         , div [ css [ trackTitleColStyle ] ] [ text col2 ]
         , div [ css [ trackLikedColStyle ] ] []
