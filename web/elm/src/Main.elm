@@ -8,7 +8,7 @@ import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
-import Page.Album as AlbumPage exposing (getAlbumUrl)
+import Page.Album as AlbumPage exposing (formatTrackArtists, getAlbumUrl)
 import Page.Artist as ArtistPage exposing (getArtistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
@@ -139,16 +139,7 @@ baseView model mainContent =
                             ]
                         , div [ css [ marginLeft (px 10), overflow hidden ] ]
                             [ h1 [] [ text track.title ]
-                            , h2 []
-                                (List.map
-                                    (\artist ->
-                                        a
-                                            [ href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName)
-                                            ]
-                                            [ text artist.name ]
-                                    )
-                                    track.artists
-                                )
+                            , div [] (formatTrackArtists track.artists)
                             ]
                         ]
 
