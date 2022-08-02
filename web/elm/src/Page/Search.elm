@@ -2,7 +2,7 @@ module Page.Search exposing (Model, Msg(..), init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser.Dom
-import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, margin2, marginTop, maxWidth, none, overflow, padding, padding2, px, textDecoration, underline)
+import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, margin2, marginTop, maxWidth, none, overflow, padding, padding2, padding4, paddingLeft, paddingRight, px, textDecoration, underline)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
 import Html.Styled.Attributes exposing (css, href, id, type_, value)
@@ -101,6 +101,8 @@ searchResultList type_ entries =
             , flexShrink (int 1)
             , flexBasis (px 0)
             , maxWidth (px 300)
+            , paddingLeft (px 5)
+            , paddingRight (px 5)
             ]
         ]
         [ h1 []
@@ -151,7 +153,7 @@ searchResultEntry type_ entry =
                 ++ "/"
                 ++ entry.urlName
     in
-    li [ css [ margin2 (px 5) (px 0), padding2 (px 5) (px 0), textDecoration underline ] ]
+    li [ css [ marginTop (px 10), textDecoration underline ] ]
         [ a
             (case type_ of
                 TrackLink ->
