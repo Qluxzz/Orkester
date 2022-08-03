@@ -81,6 +81,9 @@ func (ltc *LikedTrackCreate) Save(ctx context.Context) (*LikedTrack, error) {
 			return node, err
 		})
 		for i := len(ltc.hooks) - 1; i >= 0; i-- {
+			if ltc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ltc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ltc.mutation); err != nil {
@@ -99,6 +102,19 @@ func (ltc *LikedTrackCreate) SaveX(ctx context.Context) *LikedTrack {
 	return v
 }
 
+// Exec executes the query.
+func (ltc *LikedTrackCreate) Exec(ctx context.Context) error {
+	_, err := ltc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (ltc *LikedTrackCreate) ExecX(ctx context.Context) {
+	if err := ltc.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // defaults sets the default values of the builder before save.
 func (ltc *LikedTrackCreate) defaults() {
 	if _, ok := ltc.mutation.DateAdded(); !ok {
@@ -110,10 +126,10 @@ func (ltc *LikedTrackCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (ltc *LikedTrackCreate) check() error {
 	if _, ok := ltc.mutation.DateAdded(); !ok {
-		return &ValidationError{Name: "date_added", err: errors.New("ent: missing required field \"date_added\"")}
+		return &ValidationError{Name: "date_added", err: errors.New(`ent: missing required field "LikedTrack.date_added"`)}
 	}
 	if _, ok := ltc.mutation.TrackID(); !ok {
-		return &ValidationError{Name: "track", err: errors.New("ent: missing required edge \"track\"")}
+		return &ValidationError{Name: "track", err: errors.New(`ent: missing required edge "LikedTrack.track"`)}
 	}
 	return nil
 }
@@ -121,8 +137,8 @@ func (ltc *LikedTrackCreate) check() error {
 func (ltc *LikedTrackCreate) sqlSave(ctx context.Context) (*LikedTrack, error) {
 	_node, _spec := ltc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ltc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -202,10 +218,11 @@ func (ltcb *LikedTrackCreateBulk) Save(ctx context.Context) ([]*LikedTrack, erro
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ltcb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, ltcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+					if err = sqlgraph.BatchCreate(ctx, ltcb.driver, spec); err != nil {
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}
@@ -214,8 +231,10 @@ func (ltcb *LikedTrackCreateBulk) Save(ctx context.Context) ([]*LikedTrack, erro
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -239,4 +258,17 @@ func (ltcb *LikedTrackCreateBulk) SaveX(ctx context.Context) []*LikedTrack {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (ltcb *LikedTrackCreateBulk) Exec(ctx context.Context) error {
+	_, err := ltcb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (ltcb *LikedTrackCreateBulk) ExecX(ctx context.Context) {
+	if err := ltcb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

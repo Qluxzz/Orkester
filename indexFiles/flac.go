@@ -58,14 +58,14 @@ func ParseFlacFile(path string) (*IndexedTrack, error) {
 					var dateString string
 
 					// If value contains optional text
-					if strings.Index(value, " ") != -1 {
+					if strings.Contains(value, " ") {
 						parts := strings.SplitN(value, " ", 2)
 						dateString = parts[0]
 					} else {
 						dateString = value
 					}
 
-					date, err := ParseDateToIsoDate(dateString)
+					date, err := ParseDate(dateString)
 
 					if err != nil {
 						log.Printf("%s invalid date format", value)

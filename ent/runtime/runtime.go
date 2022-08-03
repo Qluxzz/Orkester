@@ -5,6 +5,6 @@ package runtime
 // The schema-stitching logic is generated in goreact/ent/runtime.go
 
 const (
-	Version = "v0.8.1-0.20210613062756-b444535a13a1"            // Version of ent codegen.
-	Sum     = "h1:bRGAcbRUne/280nNad9ADCC98OYp+E7YR725iuq/r9U=" // Sum of ent codegen.
+	Version = "v0.10.1"                                         // Version of ent codegen.
+	Sum     = "h1:dM5h4Zk6yHGIgw4dCqVzGw3nWgpGYJiV4/kyHEF6PFo=" // Sum of ent codegen.
 )

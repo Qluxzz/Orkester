@@ -181,7 +181,7 @@ func (aq *AlbumQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single Album entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Album entity is not found.
+// Returns a *NotSingularError when more than one Album entity is found.
 // Returns a *NotFoundError when no Album entities are found.
 func (aq *AlbumQuery) Only(ctx context.Context) (*Album, error) {
 	nodes, err := aq.Limit(2).All(ctx)
@@ -208,7 +208,7 @@ func (aq *AlbumQuery) OnlyX(ctx context.Context) *Album {
 }
 
 // OnlyID is like Only, but returns the only Album ID in the query.
-// Returns a *NotSingularError when exactly one Album ID is not found.
+// Returns a *NotSingularError when more than one Album ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (aq *AlbumQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -320,8 +320,9 @@ func (aq *AlbumQuery) Clone() *AlbumQuery {
 		withTracks: aq.withTracks.Clone(),
 		withCover:  aq.withCover.Clone(),
 		// clone intermediate query.
-		sql:  aq.sql.Clone(),
-		path: aq.path,
+		sql:    aq.sql.Clone(),
+		path:   aq.path,
+		unique: aq.unique,
 	}
 }
 
@@ -398,8 +399,8 @@ func (aq *AlbumQuery) GroupBy(field string, fields ...string) *AlbumGroupBy {
 //		Select(album.FieldName).
 //		Scan(ctx, &v)
 //
-func (aq *AlbumQuery) Select(field string, fields ...string) *AlbumSelect {
-	aq.fields = append([]string{field}, fields...)
+func (aq *AlbumQuery) Select(fields ...string) *AlbumSelect {
+	aq.fields = append(aq.fields, fields...)
 	return &AlbumSelect{AlbumQuery: aq}
 }
 
@@ -548,6 +549,10 @@ func (aq *AlbumQuery) sqlAll(ctx context.Context) ([]*Album, error) {
 
 func (aq *AlbumQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := aq.querySpec()
+	_spec.Node.Columns = aq.fields
+	if len(aq.fields) > 0 {
+		_spec.Unique = aq.unique != nil && *aq.unique
+	}
 	return sqlgraph.CountNodes(ctx, aq.driver, _spec)
 }
 
@@ -618,6 +623,9 @@ func (aq *AlbumQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if aq.sql != nil {
 		selector = aq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if aq.unique != nil && *aq.unique {
+		selector.Distinct()
 	}
 	for _, p := range aq.predicates {
 		p(selector)
@@ -897,9 +905,7 @@ func (agb *AlbumGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range agb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(agb.fields...)...)

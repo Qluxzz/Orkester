@@ -17,7 +17,7 @@ const (
 	EdgeTrack = "track"
 	// Table holds the table name of the likedtrack in the database.
 	Table = "liked_tracks"
-	// TrackTable is the table the holds the track relation/edge.
+	// TrackTable is the table that holds the track relation/edge.
 	TrackTable = "liked_tracks"
 	// TrackInverseTable is the table name for the Track entity.
 	// It exists in this package in order to avoid circular dependency with the "track" package.

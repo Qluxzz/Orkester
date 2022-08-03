@@ -307,17 +307,28 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 	numberOfArtists := rand.Intn(2) + 1
 
 	for i := 0; i < numberOfArtists; i++ {
-		artists = append(artists, artistNames[rand.Intn(len(artistNames))])
+		artists = append(artists, artistNames[rand.Intn(10)])
 	}
 
 	startYear := 1950
 	timeSpan := 2021 - startYear
 
+	precision := []indexFiles.ReleaseDatePrecision{
+		indexFiles.PRECISION_DATE,
+		indexFiles.PRECISION_MONTH,
+		indexFiles.PRECISION_YEAR,
+	}
+
 	year := rand.Intn(timeSpan) + startYear
 	month := rand.Intn(11) + 1
 	day := rand.Intn(31) + 1
 
-	date := time.Time{}.AddDate(year, month, day)
+	date := &indexFiles.ReleaseDate{
+		Year:      year,
+		Month:     month,
+		Date:      day,
+		Precision: precision[rand.Intn(len(precision))],
+	}
 
 	return &indexFiles.IndexedTrack{
 		Path: fakePath,
@@ -327,7 +338,7 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 		},
 		Artists:     artists,
 		AlbumArtist: artists[rand.Intn(len(artists))],
-		AlbumName:   albumNames[rand.Intn(len(albumNames))],
+		AlbumName:   albumNames[rand.Intn(10)],
 		Length:      rand.Intn(420) + 10,
 		TrackNumber: rand.Intn(20) + 1,
 		MimeType:    "audio/flac",

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"goreact/ent/album"
 	"goreact/ent/artist"
@@ -22,9 +23,9 @@ type ArtistUpdate struct {
 	mutation *ArtistMutation
 }
 
-// Where adds a new predicate for the ArtistUpdate builder.
+// Where appends a list predicates to the ArtistUpdate builder.
 func (au *ArtistUpdate) Where(ps ...predicate.Artist) *ArtistUpdate {
-	au.mutation.predicates = append(au.mutation.predicates, ps...)
+	au.mutation.Where(ps...)
 	return au
 }
 
@@ -125,6 +126,9 @@ func (au *ArtistUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(au.hooks) - 1; i >= 0; i-- {
+			if au.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = au.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, au.mutation); err != nil {
@@ -285,8 +289,8 @@ func (au *ArtistUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{artist.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -405,6 +409,9 @@ func (auo *ArtistUpdateOne) Save(ctx context.Context) (*Artist, error) {
 			return node, err
 		})
 		for i := len(auo.hooks) - 1; i >= 0; i-- {
+			if auo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = auo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, auo.mutation); err != nil {
@@ -449,7 +456,7 @@ func (auo *ArtistUpdateOne) sqlSave(ctx context.Context) (_node *Artist, err err
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Artist.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Artist.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {
@@ -585,8 +592,8 @@ func (auo *ArtistUpdateOne) sqlSave(ctx context.Context) (_node *Artist, err err
 	if err = sqlgraph.UpdateNode(ctx, auo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{artist.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

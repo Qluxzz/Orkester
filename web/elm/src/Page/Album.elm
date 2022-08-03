@@ -1,10 +1,10 @@
 module Page.Album exposing (Model, Msg(..), durationDisplay, formatTrackArtists, getAlbumUrl, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, marginLeft, marginRight, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
+import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, marginRight, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, href, src, style)
+import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
@@ -12,6 +12,7 @@ import Json.Decode.Pipeline exposing (required)
 import Like
 import Page.Artist exposing (getArtistUrl)
 import Player
+import ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
 import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
 import Unlike
@@ -22,7 +23,7 @@ type alias Album =
     , name : String
     , urlName : String
     , tracks : List Track
-    , released : String
+    , released : ReleaseDate
     , artist : Artist
     }
 
@@ -55,7 +56,7 @@ albumDecoder =
         |> required "name" string
         |> required "urlName" string
         |> required "tracks" (list trackDecoder)
-        |> required "released" string
+        |> required "released" releaseDateDecoder
         |> required "artist" artistDecoder
 
 
@@ -392,14 +393,6 @@ durationDisplay length =
         ++ padTime minutes
         ++ ":"
         ++ padTime seconds
-
-
-{-| Format release date
-Removes time part from date time string
--}
-formatReleaseDate : String -> String
-formatReleaseDate date =
-    date |> String.split "T" |> List.head |> Maybe.withDefault "Unknown release date"
 
 
 getAlbumUrl : Album -> String

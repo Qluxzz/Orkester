@@ -156,7 +156,7 @@ func (aq *ArtistQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single Artist entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Artist entity is not found.
+// Returns a *NotSingularError when more than one Artist entity is found.
 // Returns a *NotFoundError when no Artist entities are found.
 func (aq *ArtistQuery) Only(ctx context.Context) (*Artist, error) {
 	nodes, err := aq.Limit(2).All(ctx)
@@ -183,7 +183,7 @@ func (aq *ArtistQuery) OnlyX(ctx context.Context) *Artist {
 }
 
 // OnlyID is like Only, but returns the only Artist ID in the query.
-// Returns a *NotSingularError when exactly one Artist ID is not found.
+// Returns a *NotSingularError when more than one Artist ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (aq *ArtistQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -294,8 +294,9 @@ func (aq *ArtistQuery) Clone() *ArtistQuery {
 		withAlbums: aq.withAlbums.Clone(),
 		withTracks: aq.withTracks.Clone(),
 		// clone intermediate query.
-		sql:  aq.sql.Clone(),
-		path: aq.path,
+		sql:    aq.sql.Clone(),
+		path:   aq.path,
+		unique: aq.unique,
 	}
 }
 
@@ -361,8 +362,8 @@ func (aq *ArtistQuery) GroupBy(field string, fields ...string) *ArtistGroupBy {
 //		Select(artist.FieldName).
 //		Scan(ctx, &v)
 //
-func (aq *ArtistQuery) Select(field string, fields ...string) *ArtistSelect {
-	aq.fields = append([]string{field}, fields...)
+func (aq *ArtistQuery) Select(fields ...string) *ArtistSelect {
+	aq.fields = append(aq.fields, fields...)
 	return &ArtistSelect{ArtistQuery: aq}
 }
 
@@ -510,6 +511,10 @@ func (aq *ArtistQuery) sqlAll(ctx context.Context) ([]*Artist, error) {
 
 func (aq *ArtistQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := aq.querySpec()
+	_spec.Node.Columns = aq.fields
+	if len(aq.fields) > 0 {
+		_spec.Unique = aq.unique != nil && *aq.unique
+	}
 	return sqlgraph.CountNodes(ctx, aq.driver, _spec)
 }
 
@@ -580,6 +585,9 @@ func (aq *ArtistQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if aq.sql != nil {
 		selector = aq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if aq.unique != nil && *aq.unique {
+		selector.Distinct()
 	}
 	for _, p := range aq.predicates {
 		p(selector)
@@ -859,9 +867,7 @@ func (agb *ArtistGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range agb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(agb.fields...)...)

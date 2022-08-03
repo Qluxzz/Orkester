@@ -1,13 +1,14 @@
 module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (Style, absolute, alignSelf, auto, backgroundColor, block, bold, column, display, displayFlex, ellipsis, flex3, flexDirection, fontWeight, height, hex, hidden, left, lineHeight, marginTop, noWrap, none, overflow, padding, padding4, paddingTop, pct, position, property, px, relative, start, textDecoration, textOverflow, top, whiteSpace, width)
+import Css exposing (Style, absolute, auto, backgroundColor, block, bold, column, display, displayFlex, ellipsis, flex3, flexDirection, fontWeight, height, hex, hidden, left, lineHeight, marginTop, noWrap, overflow, padding, padding4, paddingTop, pct, position, property, px, relative, textOverflow, top, whiteSpace, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
 import Json.Decode as Decode exposing (Decoder, int, list, string)
 import Json.Decode.Pipeline exposing (required)
+import ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
 import RemoteData exposing (WebData)
 
 
@@ -23,7 +24,7 @@ type alias Album =
     { id : Int
     , name : String
     , urlName : String
-    , released : String
+    , released : ReleaseDate
     }
 
 
@@ -42,7 +43,7 @@ albumDecoder =
         |> required "id" int
         |> required "name" string
         |> required "urlName" string
-        |> required "released" string
+        |> required "released" releaseDateDecoder
 
 
 type alias Model =
@@ -179,7 +180,7 @@ albumView album =
                     []
                 ]
             , p [ css [ pStyle ] ] [ text album.name ]
-            , p [ css [ pStyle ] ] [ text (getReleaseYear album.released |> Maybe.withDefault "XXXX") ]
+            , p [ css [ pStyle ] ] [ text (formatReleaseDate album.released) ]
             ]
         ]
 

@@ -2,14 +2,12 @@ package models
 
 import (
 	"goreact/ent"
-	"time"
 )
 
 type Track struct {
 	Id          int       `json:"id"`
 	Title       string    `json:"title"`
 	TrackNumber int       `json:"trackNumber"`
-	Date        time.Time `json:"date"`
 	Length      int       `json:"length"`
 	Album       *Album    `json:"album"`
 	Artists     []*Artist `json:"artists"`

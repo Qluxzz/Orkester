@@ -65,6 +65,9 @@ func (aic *AlbumImageCreate) Save(ctx context.Context) (*AlbumImage, error) {
 			return node, err
 		})
 		for i := len(aic.hooks) - 1; i >= 0; i-- {
+			if aic.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = aic.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, aic.mutation); err != nil {
@@ -83,13 +86,26 @@ func (aic *AlbumImageCreate) SaveX(ctx context.Context) *AlbumImage {
 	return v
 }
 
+// Exec executes the query.
+func (aic *AlbumImageCreate) Exec(ctx context.Context) error {
+	_, err := aic.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (aic *AlbumImageCreate) ExecX(ctx context.Context) {
+	if err := aic.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (aic *AlbumImageCreate) check() error {
 	if _, ok := aic.mutation.Image(); !ok {
-		return &ValidationError{Name: "image", err: errors.New("ent: missing required field \"image\"")}
+		return &ValidationError{Name: "image", err: errors.New(`ent: missing required field "AlbumImage.image"`)}
 	}
 	if _, ok := aic.mutation.ImageMimeType(); !ok {
-		return &ValidationError{Name: "image_mime_type", err: errors.New("ent: missing required field \"image_mime_type\"")}
+		return &ValidationError{Name: "image_mime_type", err: errors.New(`ent: missing required field "AlbumImage.image_mime_type"`)}
 	}
 	return nil
 }
@@ -97,8 +113,8 @@ func (aic *AlbumImageCreate) check() error {
 func (aic *AlbumImageCreate) sqlSave(ctx context.Context) (*AlbumImage, error) {
 	_node, _spec := aic.createSpec()
 	if err := sqlgraph.CreateNode(ctx, aic.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -165,10 +181,11 @@ func (aicb *AlbumImageCreateBulk) Save(ctx context.Context) ([]*AlbumImage, erro
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, aicb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, aicb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+					if err = sqlgraph.BatchCreate(ctx, aicb.driver, spec); err != nil {
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}
@@ -177,8 +194,10 @@ func (aicb *AlbumImageCreateBulk) Save(ctx context.Context) ([]*AlbumImage, erro
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -202,4 +221,17 @@ func (aicb *AlbumImageCreateBulk) SaveX(ctx context.Context) []*AlbumImage {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (aicb *AlbumImageCreateBulk) Exec(ctx context.Context) error {
+	_, err := aicb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (aicb *AlbumImageCreateBulk) ExecX(ctx context.Context) {
+	if err := aicb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

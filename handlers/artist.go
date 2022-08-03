@@ -4,18 +4,18 @@ import (
 	"context"
 	"goreact/ent"
 	"goreact/ent/artist"
+	"goreact/indexFiles"
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type AlbumWithReleaseDate struct {
-	Id       int       `json:"id"`
-	Name     string    `json:"name"`
-	UrlName  string    `json:"urlName"`
-	Released time.Time `json:"released"`
+	Id       int                     `json:"id"`
+	Name     string                  `json:"name"`
+	UrlName  string                  `json:"urlName"`
+	Released *indexFiles.ReleaseDate `json:"released"`
 }
 
 func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
@@ -42,6 +42,7 @@ func GetArtist(client *ent.Client, context context.Context) fiber.Handler {
 		deduplicatedAlbums := make(map[int]AlbumWithReleaseDate)
 
 		for _, album := range artistInfo.Edges.Albums {
+
 			deduplicatedAlbums[album.ID] = AlbumWithReleaseDate{
 				Id:       album.ID,
 				Name:     album.Name,

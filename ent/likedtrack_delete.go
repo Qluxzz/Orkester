@@ -20,9 +20,9 @@ type LikedTrackDelete struct {
 	mutation *LikedTrackMutation
 }
 
-// Where adds a new predicate to the LikedTrackDelete builder.
+// Where appends a list predicates to the LikedTrackDelete builder.
 func (ltd *LikedTrackDelete) Where(ps ...predicate.LikedTrack) *LikedTrackDelete {
-	ltd.mutation.predicates = append(ltd.mutation.predicates, ps...)
+	ltd.mutation.Where(ps...)
 	return ltd
 }
 
@@ -46,6 +46,9 @@ func (ltd *LikedTrackDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(ltd.hooks) - 1; i >= 0; i-- {
+			if ltd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ltd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ltd.mutation); err != nil {

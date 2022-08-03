@@ -106,7 +106,7 @@ func (aiq *AlbumImageQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single AlbumImage entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one AlbumImage entity is not found.
+// Returns a *NotSingularError when more than one AlbumImage entity is found.
 // Returns a *NotFoundError when no AlbumImage entities are found.
 func (aiq *AlbumImageQuery) Only(ctx context.Context) (*AlbumImage, error) {
 	nodes, err := aiq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (aiq *AlbumImageQuery) OnlyX(ctx context.Context) *AlbumImage {
 }
 
 // OnlyID is like Only, but returns the only AlbumImage ID in the query.
-// Returns a *NotSingularError when exactly one AlbumImage ID is not found.
+// Returns a *NotSingularError when more than one AlbumImage ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (aiq *AlbumImageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (aiq *AlbumImageQuery) Clone() *AlbumImageQuery {
 		order:      append([]OrderFunc{}, aiq.order...),
 		predicates: append([]predicate.AlbumImage{}, aiq.predicates...),
 		// clone intermediate query.
-		sql:  aiq.sql.Clone(),
-		path: aiq.path,
+		sql:    aiq.sql.Clone(),
+		path:   aiq.path,
+		unique: aiq.unique,
 	}
 }
 
@@ -287,8 +288,8 @@ func (aiq *AlbumImageQuery) GroupBy(field string, fields ...string) *AlbumImageG
 //		Select(albumimage.FieldImage).
 //		Scan(ctx, &v)
 //
-func (aiq *AlbumImageQuery) Select(field string, fields ...string) *AlbumImageSelect {
-	aiq.fields = append([]string{field}, fields...)
+func (aiq *AlbumImageQuery) Select(fields ...string) *AlbumImageSelect {
+	aiq.fields = append(aiq.fields, fields...)
 	return &AlbumImageSelect{AlbumImageQuery: aiq}
 }
 
@@ -336,6 +337,10 @@ func (aiq *AlbumImageQuery) sqlAll(ctx context.Context) ([]*AlbumImage, error) {
 
 func (aiq *AlbumImageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := aiq.querySpec()
+	_spec.Node.Columns = aiq.fields
+	if len(aiq.fields) > 0 {
+		_spec.Unique = aiq.unique != nil && *aiq.unique
+	}
 	return sqlgraph.CountNodes(ctx, aiq.driver, _spec)
 }
 
@@ -406,6 +411,9 @@ func (aiq *AlbumImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if aiq.sql != nil {
 		selector = aiq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if aiq.unique != nil && *aiq.unique {
+		selector.Distinct()
 	}
 	for _, p := range aiq.predicates {
 		p(selector)
@@ -685,9 +693,7 @@ func (aigb *AlbumImageGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range aigb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(aigb.fields...)...)

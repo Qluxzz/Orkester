@@ -24,9 +24,9 @@ type AlbumUpdate struct {
 	mutation *AlbumMutation
 }
 
-// Where adds a new predicate for the AlbumUpdate builder.
+// Where appends a list predicates to the AlbumUpdate builder.
 func (au *AlbumUpdate) Where(ps ...predicate.Album) *AlbumUpdate {
-	au.mutation.predicates = append(au.mutation.predicates, ps...)
+	au.mutation.Where(ps...)
 	return au
 }
 
@@ -139,6 +139,9 @@ func (au *AlbumUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(au.hooks) - 1; i >= 0; i-- {
+			if au.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = au.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, au.mutation); err != nil {
@@ -173,7 +176,7 @@ func (au *AlbumUpdate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (au *AlbumUpdate) check() error {
 	if _, ok := au.mutation.ArtistID(); au.mutation.ArtistCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"artist\"")
+		return errors.New(`ent: clearing a required unique edge "Album.artist"`)
 	}
 	return nil
 }
@@ -323,8 +326,8 @@ func (au *AlbumUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{album.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -455,6 +458,9 @@ func (auo *AlbumUpdateOne) Save(ctx context.Context) (*Album, error) {
 			return node, err
 		})
 		for i := len(auo.hooks) - 1; i >= 0; i-- {
+			if auo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = auo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, auo.mutation); err != nil {
@@ -489,7 +495,7 @@ func (auo *AlbumUpdateOne) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (auo *AlbumUpdateOne) check() error {
 	if _, ok := auo.mutation.ArtistID(); auo.mutation.ArtistCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"artist\"")
+		return errors.New(`ent: clearing a required unique edge "Album.artist"`)
 	}
 	return nil
 }
@@ -507,7 +513,7 @@ func (auo *AlbumUpdateOne) sqlSave(ctx context.Context) (_node *Album, err error
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Album.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Album.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {
@@ -659,8 +665,8 @@ func (auo *AlbumUpdateOne) sqlSave(ctx context.Context) (_node *Album, err error
 	if err = sqlgraph.UpdateNode(ctx, auo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{album.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

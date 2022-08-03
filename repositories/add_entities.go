@@ -7,7 +7,6 @@ import (
 	"goreact/ent/album"
 	"goreact/ent/artist"
 	"goreact/indexFiles"
-	"time"
 
 	"github.com/gosimple/slug"
 )
@@ -96,7 +95,7 @@ func AddTracks(tracks []*indexFiles.IndexedTrack, client *ent.Client, context co
 	return addedTrackIds, nil
 }
 
-func GetOrCreateAlbum(albumName string, released time.Time, albumImage *indexFiles.Image, albumArtist *ent.Artist, context context.Context, client *ent.Tx) (*ent.Album, error) {
+func GetOrCreateAlbum(albumName string, released *indexFiles.ReleaseDate, albumImage *indexFiles.Image, albumArtist *ent.Artist, context context.Context, client *ent.Tx) (*ent.Album, error) {
 	a, err := client.
 		Album.
 		Query().

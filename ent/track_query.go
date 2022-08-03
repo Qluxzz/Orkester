@@ -181,7 +181,7 @@ func (tq *TrackQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single Track entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Track entity is not found.
+// Returns a *NotSingularError when more than one Track entity is found.
 // Returns a *NotFoundError when no Track entities are found.
 func (tq *TrackQuery) Only(ctx context.Context) (*Track, error) {
 	nodes, err := tq.Limit(2).All(ctx)
@@ -208,7 +208,7 @@ func (tq *TrackQuery) OnlyX(ctx context.Context) *Track {
 }
 
 // OnlyID is like Only, but returns the only Track ID in the query.
-// Returns a *NotSingularError when exactly one Track ID is not found.
+// Returns a *NotSingularError when more than one Track ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (tq *TrackQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -320,8 +320,9 @@ func (tq *TrackQuery) Clone() *TrackQuery {
 		withAlbum:   tq.withAlbum.Clone(),
 		withLiked:   tq.withLiked.Clone(),
 		// clone intermediate query.
-		sql:  tq.sql.Clone(),
-		path: tq.path,
+		sql:    tq.sql.Clone(),
+		path:   tq.path,
+		unique: tq.unique,
 	}
 }
 
@@ -398,8 +399,8 @@ func (tq *TrackQuery) GroupBy(field string, fields ...string) *TrackGroupBy {
 //		Select(track.FieldTitle).
 //		Scan(ctx, &v)
 //
-func (tq *TrackQuery) Select(field string, fields ...string) *TrackSelect {
-	tq.fields = append([]string{field}, fields...)
+func (tq *TrackQuery) Select(fields ...string) *TrackSelect {
+	tq.fields = append(tq.fields, fields...)
 	return &TrackSelect{TrackQuery: tq}
 }
 
@@ -583,6 +584,10 @@ func (tq *TrackQuery) sqlAll(ctx context.Context) ([]*Track, error) {
 
 func (tq *TrackQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tq.querySpec()
+	_spec.Node.Columns = tq.fields
+	if len(tq.fields) > 0 {
+		_spec.Unique = tq.unique != nil && *tq.unique
+	}
 	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
@@ -653,6 +658,9 @@ func (tq *TrackQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if tq.sql != nil {
 		selector = tq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if tq.unique != nil && *tq.unique {
+		selector.Distinct()
 	}
 	for _, p := range tq.predicates {
 		p(selector)
@@ -932,9 +940,7 @@ func (tgb *TrackGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range tgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(tgb.fields...)...)

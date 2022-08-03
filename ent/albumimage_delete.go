@@ -20,9 +20,9 @@ type AlbumImageDelete struct {
 	mutation *AlbumImageMutation
 }
 
-// Where adds a new predicate to the AlbumImageDelete builder.
+// Where appends a list predicates to the AlbumImageDelete builder.
 func (aid *AlbumImageDelete) Where(ps ...predicate.AlbumImage) *AlbumImageDelete {
-	aid.mutation.predicates = append(aid.mutation.predicates, ps...)
+	aid.mutation.Where(ps...)
 	return aid
 }
 
@@ -46,6 +46,9 @@ func (aid *AlbumImageDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(aid.hooks) - 1; i >= 0; i-- {
+			if aid.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = aid.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, aid.mutation); err != nil {

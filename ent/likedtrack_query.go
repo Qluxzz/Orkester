@@ -132,7 +132,7 @@ func (ltq *LikedTrackQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single LikedTrack entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one LikedTrack entity is not found.
+// Returns a *NotSingularError when more than one LikedTrack entity is found.
 // Returns a *NotFoundError when no LikedTrack entities are found.
 func (ltq *LikedTrackQuery) Only(ctx context.Context) (*LikedTrack, error) {
 	nodes, err := ltq.Limit(2).All(ctx)
@@ -159,7 +159,7 @@ func (ltq *LikedTrackQuery) OnlyX(ctx context.Context) *LikedTrack {
 }
 
 // OnlyID is like Only, but returns the only LikedTrack ID in the query.
-// Returns a *NotSingularError when exactly one LikedTrack ID is not found.
+// Returns a *NotSingularError when more than one LikedTrack ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (ltq *LikedTrackQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -269,8 +269,9 @@ func (ltq *LikedTrackQuery) Clone() *LikedTrackQuery {
 		predicates: append([]predicate.LikedTrack{}, ltq.predicates...),
 		withTrack:  ltq.withTrack.Clone(),
 		// clone intermediate query.
-		sql:  ltq.sql.Clone(),
-		path: ltq.path,
+		sql:    ltq.sql.Clone(),
+		path:   ltq.path,
+		unique: ltq.unique,
 	}
 }
 
@@ -325,8 +326,8 @@ func (ltq *LikedTrackQuery) GroupBy(field string, fields ...string) *LikedTrackG
 //		Select(likedtrack.FieldDateAdded).
 //		Scan(ctx, &v)
 //
-func (ltq *LikedTrackQuery) Select(field string, fields ...string) *LikedTrackSelect {
-	ltq.fields = append([]string{field}, fields...)
+func (ltq *LikedTrackQuery) Select(fields ...string) *LikedTrackSelect {
+	ltq.fields = append(ltq.fields, fields...)
 	return &LikedTrackSelect{LikedTrackQuery: ltq}
 }
 
@@ -415,6 +416,10 @@ func (ltq *LikedTrackQuery) sqlAll(ctx context.Context) ([]*LikedTrack, error) {
 
 func (ltq *LikedTrackQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := ltq.querySpec()
+	_spec.Node.Columns = ltq.fields
+	if len(ltq.fields) > 0 {
+		_spec.Unique = ltq.unique != nil && *ltq.unique
+	}
 	return sqlgraph.CountNodes(ctx, ltq.driver, _spec)
 }
 
@@ -485,6 +490,9 @@ func (ltq *LikedTrackQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if ltq.sql != nil {
 		selector = ltq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if ltq.unique != nil && *ltq.unique {
+		selector.Distinct()
 	}
 	for _, p := range ltq.predicates {
 		p(selector)
@@ -764,9 +772,7 @@ func (ltgb *LikedTrackGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range ltgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(ltgb.fields...)...)

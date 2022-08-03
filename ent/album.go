@@ -3,12 +3,13 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"goreact/ent/album"
 	"goreact/ent/albumimage"
 	"goreact/ent/artist"
+	"goreact/indexFiles"
 	"strings"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -23,7 +24,7 @@ type Album struct {
 	// URLName holds the value of the "url_name" field.
 	URLName string `json:"url_name,omitempty"`
 	// Released holds the value of the "released" field.
-	Released time.Time `json:"released,omitempty"`
+	Released *indexFiles.ReleaseDate `json:"released,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AlbumQuery when eager-loading is set.
 	Edges         AlbumEdges `json:"edges"`
@@ -86,12 +87,12 @@ func (*Album) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case album.FieldReleased:
+			values[i] = new([]byte)
 		case album.FieldID:
 			values[i] = new(sql.NullInt64)
 		case album.FieldName, album.FieldURLName:
 			values[i] = new(sql.NullString)
-		case album.FieldReleased:
-			values[i] = new(sql.NullTime)
 		case album.ForeignKeys[0]: // album_cover
 			values[i] = new(sql.NullInt64)
 		case album.ForeignKeys[1]: // artist_albums
@@ -130,10 +131,12 @@ func (a *Album) assignValues(columns []string, values []interface{}) error {
 				a.URLName = value.String
 			}
 		case album.FieldReleased:
-			if value, ok := values[i].(*sql.NullTime); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field released", values[i])
-			} else if value.Valid {
-				a.Released = value.Time
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &a.Released); err != nil {
+					return fmt.Errorf("unmarshal field released: %w", err)
+				}
 			}
 		case album.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -197,7 +200,7 @@ func (a *Album) String() string {
 	builder.WriteString(", url_name=")
 	builder.WriteString(a.URLName)
 	builder.WriteString(", released=")
-	builder.WriteString(a.Released.Format(time.ANSIC))
+	builder.WriteString(fmt.Sprintf("%v", a.Released))
 	builder.WriteByte(')')
 	return builder.String()
 }

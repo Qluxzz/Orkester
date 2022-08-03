@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"goreact/ent/albumimage"
 	"goreact/ent/predicate"
@@ -20,9 +21,9 @@ type AlbumImageUpdate struct {
 	mutation *AlbumImageMutation
 }
 
-// Where adds a new predicate for the AlbumImageUpdate builder.
+// Where appends a list predicates to the AlbumImageUpdate builder.
 func (aiu *AlbumImageUpdate) Where(ps ...predicate.AlbumImage) *AlbumImageUpdate {
-	aiu.mutation.predicates = append(aiu.mutation.predicates, ps...)
+	aiu.mutation.Where(ps...)
 	return aiu
 }
 
@@ -51,6 +52,9 @@ func (aiu *AlbumImageUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(aiu.hooks) - 1; i >= 0; i-- {
+			if aiu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = aiu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, aiu.mutation); err != nil {
@@ -103,8 +107,8 @@ func (aiu *AlbumImageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if n, err = sqlgraph.UpdateNodes(ctx, aiu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{albumimage.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -151,6 +155,9 @@ func (aiuo *AlbumImageUpdateOne) Save(ctx context.Context) (*AlbumImage, error) 
 			return node, err
 		})
 		for i := len(aiuo.hooks) - 1; i >= 0; i-- {
+			if aiuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = aiuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, aiuo.mutation); err != nil {
@@ -195,7 +202,7 @@ func (aiuo *AlbumImageUpdateOne) sqlSave(ctx context.Context) (_node *AlbumImage
 	}
 	id, ok := aiuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing AlbumImage.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "AlbumImage.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := aiuo.fields; len(fields) > 0 {
@@ -223,8 +230,8 @@ func (aiuo *AlbumImageUpdateOne) sqlSave(ctx context.Context) (_node *AlbumImage
 	if err = sqlgraph.UpdateNode(ctx, aiuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{albumimage.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

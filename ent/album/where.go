@@ -4,7 +4,6 @@ package album
 
 import (
 	"goreact/ent/predicate"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -104,13 +103,6 @@ func Name(v string) predicate.Album {
 func URLName(v string) predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldURLName), v))
-	})
-}
-
-// Released applies equality check predicate on the "released" field. It's identical to ReleasedEQ.
-func Released(v time.Time) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldReleased), v))
 	})
 }
 
@@ -333,82 +325,6 @@ func URLNameEqualFold(v string) predicate.Album {
 func URLNameContainsFold(v string) predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldURLName), v))
-	})
-}
-
-// ReleasedEQ applies the EQ predicate on the "released" field.
-func ReleasedEQ(v time.Time) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldReleased), v))
-	})
-}
-
-// ReleasedNEQ applies the NEQ predicate on the "released" field.
-func ReleasedNEQ(v time.Time) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldReleased), v))
-	})
-}
-
-// ReleasedIn applies the In predicate on the "released" field.
-func ReleasedIn(vs ...time.Time) predicate.Album {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Album(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldReleased), v...))
-	})
-}
-
-// ReleasedNotIn applies the NotIn predicate on the "released" field.
-func ReleasedNotIn(vs ...time.Time) predicate.Album {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Album(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldReleased), v...))
-	})
-}
-
-// ReleasedGT applies the GT predicate on the "released" field.
-func ReleasedGT(v time.Time) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldReleased), v))
-	})
-}
-
-// ReleasedGTE applies the GTE predicate on the "released" field.
-func ReleasedGTE(v time.Time) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldReleased), v))
-	})
-}
-
-// ReleasedLT applies the LT predicate on the "released" field.
-func ReleasedLT(v time.Time) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldReleased), v))
-	})
-}
-
-// ReleasedLTE applies the LTE predicate on the "released" field.
-func ReleasedLTE(v time.Time) predicate.Album {
-	return predicate.Album(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldReleased), v))
 	})
 }
 

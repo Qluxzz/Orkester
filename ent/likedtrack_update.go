@@ -22,9 +22,9 @@ type LikedTrackUpdate struct {
 	mutation *LikedTrackMutation
 }
 
-// Where adds a new predicate for the LikedTrackUpdate builder.
+// Where appends a list predicates to the LikedTrackUpdate builder.
 func (ltu *LikedTrackUpdate) Where(ps ...predicate.LikedTrack) *LikedTrackUpdate {
-	ltu.mutation.predicates = append(ltu.mutation.predicates, ps...)
+	ltu.mutation.Where(ps...)
 	return ltu
 }
 
@@ -76,6 +76,9 @@ func (ltu *LikedTrackUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(ltu.hooks) - 1; i >= 0; i-- {
+			if ltu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ltu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ltu.mutation); err != nil {
@@ -110,7 +113,7 @@ func (ltu *LikedTrackUpdate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (ltu *LikedTrackUpdate) check() error {
 	if _, ok := ltu.mutation.TrackID(); ltu.mutation.TrackCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"track\"")
+		return errors.New(`ent: clearing a required unique edge "LikedTrack.track"`)
 	}
 	return nil
 }
@@ -171,8 +174,8 @@ func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if n, err = sqlgraph.UpdateNodes(ctx, ltu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{likedtrack.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -242,6 +245,9 @@ func (ltuo *LikedTrackUpdateOne) Save(ctx context.Context) (*LikedTrack, error) 
 			return node, err
 		})
 		for i := len(ltuo.hooks) - 1; i >= 0; i-- {
+			if ltuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ltuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ltuo.mutation); err != nil {
@@ -276,7 +282,7 @@ func (ltuo *LikedTrackUpdateOne) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (ltuo *LikedTrackUpdateOne) check() error {
 	if _, ok := ltuo.mutation.TrackID(); ltuo.mutation.TrackCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"track\"")
+		return errors.New(`ent: clearing a required unique edge "LikedTrack.track"`)
 	}
 	return nil
 }
@@ -294,7 +300,7 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 	}
 	id, ok := ltuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing LikedTrack.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LikedTrack.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := ltuo.fields; len(fields) > 0 {
@@ -357,8 +363,8 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 	if err = sqlgraph.UpdateNode(ctx, ltuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{likedtrack.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

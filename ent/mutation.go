@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"goreact/ent/album"
 	"goreact/ent/albumimage"
@@ -11,6 +12,7 @@ import (
 	"goreact/ent/likedtrack"
 	"goreact/ent/predicate"
 	"goreact/ent/track"
+	"goreact/indexFiles"
 	"sync"
 	"time"
 
@@ -41,7 +43,7 @@ type AlbumMutation struct {
 	id            *int
 	name          *string
 	url_name      *string
-	released      *time.Time
+	released      **indexFiles.ReleaseDate
 	clearedFields map[string]struct{}
 	artist        *int
 	clearedartist bool
@@ -85,7 +87,7 @@ func withAlbumID(id int) albumOption {
 		m.oldValue = func(ctx context.Context) (*Album, error) {
 			once.Do(func() {
 				if m.done {
-					err = fmt.Errorf("querying old values post mutation is not allowed")
+					err = errors.New("querying old values post mutation is not allowed")
 				} else {
 					value, err = m.Client().Album.Get(ctx, id)
 				}
@@ -118,7 +120,7 @@ func (m AlbumMutation) Client() *Client {
 // it returns an error otherwise.
 func (m AlbumMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
 	tx := &Tx{config: m.config}
 	tx.init()
@@ -132,6 +134,25 @@ func (m *AlbumMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AlbumMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Album.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
 }
 
 // SetName sets the "name" field.
@@ -153,10 +174,10 @@ func (m *AlbumMutation) Name() (r string, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *AlbumMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+		return v, errors.New("OldName requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -189,10 +210,10 @@ func (m *AlbumMutation) URLName() (r string, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *AlbumMutation) OldURLName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldURLName is only allowed on UpdateOne operations")
+		return v, errors.New("OldURLName is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldURLName requires an ID field in the mutation")
+		return v, errors.New("OldURLName requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -207,12 +228,12 @@ func (m *AlbumMutation) ResetURLName() {
 }
 
 // SetReleased sets the "released" field.
-func (m *AlbumMutation) SetReleased(t time.Time) {
-	m.released = &t
+func (m *AlbumMutation) SetReleased(ifd *indexFiles.ReleaseDate) {
+	m.released = &ifd
 }
 
 // Released returns the value of the "released" field in the mutation.
-func (m *AlbumMutation) Released() (r time.Time, exists bool) {
+func (m *AlbumMutation) Released() (r *indexFiles.ReleaseDate, exists bool) {
 	v := m.released
 	if v == nil {
 		return
@@ -223,12 +244,12 @@ func (m *AlbumMutation) Released() (r time.Time, exists bool) {
 // OldReleased returns the old "released" field's value of the Album entity.
 // If the Album object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlbumMutation) OldReleased(ctx context.Context) (v time.Time, err error) {
+func (m *AlbumMutation) OldReleased(ctx context.Context) (v *indexFiles.ReleaseDate, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldReleased is only allowed on UpdateOne operations")
+		return v, errors.New("OldReleased is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldReleased requires an ID field in the mutation")
+		return v, errors.New("OldReleased requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -307,6 +328,7 @@ func (m *AlbumMutation) RemoveTrackIDs(ids ...int) {
 		m.removedtracks = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.tracks, ids[i])
 		m.removedtracks[ids[i]] = struct{}{}
 	}
 }
@@ -371,6 +393,11 @@ func (m *AlbumMutation) CoverIDs() (ids []int) {
 func (m *AlbumMutation) ResetCover() {
 	m.cover = nil
 	m.clearedcover = false
+}
+
+// Where appends a list predicates to the AlbumMutation builder.
+func (m *AlbumMutation) Where(ps ...predicate.Album) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -450,7 +477,7 @@ func (m *AlbumMutation) SetField(name string, value ent.Value) error {
 		m.SetURLName(v)
 		return nil
 	case album.FieldReleased:
-		v, ok := value.(time.Time)
+		v, ok := value.(*indexFiles.ReleaseDate)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -682,7 +709,7 @@ func withAlbumImageID(id int) albumimageOption {
 		m.oldValue = func(ctx context.Context) (*AlbumImage, error) {
 			once.Do(func() {
 				if m.done {
-					err = fmt.Errorf("querying old values post mutation is not allowed")
+					err = errors.New("querying old values post mutation is not allowed")
 				} else {
 					value, err = m.Client().AlbumImage.Get(ctx, id)
 				}
@@ -715,7 +742,7 @@ func (m AlbumImageMutation) Client() *Client {
 // it returns an error otherwise.
 func (m AlbumImageMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
 	tx := &Tx{config: m.config}
 	tx.init()
@@ -729,6 +756,25 @@ func (m *AlbumImageMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AlbumImageMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AlbumImage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
 }
 
 // SetImage sets the "image" field.
@@ -750,10 +796,10 @@ func (m *AlbumImageMutation) Image() (r []byte, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *AlbumImageMutation) OldImage(ctx context.Context) (v []byte, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldImage is only allowed on UpdateOne operations")
+		return v, errors.New("OldImage is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldImage requires an ID field in the mutation")
+		return v, errors.New("OldImage requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -786,10 +832,10 @@ func (m *AlbumImageMutation) ImageMimeType() (r string, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *AlbumImageMutation) OldImageMimeType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldImageMimeType is only allowed on UpdateOne operations")
+		return v, errors.New("OldImageMimeType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldImageMimeType requires an ID field in the mutation")
+		return v, errors.New("OldImageMimeType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -801,6 +847,11 @@ func (m *AlbumImageMutation) OldImageMimeType(ctx context.Context) (v string, er
 // ResetImageMimeType resets all changes to the "image_mime_type" field.
 func (m *AlbumImageMutation) ResetImageMimeType() {
 	m.image_mime_type = nil
+}
+
+// Where appends a list predicates to the AlbumImageMutation builder.
+func (m *AlbumImageMutation) Where(ps ...predicate.AlbumImage) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -1029,7 +1080,7 @@ func withArtistID(id int) artistOption {
 		m.oldValue = func(ctx context.Context) (*Artist, error) {
 			once.Do(func() {
 				if m.done {
-					err = fmt.Errorf("querying old values post mutation is not allowed")
+					err = errors.New("querying old values post mutation is not allowed")
 				} else {
 					value, err = m.Client().Artist.Get(ctx, id)
 				}
@@ -1062,7 +1113,7 @@ func (m ArtistMutation) Client() *Client {
 // it returns an error otherwise.
 func (m ArtistMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
 	tx := &Tx{config: m.config}
 	tx.init()
@@ -1076,6 +1127,25 @@ func (m *ArtistMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ArtistMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Artist.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
 }
 
 // SetName sets the "name" field.
@@ -1097,10 +1167,10 @@ func (m *ArtistMutation) Name() (r string, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ArtistMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+		return v, errors.New("OldName requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -1133,10 +1203,10 @@ func (m *ArtistMutation) URLName() (r string, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ArtistMutation) OldURLName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldURLName is only allowed on UpdateOne operations")
+		return v, errors.New("OldURLName is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldURLName requires an ID field in the mutation")
+		return v, errors.New("OldURLName requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -1176,6 +1246,7 @@ func (m *ArtistMutation) RemoveAlbumIDs(ids ...int) {
 		m.removedalbums = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.albums, ids[i])
 		m.removedalbums[ids[i]] = struct{}{}
 	}
 }
@@ -1229,6 +1300,7 @@ func (m *ArtistMutation) RemoveTrackIDs(ids ...int) {
 		m.removedtracks = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.tracks, ids[i])
 		m.removedtracks[ids[i]] = struct{}{}
 	}
 }
@@ -1254,6 +1326,11 @@ func (m *ArtistMutation) ResetTracks() {
 	m.tracks = nil
 	m.clearedtracks = false
 	m.removedtracks = nil
+}
+
+// Where appends a list predicates to the ArtistMutation builder.
+func (m *ArtistMutation) Where(ps ...predicate.Artist) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -1539,7 +1616,7 @@ func withLikedTrackID(id int) likedtrackOption {
 		m.oldValue = func(ctx context.Context) (*LikedTrack, error) {
 			once.Do(func() {
 				if m.done {
-					err = fmt.Errorf("querying old values post mutation is not allowed")
+					err = errors.New("querying old values post mutation is not allowed")
 				} else {
 					value, err = m.Client().LikedTrack.Get(ctx, id)
 				}
@@ -1572,7 +1649,7 @@ func (m LikedTrackMutation) Client() *Client {
 // it returns an error otherwise.
 func (m LikedTrackMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
 	tx := &Tx{config: m.config}
 	tx.init()
@@ -1586,6 +1663,25 @@ func (m *LikedTrackMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LikedTrackMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LikedTrack.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
 }
 
 // SetDateAdded sets the "date_added" field.
@@ -1607,10 +1703,10 @@ func (m *LikedTrackMutation) DateAdded() (r time.Time, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *LikedTrackMutation) OldDateAdded(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldDateAdded is only allowed on UpdateOne operations")
+		return v, errors.New("OldDateAdded is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldDateAdded requires an ID field in the mutation")
+		return v, errors.New("OldDateAdded requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -1661,6 +1757,11 @@ func (m *LikedTrackMutation) TrackIDs() (ids []int) {
 func (m *LikedTrackMutation) ResetTrack() {
 	m.track = nil
 	m.clearedtrack = false
+}
+
+// Where appends a list predicates to the LikedTrackMutation builder.
+func (m *LikedTrackMutation) Where(ps ...predicate.LikedTrack) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -1906,7 +2007,7 @@ func withTrackID(id int) trackOption {
 		m.oldValue = func(ctx context.Context) (*Track, error) {
 			once.Do(func() {
 				if m.done {
-					err = fmt.Errorf("querying old values post mutation is not allowed")
+					err = errors.New("querying old values post mutation is not allowed")
 				} else {
 					value, err = m.Client().Track.Get(ctx, id)
 				}
@@ -1939,7 +2040,7 @@ func (m TrackMutation) Client() *Client {
 // it returns an error otherwise.
 func (m TrackMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
 	tx := &Tx{config: m.config}
 	tx.init()
@@ -1953,6 +2054,25 @@ func (m *TrackMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TrackMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Track.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
 }
 
 // SetTitle sets the "title" field.
@@ -1974,10 +2094,10 @@ func (m *TrackMutation) Title() (r string, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TrackMutation) OldTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldTitle is only allowed on UpdateOne operations")
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldTitle requires an ID field in the mutation")
+		return v, errors.New("OldTitle requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -2011,10 +2131,10 @@ func (m *TrackMutation) TrackNumber() (r int, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TrackMutation) OldTrackNumber(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldTrackNumber is only allowed on UpdateOne operations")
+		return v, errors.New("OldTrackNumber is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldTrackNumber requires an ID field in the mutation")
+		return v, errors.New("OldTrackNumber requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -2066,10 +2186,10 @@ func (m *TrackMutation) Path() (r string, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TrackMutation) OldPath(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldPath is only allowed on UpdateOne operations")
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldPath requires an ID field in the mutation")
+		return v, errors.New("OldPath requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -2103,10 +2223,10 @@ func (m *TrackMutation) Length() (r int, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TrackMutation) OldLength(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldLength is only allowed on UpdateOne operations")
+		return v, errors.New("OldLength is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldLength requires an ID field in the mutation")
+		return v, errors.New("OldLength requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -2158,10 +2278,10 @@ func (m *TrackMutation) Mimetype() (r string, exists bool) {
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TrackMutation) OldMimetype(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldMimetype is only allowed on UpdateOne operations")
+		return v, errors.New("OldMimetype is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldMimetype requires an ID field in the mutation")
+		return v, errors.New("OldMimetype requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
@@ -2201,6 +2321,7 @@ func (m *TrackMutation) RemoveArtistIDs(ids ...int) {
 		m.removedartists = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.artists, ids[i])
 		m.removedartists[ids[i]] = struct{}{}
 	}
 }
@@ -2304,6 +2425,11 @@ func (m *TrackMutation) LikedIDs() (ids []int) {
 func (m *TrackMutation) ResetLiked() {
 	m.liked = nil
 	m.clearedliked = false
+}
+
+// Where appends a list predicates to the TrackMutation builder.
+func (m *TrackMutation) Where(ps ...predicate.Track) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.

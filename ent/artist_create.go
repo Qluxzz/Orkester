@@ -97,6 +97,9 @@ func (ac *ArtistCreate) Save(ctx context.Context) (*Artist, error) {
 			return node, err
 		})
 		for i := len(ac.hooks) - 1; i >= 0; i-- {
+			if ac.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ac.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ac.mutation); err != nil {
@@ -115,13 +118,26 @@ func (ac *ArtistCreate) SaveX(ctx context.Context) *Artist {
 	return v
 }
 
+// Exec executes the query.
+func (ac *ArtistCreate) Exec(ctx context.Context) error {
+	_, err := ac.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (ac *ArtistCreate) ExecX(ctx context.Context) {
+	if err := ac.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ac *ArtistCreate) check() error {
 	if _, ok := ac.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Artist.name"`)}
 	}
 	if _, ok := ac.mutation.URLName(); !ok {
-		return &ValidationError{Name: "url_name", err: errors.New("ent: missing required field \"url_name\"")}
+		return &ValidationError{Name: "url_name", err: errors.New(`ent: missing required field "Artist.url_name"`)}
 	}
 	return nil
 }
@@ -129,8 +145,8 @@ func (ac *ArtistCreate) check() error {
 func (ac *ArtistCreate) sqlSave(ctx context.Context) (*Artist, error) {
 	_node, _spec := ac.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ac.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -235,10 +251,11 @@ func (acb *ArtistCreateBulk) Save(ctx context.Context) ([]*Artist, error) {
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, acb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+					if err = sqlgraph.BatchCreate(ctx, acb.driver, spec); err != nil {
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}
@@ -247,8 +264,10 @@ func (acb *ArtistCreateBulk) Save(ctx context.Context) ([]*Artist, error) {
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -272,4 +291,17 @@ func (acb *ArtistCreateBulk) SaveX(ctx context.Context) []*Artist {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (acb *ArtistCreateBulk) Exec(ctx context.Context) error {
+	_, err := acb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (acb *ArtistCreateBulk) ExecX(ctx context.Context) {
+	if err := acb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
