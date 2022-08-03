@@ -1,10 +1,10 @@
 module Page.Album exposing (Model, Msg(..), durationDisplay, formatTrackArtists, getAlbumUrl, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, ellipsis, end, flex, flexDirection, flexGrow, hex, hidden, int, marginLeft, marginRight, marginTop, noWrap, nthChild, overflow, padding, pointer, position, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
+import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, ellipsis, end, flex, flexDirection, flexGrow, flexShrink, hex, hidden, int, marginLeft, marginRight, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, href, src)
+import Html.Styled.Attributes exposing (css, href, src, style)
 import Html.Styled.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
@@ -216,7 +216,7 @@ albumView album =
         [ div [ css [ displayFlex, alignItems end ] ]
             [ img [ src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
-                [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflow hidden ] ] [ text album.name ]
+                [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
                 , div [ css [ displayFlex, flexDirection column ] ]
                     [ a [ css [], href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
                     , div [] [ text (formatReleaseDate album.released) ]
@@ -242,28 +242,29 @@ table tracks =
 
 trackNumberColStyle : Style
 trackNumberColStyle =
-    Css.batch [ width (px 50), cursor pointer ]
+    Css.batch [ width (px 30), cursor pointer, flexShrink (int 0) ]
 
 
 trackTitleColStyle : Style
 trackTitleColStyle =
-    Css.batch [ flexGrow (int 1) ]
+    Css.batch [ flexGrow (int 1), overflow hidden, textOverflow ellipsis ]
 
 
 trackLikedColStyle : Style
 trackLikedColStyle =
-    Css.batch [ width (px 50) ]
+    Css.batch [ width (px 50), flexShrink (int 0) ]
 
 
 trackDurationColStyle : Style
 trackDurationColStyle =
-    Css.batch [ width (px 125), textAlign right ]
+    Css.batch [ width (px 85), textAlign right, flexShrink (int 0) ]
 
 
 trackRowStyle : Style
 trackRowStyle =
     Css.batch
         [ displayFlex
+        , property "gap" "10px"
         , padding (px 10)
         , nthChild "even"
             [ backgroundColor (hex "#333") ]
@@ -302,7 +303,7 @@ trackRow track =
     div [ css [ trackRowStyle ] ]
         [ div [ css [ trackNumberColStyle ], onClick (Player (Player.PlayTrack { id = track.id, timestamp = 0 })) ] [ text (String.fromInt track.trackNumber) ]
         , div [ css [ trackTitleColStyle, displayFlex, flexDirection column ] ]
-            [ div [] [ p [] [ text track.title ] ]
+            [ div [] [ p [ css [ whiteSpace noWrap, overflow hidden, textOverflow ellipsis ] ] [ text track.title ] ]
             , div [] (formatTrackArtists track.artists)
             ]
         , div [ css [ trackLikedColStyle ], onClick onClickLike ] [ text (likedDisplay track.liked) ]
