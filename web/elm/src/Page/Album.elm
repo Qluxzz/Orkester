@@ -215,7 +215,7 @@ albumView album =
         [ css [ displayFlex, flexDirection column, overflow hidden ]
         ]
         [ div [ css [ displayFlex, alignItems end ] ]
-            [ img [ css [ property "aspect-ratio" "1/1", width (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+            [ img [ css [ property "aspect-ratio" "1/1", width (px 192) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
                 [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
                 , div [ css [ displayFlex, flexDirection column ] ]
@@ -326,17 +326,13 @@ formatTrackArtists artists =
 
 formatTrackArtist : Int -> Int -> Artist -> List (Html msg)
 formatTrackArtist amount index artist =
-    let
-        spanText =
-            if index == amount - 1 then
-                ""
+    a [ href (getArtistUrl artist) ] [ text artist.name ]
+        :: (if index /= amount - 1 then
+                [ span [ css [ marginRight (px 10) ] ] [ text ", " ] ]
 
             else
-                ","
-    in
-    [ a [ href (getArtistUrl artist) ] [ text artist.name ]
-    , span [ css [ marginRight (px 10) ] ] [ text spanText ]
-    ]
+                []
+           )
 
 
 formatTracksDisplay : List Track -> String
