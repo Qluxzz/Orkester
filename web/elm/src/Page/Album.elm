@@ -361,14 +361,22 @@ Returns seconds formatted as hour:min:sec
 durationDisplay : Seconds -> String
 durationDisplay length =
     let
+        oneHour : Seconds
+        oneHour =
+            3600
+
+        oneMinute : Seconds
+        oneMinute =
+            60
+
         hours =
-            length // 3600
+            length // oneHour
 
         minutes =
-            (length - (hours * 3600)) // 60
+            (length - (hours * oneHour)) // oneMinute
 
         seconds =
-            length - minutes * 60
+            length - (hours * oneHour) - (minutes * oneMinute)
 
         padTime : Int -> String
         padTime time =
