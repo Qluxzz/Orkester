@@ -1,7 +1,7 @@
-module Page.Album exposing (Model, Msg(..), formatTrackArtists, getAlbumUrl, init, update, view)
+module Page.Album exposing (Model, Msg(..), durationDisplay, formatTrackArtists, getAlbumUrl, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, end, flex, flexDirection, flexGrow, hex, hidden, int, marginLeft, marginRight, marginTop, nthChild, overflow, padding, pointer, position, px, right, sticky, textAlign, top, width)
+import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, ellipsis, end, flex, flexDirection, flexGrow, hex, hidden, int, marginLeft, marginRight, marginTop, noWrap, nthChild, overflow, padding, pointer, position, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -215,8 +215,8 @@ albumView album =
         ]
         [ div [ css [ displayFlex, alignItems end ] ]
             [ img [ src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
-            , div [ css [ Css.paddingLeft (px 10) ] ]
-                [ h1 [] [ text album.name ]
+            , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
+                [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflow hidden ] ] [ text album.name ]
                 , div [ css [ displayFlex, flexDirection column ] ]
                     [ a [ css [], href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
                     , div [] [ text (formatReleaseDate album.released) ]

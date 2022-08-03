@@ -125,6 +125,7 @@ baseView model mainContent =
                     , flexDirection column
                     , padding (px 20)
                     , flexGrow (int 1)
+                    , overflow hidden
                     ]
                 ]
                 [ mainContent
