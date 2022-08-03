@@ -136,7 +136,7 @@ baseView model mainContent =
                 (case model.currentlyPlaying of
                     RemoteData.Success track ->
                         [ a [ href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName) ]
-                            [ img [ src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt track.album.id ++ "/image") ] []
+                            [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt track.album.id ++ "/image") ] []
                             ]
                         , div [ css [ marginLeft (px 10), overflow hidden ] ]
                             [ h1 [] [ text track.title ]
@@ -177,8 +177,8 @@ currentView page =
             indexView
 
 
-emptyView : String -> Html Msg
-emptyView text_ =
+centeredView : String -> Html Msg
+centeredView text_ =
     div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
         [ h1 [] [ text text_ ]
         ]
@@ -186,12 +186,12 @@ emptyView text_ =
 
 indexView : Html Msg
 indexView =
-    emptyView "Welcome!"
+    centeredView "Welcome!"
 
 
 notFoundView : Html Msg
 notFoundView =
-    emptyView "Page was not found"
+    centeredView "Page was not found"
 
 
 
