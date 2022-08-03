@@ -54,7 +54,7 @@ func ParseMp3File(path string) (*IndexedTrack, error) {
 	track.Artists = append(track.Artists, trimNullFromString(mp3File.Artist()))
 
 	dateString := trimNullFromString(mp3File.Year())
-	parsedDate, err := ParseDateToIsoDate(dateString)
+	parsedDate, err := ParseDate(dateString)
 
 	if err != nil {
 		log.Printf("%s invalid date string", dateString)
