@@ -2,6 +2,7 @@ package indexFiles
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"path/filepath"
@@ -11,8 +12,8 @@ import (
 )
 
 type FailedAudioFile struct {
-	Path  string
-	Error error
+	Path  string `json:"path"`
+	Error string `json:"error"`
 }
 
 func ScanPathForMusicFiles(path string) ([]*IndexedTrack, []*FailedAudioFile, error) {
@@ -41,7 +42,7 @@ func ScanPathForMusicFiles(path string) ([]*IndexedTrack, []*FailedAudioFile, er
 		if err != nil {
 			failed_audio_files = append(failed_audio_files, &FailedAudioFile{
 				Path:  path,
-				Error: err,
+				Error: err.Error(),
 			})
 		}
 
@@ -61,7 +62,7 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 	case ".mp3":
 		track, err = ParseMp3File(path)
 	default:
-		return nil, nil
+		return nil, fmt.Errorf("unsupported file extension: %s", filepath.Ext(path))
 	}
 
 	if err != nil {
