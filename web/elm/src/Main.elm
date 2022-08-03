@@ -70,6 +70,8 @@ globalStyle =
             [ margin (px 0)
             , fontSize (px 32)
             ]
+        , Css.Global.h2
+            [ margin (px 0) ]
         , Css.Global.a
             [ color textColor
             , textDecoration none
@@ -140,7 +142,12 @@ baseView model mainContent =
                             ]
                         , div [ css [ marginLeft (px 10), overflow hidden ] ]
                             [ h1 [] [ text track.title ]
-                            , div [] (formatTrackArtists track.artists)
+                            , h2 []
+                                (formatTrackArtists track.artists
+                                    ++ [ span [] [ text " - " ]
+                                       , a [ href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName) ] [ text track.album.name ]
+                                       ]
+                                )
                             ]
                         ]
 
