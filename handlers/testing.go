@@ -279,10 +279,16 @@ func AddFakeTracks(client *ent.Client, context context.Context) fiber.Handler {
 	rand.Seed(time.Now().UnixNano())
 
 	return func(c *fiber.Ctx) error {
-		amount, err := strconv.Atoi(c.Query("amount"))
+		amountString := c.Query("amount")
+
+		if amountString == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Missing query parameter \"amount\", for how many tracks to generate")
+		}
+
+		amount, err := strconv.Atoi(amountString)
 
 		if err != nil {
-			return err
+			return c.Status(fiber.StatusBadRequest).SendString("query parameter amount was not a number")
 		}
 
 		fakeTracks := []*indexFiles.IndexedTrack{}
