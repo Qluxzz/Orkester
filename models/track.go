@@ -9,7 +9,7 @@ type Track struct {
 	Title       string    `json:"title"`
 	TrackNumber int       `json:"trackNumber"`
 	Length      int       `json:"length"`
-	Album       *Album    `json:"album"`
+	Album       *Album    `json:"album,omitempty"`
 	Artists     []*Artist `json:"artists"`
 	Liked       bool      `json:"liked"`
 }
