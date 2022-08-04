@@ -15,8 +15,8 @@ const (
 
 type ReleaseDate struct {
 	Year      int                  `json:"year"`
-	Month     int                  `json:"month"`
-	Date      int                  `json:"date"`
+	Month     int                  `json:"month,omitempty"`
+	Date      int                  `json:"date,omitempty"`
 	Precision ReleaseDatePrecision `json:"precision"`
 }
 
