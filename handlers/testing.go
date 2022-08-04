@@ -344,7 +344,7 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 		},
 		Artists:     artists,
 		AlbumArtist: artists[rand.Intn(len(artists))],
-		AlbumName:   albumNames[rand.Intn(10)],
+		AlbumName:   albumNames[rand.Intn(len(albumNames))],
 		Length:      rand.Intn(420) + 10,
 		TrackNumber: rand.Intn(20) + 1,
 		MimeType:    "audio/flac",
