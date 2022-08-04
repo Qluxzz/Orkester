@@ -355,9 +355,9 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 
 // Generates a grid of a base color and shades in even chunks
 func generateFakeAlbumImage() []byte {
-	imageSize := 128
-	cols := 4
-	chunk := imageSize / cols
+	const imageSize = 128
+	const cols = 4
+	const chunks = imageSize / cols
 
 	img := image.NewRGBA(image.Rect(0, 0, imageSize, imageSize))
 
@@ -377,11 +377,11 @@ func generateFakeAlbumImage() []byte {
 				A: math.MaxUint8,
 			}
 
-			for x := 0; x < chunk; x++ {
-				for y := 0; y < chunk; y++ {
+			for x := 0; x < chunks; x++ {
+				for y := 0; y < chunks; y++ {
 					img.Set(
-						col*chunk+x,
-						row*chunk+y,
+						col*chunks+x,
+						row*chunks+y,
 						shade)
 				}
 			}
