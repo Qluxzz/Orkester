@@ -1,4 +1,4 @@
-module Page.Artist exposing (Model, Msg(..), getArtistUrl, init, update, view)
+module Page.Artist exposing (Model, Msg(..), artistUrl, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (Style, absolute, auto, backgroundColor, block, bold, column, display, displayFlex, ellipsis, flex3, flexDirection, fontWeight, height, hex, hidden, left, lineHeight, marginTop, noWrap, overflow, padding, padding4, paddingTop, pct, position, property, px, relative, textOverflow, top, whiteSpace, width)
@@ -194,6 +194,6 @@ getReleaseYear releaseDate =
     String.split "-" releaseDate |> List.head
 
 
-getArtistUrl : { r | id : Int, urlName : String } -> String
-getArtistUrl artist =
+artistUrl : { r | id : Int, urlName : String } -> String
+artistUrl artist =
     "/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName

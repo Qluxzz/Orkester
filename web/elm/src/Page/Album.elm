@@ -1,4 +1,4 @@
-module Page.Album exposing (Model, Msg(..), durationDisplay, formatTrackArtists, getAlbumUrl, init, update, view)
+module Page.Album exposing (Model, Msg(..), albumUrl, durationDisplay, formatTrackArtists, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, marginRight, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
@@ -10,7 +10,7 @@ import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Like
-import Page.Artist exposing (getArtistUrl)
+import Page.Artist exposing (artistUrl)
 import Player
 import ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
 import RemoteData exposing (WebData)
@@ -326,7 +326,7 @@ formatTrackArtists artists =
 
 formatTrackArtist : Int -> Int -> Artist -> List (Html msg)
 formatTrackArtist amount index artist =
-    a [ href (getArtistUrl artist) ] [ text artist.name ]
+    a [ href (artistUrl artist) ] [ text artist.name ]
         :: (if index /= amount - 1 then
                 [ span [ css [ marginRight (px 10) ] ] [ text ", " ] ]
 
@@ -391,6 +391,6 @@ durationDisplay length =
         ++ padTime seconds
 
 
-getAlbumUrl : Album -> String
-getAlbumUrl album =
+albumUrl : Album -> String
+albumUrl album =
     "/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName

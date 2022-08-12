@@ -8,8 +8,8 @@ import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
-import Page.Album as AlbumPage exposing (formatTrackArtists, getAlbumUrl)
-import Page.Artist as ArtistPage exposing (getArtistUrl)
+import Page.Album as AlbumPage exposing (albumUrl, formatTrackArtists)
+import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
 import Player
@@ -340,7 +340,7 @@ update msg model =
                     ( { model | page = AlbumPage updatedPageModel }
                     , Cmd.batch
                         [ Cmd.map AlbumPageMsg updatedCmd
-                        , Nav.replaceUrl model.navKey (getAlbumUrl album)
+                        , Nav.replaceUrl model.navKey (albumUrl album)
                         ]
                     )
 
@@ -359,7 +359,7 @@ update msg model =
                     ( { model | page = ArtistPage updatedPageModel }
                     , Cmd.batch
                         [ Cmd.map ArtistPageMsg updatedCmd
-                        , Nav.replaceUrl model.navKey (getArtistUrl artist)
+                        , Nav.replaceUrl model.navKey (artistUrl artist)
                         ]
                     )
 
