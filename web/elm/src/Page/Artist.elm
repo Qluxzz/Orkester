@@ -8,7 +8,7 @@ import Html.Styled.Attributes exposing (css, href, src)
 import Http
 import Json.Decode as Decode exposing (Decoder, int, list, string)
 import Json.Decode.Pipeline exposing (required)
-import ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
+import ReleaseDate exposing (ReleaseDate(..), releaseDateDecoder)
 import RemoteData exposing (WebData)
 
 
@@ -180,7 +180,7 @@ albumView album =
                     []
                 ]
             , p [ css [ pStyle ] ] [ text album.name ]
-            , p [ css [ pStyle ] ] [ text (formatReleaseDate album.released) ]
+            , p [ css [ pStyle ] ] [ text (releaseYear album.released) ]
             ]
         ]
 
@@ -189,9 +189,19 @@ albumView album =
 -- HELPER FUNCTIONS
 
 
-getReleaseYear : String -> Maybe String
-getReleaseYear releaseDate =
-    String.split "-" releaseDate |> List.head
+releaseYear : ReleaseDate -> String
+releaseYear releaseDate =
+    String.fromInt
+        (case releaseDate of
+            Year year ->
+                year
+
+            Month { year } ->
+                year
+
+            Date { year } ->
+                year
+        )
 
 
 artistUrl : { r | id : Int, urlName : String } -> String
