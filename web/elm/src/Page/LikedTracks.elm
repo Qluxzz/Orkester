@@ -95,7 +95,7 @@ update msg model =
                 RemoteData.Success _ ->
                     let
                         ( tracks, cmd ) =
-                            RemoteData.update (removeTrackById trackId) model.likedTracks
+                            RemoteData.update (\t -> ( removeTrackById trackId t, Cmd.none )) model.likedTracks
                     in
                     ( { model | likedTracks = tracks }, cmd )
 
@@ -103,9 +103,9 @@ update msg model =
                     ( model, Cmd.none )
 
 
-removeTrackById : TrackId -> List Track -> ( List Track, Cmd Msg )
+removeTrackById : TrackId -> List Track -> List Track
 removeTrackById trackId tracks =
-    ( List.filter (\{ id } -> id /= trackId) tracks, Cmd.none )
+    List.filter (\{ id } -> id /= trackId) tracks
 
 
 
