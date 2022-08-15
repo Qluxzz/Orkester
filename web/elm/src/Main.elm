@@ -135,24 +135,29 @@ baseView model mainContent =
             ]
         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
             [ div [ css [ displayFlex ] ]
-                (case model.currentlyPlaying of
-                    RemoteData.Success track ->
-                        [ a [ href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName) ]
-                            [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt track.album.id ++ "/image") ] []
-                            ]
-                        , div [ css [ marginLeft (px 10), overflow hidden ] ]
-                            [ h1 [] [ text track.title ]
-                            , h2 []
-                                (formatTrackArtists track.artists
-                                    ++ [ span [] [ text " - " ]
-                                       , a [ href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName) ] [ text track.album.name ]
-                                       ]
-                                )
-                            ]
-                        ]
+                (case model.track of
+                    Just { track, progress } ->
+                        case track of
+                            RemoteData.Success t ->
+                                [ a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ]
+                                    [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt t.album.id ++ "/image") ] []
+                                    ]
+                                , div [ css [ marginLeft (px 10), overflow hidden ] ]
+                                    [ h1 [] [ text t.title ]
+                                    , h2 []
+                                        (formatTrackArtists t.artists
+                                            ++ [ span [] [ text " - " ]
+                                               , a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ] [ text t.album.name ]
+                                               ]
+                                        )
+                                    ]
+                                ]
+
+                            _ ->
+                                [ text "Nothing is playing right now" ]
 
                     _ ->
-                        [ text "Nothing is playing right now..." ]
+                        [ text "Nothing is playing right now" ]
                 )
             ]
         ]
@@ -209,7 +214,11 @@ type alias Model =
     { route : Route
     , page : Page
     , navKey : Nav.Key
-    , currentlyPlaying : WebData Track
+    , track :
+        Maybe
+            { track : WebData Track
+            , progress : Float
+            }
     }
 
 
@@ -230,7 +239,7 @@ init _ url navKey =
             { route = Route.parseUrl url
             , page = NotFoundPage
             , navKey = navKey
-            , currentlyPlaying = NotAsked
+            , track = Nothing
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -446,7 +455,7 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | currentlyPlaying = trackInfo }, cmd )
+            ( { model | track = Just { track = trackInfo, progress = 0 } }, cmd )
 
         ( _, _ ) ->
             ( model, Cmd.none )
