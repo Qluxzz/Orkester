@@ -2,6 +2,7 @@ package models
 
 import (
 	"goreact/ent"
+	"time"
 )
 
 type Track struct {
@@ -17,6 +18,11 @@ type Track struct {
 type TrackWithPath struct {
 	Track
 	Path string `json:"path"`
+}
+
+type TrackWithDate struct {
+	Track
+	DateAdded time.Time `json:"dateAdded"`
 }
 
 type IdNameAndUrlName struct {

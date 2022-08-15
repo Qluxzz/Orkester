@@ -22,6 +22,7 @@ type alias Track =
     , length : Int
     , liked : Bool
     , artists : List Artist
+    , dateAdded : String
     }
 
 
@@ -41,6 +42,7 @@ trackDecoder =
         |> required "length" Decode.int
         |> required "liked" bool
         |> required "artists" (list artistDecoder)
+        |> required "dateAdded" string
 
 
 artistDecoder : Decoder Artist
@@ -138,6 +140,6 @@ likedTracksView tracks =
     section []
         (h1 [ css [ marginBottom (px 20) ] ] [ text "Liked Tracks" ]
             :: List.map
-                (\track -> h1 [] [ text track.title ])
+                (\track -> h1 [] [ text (track.title ++ " " ++ track.dateAdded) ])
                 tracks
         )

@@ -29,15 +29,12 @@ func GetLikedTracks(client *ent.Client, context context.Context) fiber.Handler {
 			return dbTracks[i].Edges.Liked.DateAdded.After(dbTracks[j].Edges.Liked.DateAdded)
 		})
 
-		tracks := []models.Track{}
+		tracks := []models.TrackWithDate{}
 
 		for _, track := range dbTracks {
-			t := models.Track{
-				Id:          track.ID,
-				TrackNumber: track.TrackNumber,
-				Title:       track.Title,
-				Length:      track.Length,
-				Liked:       true,
+			t := models.TrackWithDate{
+				Track:     models.FromEntTrack(track),
+				DateAdded: track.Edges.Liked.DateAdded,
 			}
 
 			artists := []*models.Artist{}
