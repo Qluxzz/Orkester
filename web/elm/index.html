@@ -48,7 +48,7 @@
 	)
 
 	app.ports.playTrack.subscribe(({ id, timestamp }) => {
-		audio.src = `/api/v1/track/${id}/stream`
+		audio.src = `http://localhost:42000/api/v1/track/${id}/stream`
 		_play(timestamp)
 	})
 </script>
