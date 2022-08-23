@@ -1,7 +1,7 @@
 # Orkester (swedish for orchestra)
 WIP Web based music player for local music
 
-Built using Gofiber and React
+Built using Gofiber and Elm
 
 ## Screenshots
 ### Search results
