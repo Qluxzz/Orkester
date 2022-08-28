@@ -51,7 +51,7 @@ type alias SearchResult =
 
 type alias Model =
     { searchResult : WebData SearchResult
-    , searchPhrase : String
+    , searchPhrase : Maybe String
     }
 
 
@@ -64,14 +64,14 @@ init phrase =
     in
     if String.isEmpty p then
         ( { searchResult = RemoteData.NotAsked
-          , searchPhrase = p
+          , searchPhrase = Nothing
           }
         , focusSearchField
         )
 
     else
         ( { searchResult = RemoteData.Loading
-          , searchPhrase = p
+          , searchPhrase = Just p
           }
         , Cmd.batch
             [ getSearchResult p
@@ -222,14 +222,14 @@ update message model =
         UpdateSearchPhrase phrase ->
             if String.isEmpty phrase then
                 ( { model
-                    | searchPhrase = phrase
+                    | searchPhrase = Nothing
                     , searchResult = RemoteData.NotAsked
                   }
                 , Cmd.none
                 )
 
             else
-                ( { model | searchPhrase = phrase, searchResult = RemoteData.Loading }, getSearchResult phrase )
+                ( { model | searchPhrase = Just phrase, searchResult = RemoteData.Loading }, getSearchResult phrase )
 
         SearchResultsRecieved searchResult ->
             ( { model | searchResult = searchResult }, Cmd.none )
@@ -249,7 +249,7 @@ view model =
                 [ flexGrow (int 1)
                 ]
             , type_ "text"
-            , value model.searchPhrase
+            , value (Maybe.withDefault "" model.searchPhrase)
             , onInput UpdateSearchPhrase
             , id "search-field"
             ]

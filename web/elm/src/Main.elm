@@ -408,10 +408,15 @@ update msg model =
                         (Cmd.map
                             SearchPageMsg
                             updatedCmd
-                            :: (if searchPageModel.searchPhrase /= updatedModel.searchPhrase then
-                                    [ Nav.replaceUrl model.navKey ("/search/" ++ updatedModel.searchPhrase) ]
+                            :: (case
+                                    hasUpdatedSearchPhrase
+                                        searchPageModel.searchPhrase
+                                        updatedModel.searchPhrase
+                                of
+                                    Just searchPhrase ->
+                                        [ Nav.replaceUrl model.navKey ("/search/" ++ searchPhrase) ]
 
-                                else
+                                    Nothing ->
                                     []
                                )
                         )
@@ -465,6 +470,20 @@ update msg model =
 -- HELPER FUNCTIONS
 
 
+hasUpdatedSearchPhrase : Maybe String -> Maybe String -> Maybe String
+hasUpdatedSearchPhrase before after =
+    case ( before, after ) of
+        ( Just b, Just a ) ->
+            if b /= a then
+                Just a
+
+            else
+                Nothing
+
+        _ ->
+            Nothing
+
+
 getTrackInfo : TrackId -> Cmd Msg
 getTrackInfo trackId =
     Http.get
@@ -504,4 +523,4 @@ getDocumentTitle page =
             Just "Liked Tracks"
 
         SearchPage { searchPhrase } ->
-            Just searchPhrase
+            Just (Maybe.withDefault "Search" searchPhrase)
