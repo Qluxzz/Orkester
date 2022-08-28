@@ -44,7 +44,7 @@
 	}
 
 	audio.addEventListener("timeupdate", event => {
-		app.ports.progressUpdated.send(Math.round(audio.currentTime))
+		app.ports.progressUpdated.send(Math.floor(audio.currentTime))
 	})
 
 	app.ports.playTrack.subscribe(({ id, timestamp }) => {
