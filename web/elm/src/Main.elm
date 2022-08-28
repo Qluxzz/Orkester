@@ -3,7 +3,7 @@ module Main exposing (..)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, pct, property, px, row, sansSerif, textDecoration, underline, width)
+import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, underline, width)
 import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
@@ -207,9 +207,9 @@ playerView maybeTrack =
                                 ]
                             ]
                         , div [ css [ displayFlex, alignItems center, flexGrow (int 1) ] ]
-                            [ div [ css [ padding2 (px 0) (px 10) ] ] [ text (durationDisplay progress) ]
+                            [ div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay progress) ]
                             , input [ css [ width (pct 100) ], type_ "range", Html.Styled.Attributes.min "0", Html.Styled.Attributes.max (String.fromInt t.length), value (String.fromInt progress) ] []
-                            , div [ css [ padding2 (px 0) (px 10) ] ] [ text (durationDisplay t.length) ]
+                            , div [ css [ paddingLeft (px 10) ] ] [ text (durationDisplay t.length) ]
                             ]
                         ]
 
