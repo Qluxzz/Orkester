@@ -186,6 +186,9 @@ update msg model =
                 Player.PlaybackFailed _ ->
                     ( model, Cmd.none )
 
+                Player.Seek _ ->
+                    ( model, Cmd.none )
+
 
 
 -- VIEWS

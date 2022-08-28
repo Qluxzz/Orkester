@@ -7,6 +7,7 @@ import Css exposing (Color, alignItems, backgroundColor, center, color, column, 
 import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
+import Html.Styled.Events exposing (onInput, onMouseUp)
 import Http
 import Page.Album as AlbumPage exposing (albumUrl, durationDisplay, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
@@ -15,6 +16,7 @@ import Page.Search as SearchPage
 import Player
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
+import String exposing (toInt)
 import TrackId exposing (TrackId)
 import TrackInfo exposing (Track, trackInfoDecoder)
 import Url exposing (Url)
@@ -137,7 +139,7 @@ baseView model mainContent =
                 ]
             ]
         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
-            [ playerView model.track
+            [ playerView model
             ]
         ]
 
@@ -185,10 +187,10 @@ notFoundView =
     centeredView "Page was not found"
 
 
-playerView : Maybe PlayerTrack -> Html Msg
-playerView maybeTrack =
+playerView : Model -> Html Msg
+playerView model =
     div [ css [ displayFlex, flexDirection column ] ]
-        (case maybeTrack of
+        (case model.track of
             Just { track, progress } ->
                 case track of
                     RemoteData.Success t ->
@@ -208,7 +210,16 @@ playerView maybeTrack =
                             ]
                         , div [ css [ displayFlex, alignItems center, flexGrow (int 1) ] ]
                             [ div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay progress) ]
-                            , input [ css [ width (pct 100) ], type_ "range", Html.Styled.Attributes.min "0", Html.Styled.Attributes.max (String.fromInt t.length), value (String.fromInt progress) ] []
+                            , input
+                                [ css [ width (pct 100) ]
+                                , type_ "range"
+                                , Html.Styled.Attributes.min "0"
+                                , Html.Styled.Attributes.max (String.fromInt t.length)
+                                , value (String.fromInt (Maybe.withDefault progress (Maybe.andThen (\s -> Just s.value) model.slider)))
+                                , onInput (\s -> OnDragSlider (Maybe.withDefault 0 (s |> toInt)))
+                                , onMouseUp OnDragSliderEnd
+                                ]
+                                []
                             , div [ css [ paddingLeft (px 10) ] ] [ text (durationDisplay t.length) ]
                             ]
                         ]
@@ -230,6 +241,10 @@ type alias Model =
     , page : Page
     , navKey : Nav.Key
     , track : Maybe PlayerTrack
+    , slider :
+        Maybe
+            { value : Int
+            }
     }
 
 
@@ -257,6 +272,7 @@ init _ url navKey =
             , page = NotFoundPage
             , navKey = navKey
             , track = Nothing
+            , slider = Nothing
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -341,6 +357,8 @@ type Msg
     | PlaybackFailed String
     | Player Player.Msg
     | TrackInfoRecieved (WebData Track)
+    | OnDragSlider Int
+    | OnDragSliderEnd
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -495,8 +513,45 @@ update msg model =
             in
             ( { model | track = Just { track = trackInfo, progress = 0 } }, cmd )
 
+        ( OnDragSlider time, _ ) ->
+            ( { model | slider = Just { value = time } }, Cmd.none )
+
+        ( OnDragSliderEnd, _ ) ->
+            let
+                sliderValue =
+                    Maybe.withDefault 0 (Maybe.andThen (\s -> Just s.value) model.slider)
+
+                cmd : Cmd Msg
+                cmd =
+                    case model.track of
+                        Just track ->
+                            case track.track of
+                                RemoteData.Success t ->
+                                    Player.seek { timestamp = sliderValue }
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | slider = Nothing }, cmd )
+
+        ( PlaybackFailed _, _ ) ->
+            ( model, Cmd.none )
+
         ( _, _ ) ->
             ( model, Cmd.none )
+
+
+startInteraction : Cmd Msg
+startInteraction =
+    Cmd.none
+
+
+stopInteraction : Cmd Msg
+stopInteraction =
+    Cmd.none
 
 
 
