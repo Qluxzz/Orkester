@@ -177,11 +177,14 @@ update msg model =
 
         Player playerMsg ->
             case playerMsg of
-                Player.PlaybackFailed _ ->
-                    ( model, Cmd.none )
-
                 Player.PlayTrack trackId ->
                     ( model, Player.playTrack trackId )
+
+                Player.ProgressUpdated _ ->
+                    ( model, Cmd.none )
+
+                Player.PlaybackFailed _ ->
+                    ( model, Cmd.none )
 
 
 

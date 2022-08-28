@@ -3,12 +3,12 @@ module Main exposing (..)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, pct, property, px, row, sansSerif, textDecoration, underline, width)
+import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, pct, property, px, row, sansSerif, textDecoration, underline, width)
 import Css.Global
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, href, src)
+import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Http
-import Page.Album as AlbumPage exposing (albumUrl, formatTrackArtists)
+import Page.Album as AlbumPage exposing (albumUrl, durationDisplay, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
@@ -42,7 +42,10 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.map Player (Player.playbackFailed Player.PlaybackFailed)
+    Sub.batch
+        [ Sub.map Player (Player.playbackFailed Player.PlaybackFailed)
+        , Sub.map Player (Player.progressUpdated Player.ProgressUpdated)
+        ]
 
 
 
@@ -134,31 +137,7 @@ baseView model mainContent =
                 ]
             ]
         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
-            [ div [ css [ displayFlex ] ]
-                (case model.track of
-                    Just { track, progress } ->
-                        case track of
-                            RemoteData.Success t ->
-                                [ a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ]
-                                    [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt t.album.id ++ "/image") ] []
-                                    ]
-                                , div [ css [ marginLeft (px 10), overflow hidden ] ]
-                                    [ h1 [] [ text t.title ]
-                                    , h2 []
-                                        (formatTrackArtists t.artists
-                                            ++ [ span [] [ text " - " ]
-                                               , a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ] [ text t.album.name ]
-                                               ]
-                                        )
-                                    ]
-                                ]
-
-                            _ ->
-                                [ text "Nothing is playing right now" ]
-
-                    _ ->
-                        [ text "Nothing is playing right now" ]
-                )
+            [ playerView model.track
             ]
         ]
 
@@ -206,6 +185,42 @@ notFoundView =
     centeredView "Page was not found"
 
 
+playerView : Maybe PlayerTrack -> Html Msg
+playerView maybeTrack =
+    div [ css [ displayFlex, flexDirection column ] ]
+        (case maybeTrack of
+            Just { track, progress } ->
+                case track of
+                    RemoteData.Success t ->
+                        [ div [ css [ displayFlex ] ]
+                            [ a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ]
+                                [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt t.album.id ++ "/image") ] []
+                                ]
+                            , div [ css [ marginLeft (px 10), overflow hidden ] ]
+                                [ h1 [] [ text t.title ]
+                                , h2 []
+                                    (formatTrackArtists t.artists
+                                        ++ [ span [] [ text " - " ]
+                                           , a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ] [ text t.album.name ]
+                                           ]
+                                    )
+                                ]
+                            ]
+                        , div [ css [ displayFlex, alignItems center, flexGrow (int 1) ] ]
+                            [ div [ css [ padding2 (px 0) (px 10) ] ] [ text (durationDisplay progress) ]
+                            , input [ css [ width (pct 100) ], type_ "range", Html.Styled.Attributes.min "0", Html.Styled.Attributes.max (String.fromInt t.length), value (String.fromInt progress) ] []
+                            , div [ css [ padding2 (px 0) (px 10) ] ] [ text (durationDisplay t.length) ]
+                            ]
+                        ]
+
+                    _ ->
+                        [ text "Nothing is playing right now" ]
+
+            _ ->
+                [ text "Nothing is playing right now" ]
+        )
+
+
 
 -- MODEL
 
@@ -214,11 +229,13 @@ type alias Model =
     { route : Route
     , page : Page
     , navKey : Nav.Key
-    , track :
-        Maybe
-            { track : WebData Track
-            , progress : Float
-            }
+    , track : Maybe PlayerTrack
+    }
+
+
+type alias PlayerTrack =
+    { track : WebData Track
+    , progress : Int
     }
 
 
@@ -417,7 +434,7 @@ update msg model =
                                         [ Nav.replaceUrl model.navKey ("/search/" ++ searchPhrase) ]
 
                                     Nothing ->
-                                    []
+                                        []
                                )
                         )
                     )
@@ -449,6 +466,22 @@ update msg model =
 
         -- ( Player (Player.PlaybackFailed _), _ ) ->
         --     ( { model | currentlyPlaying = NotAsked }, Cmd.none )
+        ( Player playerMsg, _ ) ->
+            case playerMsg of
+                Player.PlaybackFailed error ->
+                    Debug.todo "Handle error"
+
+                Player.ProgressUpdated updatedProgress ->
+                    case model.track of
+                        Just track ->
+                            ( { model | track = Just (updateProgress updatedProgress track) }, Cmd.none )
+
+                        Nothing ->
+                            Debug.todo "Should never happen!"
+
+                _ ->
+                    ( model, Cmd.none )
+
         ( TrackInfoRecieved trackInfo, _ ) ->
             let
                 cmd : Cmd Msg
@@ -468,6 +501,11 @@ update msg model =
 
 
 -- HELPER FUNCTIONS
+
+
+updateProgress : Int -> PlayerTrack -> PlayerTrack
+updateProgress progress track =
+    { track | progress = progress }
 
 
 hasUpdatedSearchPhrase : Maybe String -> Maybe String -> Maybe String

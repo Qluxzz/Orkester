@@ -43,9 +43,9 @@
 			})
 	}
 
-	audio.addEventListener("timeupdate", event =>
-		app.ports.progressChanged.send({ currentTime: audio.currentTime, duration: audio.duration })
-	)
+	audio.addEventListener("timeupdate", event => {
+		app.ports.progressUpdated.send(Math.round(audio.currentTime))
+	})
 
 	app.ports.playTrack.subscribe(({ id, timestamp }) => {
 		audio.src = `http://localhost:42000/api/v1/track/${id}/stream`
