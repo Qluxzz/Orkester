@@ -344,15 +344,18 @@ initCurrentPage ( model, existingCmds ) =
 
 
 type Msg
-    = AlbumPageMsg AlbumPage.Msg
+    = -- Pages
+      AlbumPageMsg AlbumPage.Msg
     | ArtistPageMsg ArtistPage.Msg
     | LikedTracksPageMsg LikedTracksPage.Msg
     | SearchPageMsg SearchPage.Msg
+      -- Navigation
     | LinkClicked UrlRequest
     | UrlChanged Url
-    | PlaybackFailed String
+      -- JS Player
     | JSPlayer JSPlayer.Msg
     | TrackInfoRecieved (WebData Track)
+      -- Player slider interaction
     | OnDragSlider Int
     | OnDragSliderEnd
 
@@ -525,9 +528,6 @@ update msg model =
                             Cmd.none
             in
             ( { model | player = clearSliderValue model.player }, cmd )
-
-        ( PlaybackFailed _, _ ) ->
-            ( model, Cmd.none )
 
         ( _, _ ) ->
             ( model, Cmd.none )
