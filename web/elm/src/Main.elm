@@ -544,16 +544,6 @@ update msg model =
             ( model, Cmd.none )
 
 
-startInteraction : Cmd Msg
-startInteraction =
-    Cmd.none
-
-
-stopInteraction : Cmd Msg
-stopInteraction =
-    Cmd.none
-
-
 
 -- HELPER FUNCTIONS
 
