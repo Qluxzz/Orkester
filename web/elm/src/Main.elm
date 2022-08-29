@@ -484,12 +484,7 @@ update msg model =
                     Debug.todo "Handle error"
 
                 JSPlayer.ProgressUpdated updatedProgress ->
-                    case model.player of
-                        Just track ->
-                            ( { model | player = Just (updateProgress updatedProgress track) }, Cmd.none )
-
-                        Nothing ->
-                            Debug.todo "Should never happen!"
+                    ( { model | player = updateProgress updatedProgress model.player }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -544,27 +539,17 @@ update msg model =
 
 clearSliderValue : Maybe Player -> Maybe Player
 clearSliderValue player =
-    case player of
-        Just p ->
-            Just { p | slider = Nothing }
-
-        Nothing ->
-            player
+    Maybe.map (\p -> { p | slider = Nothing }) player
 
 
 updateSliderValue : Int -> Maybe Player -> Maybe Player
 updateSliderValue value player =
-    case player of
-        Just p ->
-            Just { p | slider = Just value }
-
-        Nothing ->
-            player
+    Maybe.map (\p -> { p | slider = Just value }) player
 
 
-updateProgress : Int -> Player -> Player
+updateProgress : Int -> Maybe Player -> Maybe Player
 updateProgress progress player =
-    { player | progress = progress }
+    Maybe.map (\p -> { p | progress = progress }) player
 
 
 hasUpdatedSearchPhrase : Maybe String -> Maybe String -> Maybe String
