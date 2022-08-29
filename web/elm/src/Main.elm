@@ -194,6 +194,12 @@ playerView model =
             Just { track, progress } ->
                 case track of
                     RemoteData.Success t ->
+                        let
+                            sliderValue =
+                                model.player
+                                    |> Maybe.andThen (\p -> p.slider)
+                                    |> Maybe.withDefault progress
+                        in
                         [ div [ css [ displayFlex ] ]
                             [ a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ]
                                 [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt t.album.id ++ "/image") ] []
@@ -209,14 +215,14 @@ playerView model =
                                 ]
                             ]
                         , div [ css [ displayFlex, alignItems center, flexGrow (int 1) ] ]
-                            [ div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay progress) ]
+                            [ div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay sliderValue) ]
                             , input
                                 [ css [ width (pct 100) ]
                                 , type_ "range"
                                 , Html.Styled.Attributes.min "0"
                                 , Html.Styled.Attributes.max (String.fromInt t.length)
-                                , value (String.fromInt (Maybe.withDefault progress (Maybe.andThen (\s -> s.slider) model.player)))
-                                , onInput (\s -> OnDragSlider (Maybe.withDefault 0 (s |> toInt)))
+                                , value (sliderValue |> String.fromInt)
+                                , onInput (\value -> OnDragSlider (Maybe.withDefault 0 (value |> toInt)))
                                 , onMouseUp OnDragSliderEnd
                                 ]
                                 []
