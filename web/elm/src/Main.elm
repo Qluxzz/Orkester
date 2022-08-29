@@ -190,7 +190,7 @@ notFoundView =
 playerView : Model -> Html Msg
 playerView model =
     div [ css [ displayFlex, flexDirection column ] ]
-        (case model.track of
+        (case model.player of
             Just { track, progress } ->
                 case track of
                     RemoteData.Success t ->
@@ -215,7 +215,7 @@ playerView model =
                                 , type_ "range"
                                 , Html.Styled.Attributes.min "0"
                                 , Html.Styled.Attributes.max (String.fromInt t.length)
-                                , value (String.fromInt (Maybe.withDefault progress (Maybe.andThen (\s -> Just s.value) model.slider)))
+                                , value (String.fromInt (Maybe.withDefault progress (Maybe.andThen (\s -> s.slider) model.player)))
                                 , onInput (\s -> OnDragSlider (Maybe.withDefault 0 (s |> toInt)))
                                 , onMouseUp OnDragSliderEnd
                                 ]
@@ -240,17 +240,14 @@ type alias Model =
     { route : Route
     , page : Page
     , navKey : Nav.Key
-    , track : Maybe PlayerTrack
-    , slider :
-        Maybe
-            { value : Int
-            }
+    , player : Maybe Player
     }
 
 
-type alias PlayerTrack =
+type alias Player =
     { track : WebData Track
     , progress : Int
+    , slider : Maybe Int
     }
 
 
@@ -271,8 +268,7 @@ init _ url navKey =
             { route = Route.parseUrl url
             , page = NotFoundPage
             , navKey = navKey
-            , track = Nothing
-            , slider = Nothing
+            , player = Nothing
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -482,17 +478,15 @@ update msg model =
             else
                 ( model, Cmd.none )
 
-        -- ( Player (Player.PlaybackFailed _), _ ) ->
-        --     ( { model | currentlyPlaying = NotAsked }, Cmd.none )
         ( JSPlayer playerMsg, _ ) ->
             case playerMsg of
                 JSPlayer.PlaybackFailed error ->
                     Debug.todo "Handle error"
 
                 JSPlayer.ProgressUpdated updatedProgress ->
-                    case model.track of
+                    case model.player of
                         Just track ->
-                            ( { model | track = Just (updateProgress updatedProgress track) }, Cmd.none )
+                            ( { model | player = Just (updateProgress updatedProgress track) }, Cmd.none )
 
                         Nothing ->
                             Debug.todo "Should never happen!"
@@ -511,22 +505,22 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | track = Just { track = trackInfo, progress = 0 } }, cmd )
+            ( { model | player = Just { track = trackInfo, progress = 0, slider = Nothing } }, cmd )
 
         ( OnDragSlider time, _ ) ->
-            ( { model | slider = Just { value = time } }, Cmd.none )
+            ( { model | player = updateSliderValue time model.player }, Cmd.none )
 
         ( OnDragSliderEnd, _ ) ->
             let
                 sliderValue =
-                    Maybe.withDefault 0 (Maybe.andThen (\s -> Just s.value) model.slider)
+                    Maybe.withDefault 0 (Maybe.andThen (\s -> s.slider) model.player)
 
                 cmd : Cmd Msg
                 cmd =
-                    case model.track of
+                    case model.player of
                         Just track ->
                             case track.track of
-                                RemoteData.Success t ->
+                                RemoteData.Success _ ->
                                     JSPlayer.seek { timestamp = sliderValue }
 
                                 _ ->
@@ -535,7 +529,7 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | slider = Nothing }, cmd )
+            ( { model | player = clearSliderValue model.player }, cmd )
 
         ( PlaybackFailed _, _ ) ->
             ( model, Cmd.none )
@@ -548,9 +542,29 @@ update msg model =
 -- HELPER FUNCTIONS
 
 
-updateProgress : Int -> PlayerTrack -> PlayerTrack
-updateProgress progress track =
-    { track | progress = progress }
+clearSliderValue : Maybe Player -> Maybe Player
+clearSliderValue player =
+    case player of
+        Just p ->
+            Just { p | slider = Nothing }
+
+        Nothing ->
+            player
+
+
+updateSliderValue : Int -> Maybe Player -> Maybe Player
+updateSliderValue value player =
+    case player of
+        Just p ->
+            Just { p | slider = Just value }
+
+        Nothing ->
+            player
+
+
+updateProgress : Int -> Player -> Player
+updateProgress progress player =
+    { player | progress = progress }
 
 
 hasUpdatedSearchPhrase : Maybe String -> Maybe String -> Maybe String
