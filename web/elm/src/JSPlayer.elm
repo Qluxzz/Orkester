@@ -1,4 +1,4 @@
-port module Player exposing (Msg(..), playTrack, playbackFailed, progressUpdated, seek)
+port module JSPlayer exposing (Msg(..), playTrack, playbackFailed, progressUpdated, seek)
 
 
 type Msg

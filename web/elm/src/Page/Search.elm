@@ -8,9 +8,9 @@ import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
 import Html.Styled.Attributes exposing (css, href, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
+import JSPlayer
 import Json.Decode as Decode exposing (Decoder, list)
 import Json.Decode.Pipeline exposing (required)
-import Player
 import RemoteData exposing (WebData)
 import Task
 
@@ -157,7 +157,7 @@ searchResultEntry type_ entry =
         [ a
             (case type_ of
                 TrackLink ->
-                    [ onClick (Player (Player.PlayTrack { id = entry.id, timestamp = 0 }))
+                    [ onClick (Player (JSPlayer.PlayTrack { id = entry.id, timestamp = 0 }))
                     , href ""
                     ]
 
@@ -203,7 +203,7 @@ type Msg
     = UpdateSearchPhrase String
     | SearchResultsRecieved (WebData SearchResult)
     | FocusedSearchField
-    | Player Player.Msg
+    | Player JSPlayer.Msg
 
 
 getSearchResult : String -> Cmd Msg

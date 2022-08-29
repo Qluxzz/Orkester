@@ -7,11 +7,11 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
 import Http
+import JSPlayer
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Like
 import Page.Artist exposing (artistUrl)
-import Player
 import ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
 import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
@@ -90,7 +90,7 @@ type Msg
     | UnlikeTrack TrackId
     | Like Like.Msg
     | Unlike Unlike.Msg
-    | Player Player.Msg
+    | Player JSPlayer.Msg
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -177,16 +177,16 @@ update msg model =
 
         Player playerMsg ->
             case playerMsg of
-                Player.PlayTrack trackId ->
-                    ( model, Player.playTrack trackId )
+                JSPlayer.PlayTrack trackId ->
+                    ( model, JSPlayer.playTrack trackId )
 
-                Player.ProgressUpdated _ ->
+                JSPlayer.ProgressUpdated _ ->
                     ( model, Cmd.none )
 
-                Player.PlaybackFailed _ ->
+                JSPlayer.PlaybackFailed _ ->
                     ( model, Cmd.none )
 
-                Player.Seek _ ->
+                JSPlayer.Seek _ ->
                     ( model, Cmd.none )
 
 
@@ -308,7 +308,7 @@ trackRow track =
                 "Like"
     in
     div [ css [ trackRowStyle ] ]
-        [ div [ css [ trackNumberColStyle ], onClick (Player (Player.PlayTrack { id = track.id, timestamp = 0 })) ] [ text (String.fromInt track.trackNumber) ]
+        [ div [ css [ trackNumberColStyle ], onClick (Player (JSPlayer.PlayTrack { id = track.id, timestamp = 0 })) ] [ text (String.fromInt track.trackNumber) ]
         , div [ css [ trackTitleColStyle, displayFlex, flexDirection column ] ]
             [ div [] [ p [ css [ whiteSpace noWrap, overflow hidden, textOverflow ellipsis ] ] [ text track.title ] ]
             , div [] (formatTrackArtists track.artists)

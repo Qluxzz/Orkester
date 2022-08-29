@@ -9,11 +9,11 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Html.Styled.Events exposing (onInput, onMouseUp)
 import Http
+import JSPlayer
 import Page.Album as AlbumPage exposing (albumUrl, durationDisplay, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
-import Player
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import String exposing (toInt)
@@ -45,8 +45,8 @@ main =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Sub.map Player (Player.playbackFailed Player.PlaybackFailed)
-        , Sub.map Player (Player.progressUpdated Player.ProgressUpdated)
+        [ Sub.map JSPlayer (JSPlayer.playbackFailed JSPlayer.PlaybackFailed)
+        , Sub.map JSPlayer (JSPlayer.progressUpdated JSPlayer.ProgressUpdated)
         ]
 
 
@@ -355,7 +355,7 @@ type Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
     | PlaybackFailed String
-    | Player Player.Msg
+    | JSPlayer JSPlayer.Msg
     | TrackInfoRecieved (WebData Track)
     | OnDragSlider Int
     | OnDragSliderEnd
@@ -370,12 +370,12 @@ update msg model =
                     AlbumPage.update albumMsg pageModel
             in
             case albumMsg of
-                AlbumPage.Player (Player.PlayTrack track) ->
+                AlbumPage.Player (JSPlayer.PlayTrack track) ->
                     ( { model
                         | page = AlbumPage updatedPageModel
                       }
                     , Cmd.batch
-                        [ Player.playTrack track
+                        [ JSPlayer.playTrack track
                         , getTrackInfo track.id
                         ]
                     )
@@ -427,12 +427,12 @@ update msg model =
                     SearchPage.update searchPageMsg searchPageModel
             in
             case searchPageMsg of
-                SearchPage.Player (Player.PlayTrack track) ->
+                SearchPage.Player (JSPlayer.PlayTrack track) ->
                     ( { model
                         | page = SearchPage updatedModel
                       }
                     , Cmd.batch
-                        [ Player.playTrack track
+                        [ JSPlayer.playTrack track
                         , getTrackInfo track.id
                         ]
                     )
@@ -484,12 +484,12 @@ update msg model =
 
         -- ( Player (Player.PlaybackFailed _), _ ) ->
         --     ( { model | currentlyPlaying = NotAsked }, Cmd.none )
-        ( Player playerMsg, _ ) ->
+        ( JSPlayer playerMsg, _ ) ->
             case playerMsg of
-                Player.PlaybackFailed error ->
+                JSPlayer.PlaybackFailed error ->
                     Debug.todo "Handle error"
 
-                Player.ProgressUpdated updatedProgress ->
+                JSPlayer.ProgressUpdated updatedProgress ->
                     case model.track of
                         Just track ->
                             ( { model | track = Just (updateProgress updatedProgress track) }, Cmd.none )
@@ -506,7 +506,7 @@ update msg model =
                 cmd =
                     case trackInfo of
                         RemoteData.Success t ->
-                            Player.playTrack { id = t.id, timestamp = 0 }
+                            JSPlayer.playTrack { id = t.id, timestamp = 0 }
 
                         _ ->
                             Cmd.none
@@ -527,7 +527,7 @@ update msg model =
                         Just track ->
                             case track.track of
                                 RemoteData.Success t ->
-                                    Player.seek { timestamp = sliderValue }
+                                    JSPlayer.seek { timestamp = sliderValue }
 
                                 _ ->
                                     Cmd.none
