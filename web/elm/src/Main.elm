@@ -513,15 +513,15 @@ update msg model =
         ( OnDragSliderEnd, _ ) ->
             let
                 sliderValue =
-                    Maybe.withDefault 0 (Maybe.andThen (\s -> s.slider) model.player)
+                    Maybe.andThen (\s -> s.slider) model.player
 
                 cmd : Cmd Msg
                 cmd =
-                    case model.player of
-                        Just track ->
+                    case ( model.player, sliderValue ) of
+                        ( Just track, Just time ) ->
                             case track.track of
                                 RemoteData.Success _ ->
-                                    JSPlayer.seek { timestamp = sliderValue }
+                                    JSPlayer.seek { timestamp = time }
 
                                 _ ->
                                     Cmd.none
