@@ -498,7 +498,7 @@ update msg model =
                 cmd =
                     case trackInfo of
                         RemoteData.Success t ->
-                            JSPlayer.playTrack { id = t.id, timestamp = 0 }
+                            JSPlayer.playTrack { id = t.id }
 
                         _ ->
                             Cmd.none
@@ -530,7 +530,7 @@ update msg model =
             ( { model | player = clearSliderValue model.player }, cmd )
 
         ( _, _ ) ->
-            ( model, Cmd.none )
+            Debug.todo "Should never happen!"
 
 
 

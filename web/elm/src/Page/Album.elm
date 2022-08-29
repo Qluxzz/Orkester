@@ -308,7 +308,7 @@ trackRow track =
                 "Like"
     in
     div [ css [ trackRowStyle ] ]
-        [ div [ css [ trackNumberColStyle ], onClick (Player (JSPlayer.PlayTrack { id = track.id, timestamp = 0 })) ] [ text (String.fromInt track.trackNumber) ]
+        [ div [ css [ trackNumberColStyle ], onClick (Player (JSPlayer.PlayTrack { id = track.id })) ] [ text (String.fromInt track.trackNumber) ]
         , div [ css [ trackTitleColStyle, displayFlex, flexDirection column ] ]
             [ div [] [ p [ css [ whiteSpace noWrap, overflow hidden, textOverflow ellipsis ] ] [ text track.title ] ]
             , div [] (formatTrackArtists track.artists)

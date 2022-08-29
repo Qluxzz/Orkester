@@ -24,30 +24,23 @@
 
 	const audio = new Audio()
 
-	function _play(timestamp) {
+	audio.addEventListener("timeupdate", event => {
+		app.ports.progressUpdated.send(Math.floor(audio.currentTime))
+	})
+
+	app.ports.playTrack.subscribe(({ id }) => {
+		audio.src = `http://localhost:42000/api/v1/track/${id}/stream`
 		audio.play()
-			.then(_ => {
-				if (timestamp)
-					audio.fastSeek(timestamp)
-			})
 			.catch(error => {
 				if (error.name === "AbortError")
 					return
 
+				// Uncomment this error in production
 				// if (error.name === "NotSupportedError")
 				// 	return
 
 				app.ports.playbackFailed.send(error.message)
 			})
-	}
-
-	audio.addEventListener("timeupdate", event => {
-		app.ports.progressUpdated.send(Math.floor(audio.currentTime))
-	})
-
-	app.ports.playTrack.subscribe(({ id, timestamp }) => {
-		audio.src = `http://localhost:42000/api/v1/track/${id}/stream`
-		_play(timestamp)
 	})
 
 	app.ports.seek.subscribe(({ timestamp }) => {

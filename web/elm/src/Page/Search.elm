@@ -157,7 +157,7 @@ searchResultEntry type_ entry =
         [ a
             (case type_ of
                 TrackLink ->
-                    [ onClick (Player (JSPlayer.PlayTrack { id = entry.id, timestamp = 0 }))
+                    [ onClick (Player (JSPlayer.PlayTrack { id = entry.id }))
                     , href ""
                     ]
 
