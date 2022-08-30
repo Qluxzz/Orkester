@@ -403,13 +403,13 @@ update msg model =
                     AlbumPage.update albumMsg pageModel
             in
             case albumMsg of
-                AlbumPage.Player (JSPlayer.PlayTrack track) ->
+                AlbumPage.PlayTrack trackId ->
                     ( { model
                         | page = AlbumPage updatedPageModel
                       }
                     , Cmd.batch
-                        [ JSPlayer.playTrack track
-                        , getTrackInfo track.id
+                        [ JSPlayer.playTrack { id = trackId }
+                        , getTrackInfo trackId
                         ]
                     )
 
@@ -460,13 +460,13 @@ update msg model =
                     SearchPage.update searchPageMsg searchPageModel
             in
             case searchPageMsg of
-                SearchPage.Player (JSPlayer.PlayTrack track) ->
+                SearchPage.PlayTrack trackId ->
                     ( { model
                         | page = SearchPage updatedModel
                       }
                     , Cmd.batch
-                        [ JSPlayer.playTrack track
-                        , getTrackInfo track.id
+                        [ JSPlayer.playTrack { id = trackId }
+                        , getTrackInfo trackId
                         ]
                     )
 

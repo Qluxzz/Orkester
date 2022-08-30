@@ -7,7 +7,6 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
 import Http
-import JSPlayer
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Like
@@ -90,7 +89,7 @@ type Msg
     | UnlikeTrack TrackId
     | Like Like.Msg
     | Unlike Unlike.Msg
-    | Player JSPlayer.Msg
+    | PlayTrack Int
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -175,25 +174,8 @@ update msg model =
         UnlikeTrack trackId ->
             ( model, Cmd.map Unlike (Unlike.unlikeTrackById trackId) )
 
-        Player playerMsg ->
-            case playerMsg of
-                JSPlayer.PlayTrack trackId ->
-                    ( model, JSPlayer.playTrack trackId )
-
-                JSPlayer.ProgressUpdated _ ->
-                    ( model, Cmd.none )
-
-                JSPlayer.PlaybackFailed _ ->
-                    ( model, Cmd.none )
-
-                JSPlayer.Seek _ ->
-                    ( model, Cmd.none )
-
-                JSPlayer.Play ->
-                    ( model, Cmd.none )
-
-                JSPlayer.Pause ->
-                    ( model, Cmd.none )
+        PlayTrack _ ->
+            ( model, Cmd.none )
 
 
 
@@ -314,7 +296,7 @@ trackRow track =
                 "Like"
     in
     div [ css [ trackRowStyle ] ]
-        [ div [ css [ trackNumberColStyle ], onClick (Player (JSPlayer.PlayTrack { id = track.id })) ] [ text (String.fromInt track.trackNumber) ]
+        [ div [ css [ trackNumberColStyle ], onClick (PlayTrack track.id) ] [ text (String.fromInt track.trackNumber) ]
         , div [ css [ trackTitleColStyle, displayFlex, flexDirection column ] ]
             [ div [] [ p [ css [ whiteSpace noWrap, overflow hidden, textOverflow ellipsis ] ] [ text track.title ] ]
             , div [] (formatTrackArtists track.artists)

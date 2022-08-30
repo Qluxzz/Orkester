@@ -2,13 +2,12 @@ module Page.Search exposing (Model, Msg(..), init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser.Dom
-import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, margin2, marginTop, maxWidth, none, overflow, padding, padding2, padding4, paddingLeft, paddingRight, px, textDecoration, underline)
+import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, marginTop, maxWidth, none, overflow, padding, paddingLeft, paddingRight, px, textDecoration, underline)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
 import Html.Styled.Attributes exposing (css, href, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
-import JSPlayer
 import Json.Decode as Decode exposing (Decoder, list)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
@@ -157,7 +156,7 @@ searchResultEntry type_ entry =
         [ a
             (case type_ of
                 TrackLink ->
-                    [ onClick (Player (JSPlayer.PlayTrack { id = entry.id }))
+                    [ onClick (PlayTrack entry.id)
                     , href ""
                     ]
 
@@ -203,7 +202,7 @@ type Msg
     = UpdateSearchPhrase String
     | SearchResultsRecieved (WebData SearchResult)
     | FocusedSearchField
-    | Player JSPlayer.Msg
+    | PlayTrack Int
 
 
 getSearchResult : String -> Cmd Msg
@@ -237,7 +236,7 @@ update message model =
         FocusedSearchField ->
             ( model, Cmd.none )
 
-        Player _ ->
+        PlayTrack _ ->
             ( model, Cmd.none )
 
 
