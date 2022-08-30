@@ -174,6 +174,7 @@ update msg model =
         UnlikeTrack trackId ->
             ( model, Cmd.map Unlike (Unlike.unlikeTrackById trackId) )
 
+        {- this case is handled by the update method in Main.elm -}
         PlayTrack _ ->
             ( model, Cmd.none )
 

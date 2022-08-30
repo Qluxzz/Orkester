@@ -236,6 +236,7 @@ update message model =
         FocusedSearchField ->
             ( model, Cmd.none )
 
+        {- this case is handled by the update method in Main.elm -}
         PlayTrack _ ->
             ( model, Cmd.none )
 
