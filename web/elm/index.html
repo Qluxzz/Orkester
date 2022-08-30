@@ -47,6 +47,14 @@
 		audio.fastSeek(timestamp)
 	})
 
+	app.ports.play.subscribe(() => {
+		audio.play()
+	})
+
+	app.ports.pause.subscribe(() => {
+		audio.pause()
+	})
+
 </script>
 
 </body>

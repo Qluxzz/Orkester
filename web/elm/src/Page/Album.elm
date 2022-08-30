@@ -189,6 +189,12 @@ update msg model =
                 JSPlayer.Seek _ ->
                     ( model, Cmd.none )
 
+                JSPlayer.Play ->
+                    ( model, Cmd.none )
+
+                JSPlayer.Pause ->
+                    ( model, Cmd.none )
+
 
 
 -- VIEWS

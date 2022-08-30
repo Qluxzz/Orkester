@@ -7,7 +7,7 @@ import Css exposing (Color, alignItems, backgroundColor, center, color, column, 
 import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
-import Html.Styled.Events exposing (onInput, onMouseUp)
+import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
 import Http
 import JSPlayer
 import Page.Album as AlbumPage exposing (albumUrl, durationDisplay, formatTrackArtists)
@@ -187,11 +187,25 @@ notFoundView =
     centeredView "Page was not found"
 
 
+playButton : Html Msg
+playButton =
+    button
+        [ onClick (JSPlayer JSPlayer.Play) ]
+        [ text "Play" ]
+
+
+pauseButton : Html Msg
+pauseButton =
+    button
+        [ onClick (JSPlayer JSPlayer.Pause) ]
+        [ text "Pause" ]
+
+
 playerView : Model -> Html Msg
 playerView model =
     div [ css [ displayFlex, flexDirection column ] ]
         (case model.player of
-            Just { track, progress } ->
+            Just { track, progress, state } ->
                 case track of
                     RemoteData.Success t ->
                         let
@@ -212,6 +226,14 @@ playerView model =
                                            , a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ] [ text t.album.name ]
                                            ]
                                     )
+                                ]
+                            , div []
+                                [ case state of
+                                    Playing ->
+                                        pauseButton
+
+                                    Paused ->
+                                        playButton
                                 ]
                             ]
                         , div [ css [ displayFlex, alignItems center, flexGrow (int 1) ] ]
@@ -254,7 +276,13 @@ type alias Player =
     { track : WebData Track
     , progress : Int
     , slider : Maybe Int
+    , state : PlayerState
     }
+
+
+type PlayerState
+    = Playing
+    | Paused
 
 
 type Page
@@ -495,8 +523,17 @@ update msg model =
                 JSPlayer.ProgressUpdated updatedProgress ->
                     ( { model | player = updateProgress updatedProgress model.player }, Cmd.none )
 
-                _ ->
+                JSPlayer.PlayTrack _ ->
+                    ( { model | player = playPlayer model.player }, Cmd.none )
+
+                JSPlayer.Seek _ ->
                     ( model, Cmd.none )
+
+                JSPlayer.Pause ->
+                    ( { model | player = pausePlayer model.player }, JSPlayer.pause () )
+
+                JSPlayer.Play ->
+                    ( { model | player = playPlayer model.player }, JSPlayer.play () )
 
         ( TrackInfoRecieved trackInfo, _ ) ->
             let
@@ -509,7 +546,7 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | player = Just { track = trackInfo, progress = 0, slider = Nothing } }, cmd )
+            ( { model | player = Just { track = trackInfo, progress = 0, slider = Nothing, state = Playing } }, cmd )
 
         ( OnDragSlider time, _ ) ->
             ( { model | player = updateSliderValue time model.player }, Cmd.none )
@@ -541,6 +578,16 @@ update msg model =
 
 
 -- HELPER FUNCTIONS
+
+
+pausePlayer : Maybe Player -> Maybe Player
+pausePlayer player =
+    Maybe.map (\p -> { p | state = Paused }) player
+
+
+playPlayer : Maybe Player -> Maybe Player
+playPlayer player =
+    Maybe.map (\p -> { p | state = Playing }) player
 
 
 clearSliderValue : Maybe Player -> Maybe Player

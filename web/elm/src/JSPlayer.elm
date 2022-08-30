@@ -1,4 +1,4 @@
-port module JSPlayer exposing (Msg(..), playTrack, playbackFailed, progressUpdated, seek)
+port module JSPlayer exposing (Msg(..), pause, play, playTrack, playbackFailed, progressUpdated, seek)
 
 
 type Msg
@@ -6,6 +6,8 @@ type Msg
     | PlayTrack { id : Int }
     | Seek { timestamp : Int }
     | ProgressUpdated Int
+    | Pause
+    | Play
 
 
 
@@ -22,3 +24,9 @@ port seek : { timestamp : Int } -> Cmd msg
 
 
 port progressUpdated : (Int -> msg) -> Sub msg
+
+
+port play : () -> Cmd msg
+
+
+port pause : () -> Cmd msg
