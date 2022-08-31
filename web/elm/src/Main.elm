@@ -466,9 +466,7 @@ update msg model =
             in
             case searchPageMsg of
                 SearchPage.PlayTrack trackId ->
-                    ( { model
-                        | page = SearchPage updatedModel
-                      }
+                    ( { model | page = SearchPage updatedModel }
                     , loadTrackInfo trackId
                     )
 
