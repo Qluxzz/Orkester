@@ -334,13 +334,16 @@ formatTracksDisplay : List Track -> String
 formatTracksDisplay tracks =
     let
         amountOfTracks =
-            tracks |> List.length |> String.fromInt
-    in
-    if List.length tracks /= 1 then
-        amountOfTracks ++ " tracks"
+            tracks |> List.length
 
-    else
-        amountOfTracks ++ " track"
+        suffix =
+            if amountOfTracks /= 1 then
+                "s"
+
+            else
+                ""
+    in
+    String.fromInt amountOfTracks ++ " track" ++ suffix
 
 
 formatAlbumLength : List Track -> String
