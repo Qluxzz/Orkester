@@ -309,25 +309,9 @@ trackRow track =
 
 formatTrackArtists : List Artist -> List (Html msg)
 formatTrackArtists artists =
-    let
-        amountOfArtists =
-            List.length artists
-
-        elements =
-            List.concat (List.indexedMap (formatTrackArtist amountOfArtists) artists)
-    in
-    elements
-
-
-formatTrackArtist : Int -> Int -> Artist -> List (Html msg)
-formatTrackArtist amount index artist =
-    a [ href (artistUrl artist) ] [ text artist.name ]
-        :: (if index /= amount - 1 then
-                [ span [ css [ marginRight (px 10) ] ] [ text ", " ] ]
-
-            else
-                []
-           )
+    artists
+        |> List.map (\artist -> a [ href (artistUrl artist) ] [ text artist.name ])
+        |> List.intersperse (span [] [ text ", " ])
 
 
 formatTracksDisplay : List Track -> String
