@@ -568,8 +568,8 @@ update msg model =
                 cmd : Cmd Msg
                 cmd =
                     case ( model.player, sliderValue ) of
-                        ( Just track, Just time ) ->
-                            case track.track of
+                        ( Just { track }, Just time ) ->
+                            case track of
                                 RemoteData.Success _ ->
                                     JSPlayer.seek { timestamp = time }
 
