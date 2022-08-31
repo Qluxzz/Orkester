@@ -671,20 +671,10 @@ getDocumentTitle page player =
         _ ->
             case page of
                 ArtistPage { artist } ->
-                    case artist of
-                        RemoteData.Success a ->
-                            Just a.name
-
-                        _ ->
-                            Nothing
+                    artist |> RemoteData.toMaybe |> Maybe.map (\a -> a.name)
 
                 AlbumPage { album } ->
-                    case album of
-                        RemoteData.Success a ->
-                            Just a.name
-
-                        _ ->
-                            Nothing
+                    album |> RemoteData.toMaybe |> Maybe.map (\a -> a.name)
 
                 NotFoundPage ->
                     Just "Not Found"
