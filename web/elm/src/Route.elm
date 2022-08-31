@@ -18,12 +18,7 @@ type Route
 
 parseUrl : Url -> Route
 parseUrl url =
-    case parse matchRoute url of
-        Just route ->
-            route
-
-        Nothing ->
-            NotFound
+    Maybe.withDefault NotFound (parse matchRoute url)
 
 
 matchRoute : Parser (Route -> a) a
