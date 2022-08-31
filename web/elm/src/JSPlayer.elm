@@ -17,7 +17,7 @@ type Msg
 port playbackFailed : (String -> msg) -> Sub msg
 
 
-port playTrack : { id : Int } -> Cmd msg
+port playTrack : Int -> Cmd msg
 
 
 port seek : { timestamp : Int } -> Cmd msg

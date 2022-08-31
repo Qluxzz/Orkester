@@ -28,8 +28,8 @@
 		app.ports.progressUpdated.send(Math.floor(audio.currentTime))
 	})
 
-	app.ports.playTrack.subscribe(({ id }) => {
-		audio.src = `http://localhost:42000/api/v1/track/${id}/stream`
+	app.ports.playTrack.subscribe(trackId => {
+		audio.src = `http://localhost:42000/api/v1/track/${trackId}/stream`
 		audio.play()
 			.catch(error => {
 				if (error.name === "AbortError")

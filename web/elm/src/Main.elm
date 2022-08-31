@@ -394,6 +394,14 @@ type Msg
     | OnDragSliderEnd
 
 
+loadTrackInfo : Int -> Cmd Msg
+loadTrackInfo trackId =
+    Cmd.batch
+        [ JSPlayer.playTrack trackId
+        , getTrackInfo trackId
+        ]
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.page ) of
@@ -407,10 +415,7 @@ update msg model =
                     ( { model
                         | page = AlbumPage updatedPageModel
                       }
-                    , Cmd.batch
-                        [ JSPlayer.playTrack { id = trackId }
-                        , getTrackInfo trackId
-                        ]
+                    , loadTrackInfo trackId
                     )
 
                 AlbumPage.AlbumReceived (RemoteData.Success album) ->
@@ -464,10 +469,7 @@ update msg model =
                     ( { model
                         | page = SearchPage updatedModel
                       }
-                    , Cmd.batch
-                        [ JSPlayer.playTrack { id = trackId }
-                        , getTrackInfo trackId
-                        ]
+                    , loadTrackInfo trackId
                     )
 
                 _ ->
@@ -536,17 +538,7 @@ update msg model =
                     ( { model | player = playPlayer model.player }, JSPlayer.play () )
 
         ( TrackInfoRecieved trackInfo, _ ) ->
-            let
-                cmd : Cmd Msg
-                cmd =
-                    case trackInfo of
-                        RemoteData.Success t ->
-                            JSPlayer.playTrack { id = t.id }
-
-                        _ ->
-                            Cmd.none
-            in
-            ( { model | player = Just { track = trackInfo, progress = 0, slider = Nothing, state = Playing } }, cmd )
+            ( { model | player = Just { track = trackInfo, progress = 0, slider = Nothing, state = Playing } }, Cmd.none )
 
         ( OnDragSlider time, _ ) ->
             ( { model | player = updateSliderValue time model.player }, Cmd.none )
