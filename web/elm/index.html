@@ -24,6 +24,10 @@
 
 	const audio = new Audio()
 
+	// TODO: State change needs to be propogated to Elm
+	// If using keyboard shortcuts to play/pause music
+	// The button in Elm will not update
+
 	audio.addEventListener("timeupdate", event => {
 		app.ports.progressUpdated.send(Math.floor(audio.currentTime))
 	})
