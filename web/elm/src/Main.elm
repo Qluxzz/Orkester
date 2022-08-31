@@ -3,7 +3,7 @@ module Main exposing (..)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, underline, width)
+import Css exposing (Color, Style, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, underline, width)
 import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
@@ -47,6 +47,7 @@ subscriptions _ =
     Sub.batch
         [ Sub.map JSPlayer (JSPlayer.playbackFailed JSPlayer.PlaybackFailed)
         , Sub.map JSPlayer (JSPlayer.progressUpdated JSPlayer.ProgressUpdated)
+        , Sub.map JSPlayer (JSPlayer.stateChange JSPlayer.StateChange)
         ]
 
 
@@ -187,17 +188,24 @@ notFoundView =
     centeredView "Page was not found"
 
 
+playPauseButtonStyle : Style
+playPauseButtonStyle =
+    Css.batch
+        [ width (px 50)
+        ]
+
+
 playButton : Html Msg
 playButton =
     button
-        [ onClick (JSPlayer JSPlayer.Play) ]
+        [ onClick (JSPlayer JSPlayer.Play), css [ playPauseButtonStyle ] ]
         [ text "Play" ]
 
 
 pauseButton : Html Msg
 pauseButton =
     button
-        [ onClick (JSPlayer JSPlayer.Pause) ]
+        [ onClick (JSPlayer JSPlayer.Pause), css [ playPauseButtonStyle ] ]
         [ text "Pause" ]
 
 
@@ -227,7 +235,9 @@ playerView model =
                                            ]
                                     )
                                 ]
-                            , div []
+                            ]
+                        , div [ css [ displayFlex, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
+                            [ div []
                                 [ case state of
                                     Playing ->
                                         pauseButton
@@ -235,9 +245,7 @@ playerView model =
                                     Paused ->
                                         playButton
                                 ]
-                            ]
-                        , div [ css [ displayFlex, alignItems center, flexGrow (int 1) ] ]
-                            [ div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay sliderValue) ]
+                            , div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay sliderValue) ]
                             , input
                                 [ css [ width (pct 100) ]
                                 , type_ "range"
@@ -534,6 +542,17 @@ update msg model =
 
                 JSPlayer.Play ->
                     ( { model | player = playPlayer model.player }, JSPlayer.play () )
+
+                JSPlayer.StateChange state ->
+                    case state of
+                        "play" ->
+                            ( { model | player = playPlayer model.player }, Cmd.none )
+
+                        "pause" ->
+                            ( { model | player = pausePlayer model.player }, Cmd.none )
+
+                        _ ->
+                            Debug.todo ("unknown state change " ++ state)
 
         ( TrackInfoRecieved trackInfo, _ ) ->
             ( { model | player = Just { track = trackInfo, progress = 0, slider = Nothing, state = Playing } }, Cmd.none )

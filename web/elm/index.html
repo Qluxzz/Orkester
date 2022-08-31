@@ -28,6 +28,18 @@
 	// If using keyboard shortcuts to play/pause music
 	// The button in Elm will not update
 
+	audio.addEventListener("play", event => {
+		app.ports.stateChange.send("play")
+	})
+
+	audio.addEventListener("pause", event => {
+		app.ports.stateChange.send("pause")
+	})
+
+	audio.addEventListener("ended", event => {
+		app.ports.stateChange.send("pause")
+	})
+
 	audio.addEventListener("timeupdate", event => {
 		app.ports.progressUpdated.send(Math.floor(audio.currentTime))
 	})
