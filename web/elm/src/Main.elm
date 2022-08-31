@@ -95,7 +95,7 @@ globalStyle =
 
 view : Model -> Document Msg
 view model =
-    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page)
+    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page model.player)
     , body = [ baseView model (currentView model.page) |> toUnstyled ]
     }
 
@@ -589,6 +589,30 @@ update msg model =
 -- HELPER FUNCTIONS
 
 
+getCurrentlyPlayingTrackInfo : Maybe Player -> Maybe String
+getCurrentlyPlayingTrackInfo player =
+    case player of
+        Just { track, state } ->
+            if state == Paused then
+                Nothing
+
+            else
+                track
+                    |> RemoteData.toMaybe
+                    |> Maybe.map
+                        (\t ->
+                            t.title
+                                ++ " - "
+                                ++ (t.artists
+                                        |> List.map (\a -> a.name)
+                                        |> String.join ", "
+                                   )
+                        )
+
+        _ ->
+            Nothing
+
+
 pausePlayer : Maybe Player -> Maybe Player
 pausePlayer player =
     Maybe.map (\p -> { p | state = Paused }) player
@@ -638,33 +662,38 @@ getTrackInfo trackId =
         }
 
 
-getDocumentTitle : Page -> Maybe String
-getDocumentTitle page =
-    case page of
-        ArtistPage { artist } ->
-            case artist of
-                RemoteData.Success a ->
-                    Just a.name
+getDocumentTitle : Page -> Maybe Player -> Maybe String
+getDocumentTitle page player =
+    case getCurrentlyPlayingTrackInfo player of
+        Just title ->
+            Just ("► " ++ title)
 
-                _ ->
+        _ ->
+            case page of
+                ArtistPage { artist } ->
+                    case artist of
+                        RemoteData.Success a ->
+                            Just a.name
+
+                        _ ->
+                            Nothing
+
+                AlbumPage { album } ->
+                    case album of
+                        RemoteData.Success a ->
+                            Just a.name
+
+                        _ ->
+                            Nothing
+
+                NotFoundPage ->
+                    Just "Not Found"
+
+                IndexPage ->
                     Nothing
 
-        AlbumPage { album } ->
-            case album of
-                RemoteData.Success a ->
-                    Just a.name
+                LikedTracksPage _ ->
+                    Just "Liked Tracks"
 
-                _ ->
-                    Nothing
-
-        NotFoundPage ->
-            Just "Not Found"
-
-        IndexPage ->
-            Nothing
-
-        LikedTracksPage _ ->
-            Just "Liked Tracks"
-
-        SearchPage { searchPhrase } ->
-            Just (Maybe.withDefault "Search" searchPhrase)
+                SearchPage { searchPhrase } ->
+                    Just (Maybe.withDefault "Search" searchPhrase)
