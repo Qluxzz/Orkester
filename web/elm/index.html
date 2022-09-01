@@ -24,17 +24,12 @@
 
 	const audio = new Audio()
 
-	// TODO: State change needs to be propogated to Elm
-	// If using keyboard shortcuts to play/pause music
-	// The button in Elm will not update
+	// TODO: Implement MediaSessions API 
+	// https://developer.mozilla.org/en-US/docs/Web/API/Media_Session_API
 
-	audio.addEventListener("play", event => {
-		app.ports.stateChange.send("play")
-	})
 
-	audio.addEventListener("pause", event => {
-		app.ports.stateChange.send("pause")
-	})
+	navigator.mediaSession.setActionHandler("play", () => app.ports.stateChange.send("play"))
+	navigator.mediaSession.setActionHandler("pause", () => app.ports.stateChange.send("pause"))
 
 	audio.addEventListener("ended", event => {
 		app.ports.stateChange.send("pause")

@@ -546,10 +546,10 @@ update msg model =
                 JSPlayer.StateChange state ->
                     case state of
                         "play" ->
-                            ( { model | player = playPlayer model.player }, Cmd.none )
+                            ( { model | player = playPlayer model.player }, JSPlayer.play () )
 
                         "pause" ->
-                            ( { model | player = pausePlayer model.player }, Cmd.none )
+                            ( { model | player = pausePlayer model.player }, JSPlayer.pause () )
 
                         _ ->
                             Debug.todo ("unknown state change " ++ state)
