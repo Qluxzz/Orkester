@@ -30,6 +30,7 @@
 
 	navigator.mediaSession.setActionHandler("play", () => app.ports.stateChange.send("play"))
 	navigator.mediaSession.setActionHandler("pause", () => app.ports.stateChange.send("pause"))
+	navigator.mediaSession.setActionHandler("previoustrack", () => audio.fastSeek(0))
 
 	audio.addEventListener("ended", event => {
 		app.ports.stateChange.send("pause")
