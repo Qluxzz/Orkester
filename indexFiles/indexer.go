@@ -113,13 +113,38 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 		return nil, fmt.Errorf("unsupported file extension: %s", filepath.Ext(path))
 	}
 
-	var track IndexedTrack
-	track.Path = path
-
 	metaData := getTrackMetaData(path)
-	if metaData == nil {
-		return nil, fmt.Errorf("failed to get metadata for %s", path)
+
+	track, err := validateTrack(path, metaData)
+	if err != nil {
+		return nil, err
 	}
+
+	switch filepath.Ext(path) {
+	case ".flac":
+		track.Image = FlacTryGetEmbeddedImage(path)
+	case ".mp3":
+		track.Image = Mp3TryGetEmbeddedImage(path)
+		break
+	default:
+		return nil, fmt.Errorf("unsupported file extension: %s", filepath.Ext(path))
+	}
+
+	if track.Image == nil {
+		image, err := scanFolderForCoverImage(filepath.Dir(path))
+		if err == nil {
+			track.Image = image
+		} else {
+			return nil, errors.New("failed to find image, it's required for tracks to be added to the database")
+		}
+	}
+
+	return track, nil
+}
+
+func validateTrack(path string, metaData *Track) (*IndexedTrack, error) {
+	track := &IndexedTrack{}
+	track.Path = path
 
 	track.Title = metaData.Title
 	track.AlbumArtist = metaData.AlbumPerformer
@@ -140,17 +165,6 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 	} else {
 		track.Date = date
 	}
-
-	if track.Image == nil {
-		image, err := scanFolderForCoverImage(filepath.Dir(path))
-		if err == nil {
-			track.Image = image
-		} else {
-			return nil, errors.New("failed to find image, it's required for tracks to be added to the database")
-		}
-	}
-
-	return &track, nil
 }
 
 func scanFolderForCoverImage(path string) (*Image, error) {
