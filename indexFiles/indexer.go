@@ -1,11 +1,14 @@
 package indexFiles
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -52,21 +55,90 @@ func ScanPathForMusicFiles(path string) ([]*IndexedTrack, []*FailedAudioFile, er
 	return successfully_parsed_audio_files, failed_audio_files, nil
 }
 
-func parseAudioFile(path string) (*IndexedTrack, error) {
-	var track *IndexedTrack
-	var err error
+type Response struct {
+	Media Media `json:"media"`
+}
 
+type Media struct {
+	Tracks []Track `json:"track"`
+}
+
+type Track struct {
+	Type           string `json:"@type"`
+	Album          string
+	AlbumPerformer string `json:"Album_Performer"`
+	Date           string `json:"Recorded_Date"`
+	Duration       string
+	// Seperated by " / "
+	Artists           string `json:"Performer"`
+	Title             string `json:"Track"`
+	TrackNumber       string `json:"Track_Position"`
+	InternetMediaType string
+}
+
+func (t Track) Print() string {
+	return t.Title
+}
+
+const SEPARATOR = " / "
+
+func getTrackMetaData(path string) *Track {
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("mediainfo \"%s\" --output=JSON -f", path))
+
+	res, err := cmd.Output()
+
+	if err != nil {
+		return nil
+	}
+
+	var response Response
+
+	json.Unmarshal(res, &response)
+
+	for _, t := range response.Media.Tracks {
+		if t.Type == "General" {
+			return &t
+		}
+	}
+
+	return nil
+}
+
+func parseAudioFile(path string) (*IndexedTrack, error) {
 	switch filepath.Ext(path) {
 	case ".flac":
-		track, err = ParseFlacFile(path)
 	case ".mp3":
-		track, err = ParseMp3File(path)
+		break
 	default:
 		return nil, fmt.Errorf("unsupported file extension: %s", filepath.Ext(path))
 	}
 
+	var track IndexedTrack
+	track.Path = path
+
+	metaData := getTrackMetaData(path)
+	if metaData == nil {
+		return nil, fmt.Errorf("failed to get metadata for %s", path)
+	}
+
+	track.Title = metaData.Title
+	track.AlbumArtist = metaData.AlbumPerformer
+	track.Artists = strings.Split(metaData.Artists, SEPARATOR)
+	track.AlbumName = metaData.Album
+	if duration, err := strconv.ParseFloat(metaData.Duration, 32); err == nil {
+		track.Length = int(duration)
+	}
+	track.MimeType = metaData.InternetMediaType
+	if trackNumber, err := strconv.ParseInt(metaData.TrackNumber, 10, 8); err == nil {
+		track.TrackNumber = int(trackNumber)
+	}
+
+	date, err := ParseDate(metaData.Date)
+
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid date format")
+	} else {
+		track.Date = date
 	}
 
 	if track.Image == nil {
@@ -78,7 +150,7 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 		}
 	}
 
-	return track, nil
+	return &track, nil
 }
 
 func scanFolderForCoverImage(path string) (*Image, error) {
