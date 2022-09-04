@@ -89,7 +89,7 @@ searchResultList type_ entries =
     let
         result =
             if List.isEmpty entries then
-                [ li [] [ text "No entry matched the phrase" ] ]
+                [ li [ css [ marginTop (px 10) ] ] [ text "No entry matched the phrase" ] ]
 
             else
                 List.map (searchResultEntry type_) entries
