@@ -165,6 +165,8 @@ func validateTrack(path string, metaData *Track) (*IndexedTrack, error) {
 	} else {
 		track.Date = date
 	}
+
+	return track, nil
 }
 
 func scanFolderForCoverImage(path string) (*Image, error) {
