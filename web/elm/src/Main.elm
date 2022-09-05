@@ -482,21 +482,13 @@ update msg model =
                 _ ->
                     ( { model | page = SearchPage updatedModel }
                     , Cmd.batch
-                        (Cmd.map
+                        [ Cmd.map
                             SearchPageMsg
                             updatedCmd
-                            :: (case
-                                    hasUpdatedSearchPhrase
-                                        searchPageModel.searchPhrase
-                                        updatedModel.searchPhrase
-                                of
-                                    Just searchPhrase ->
-                                        [ Nav.replaceUrl model.navKey ("/search/" ++ searchPhrase) ]
-
-                                    Nothing ->
-                                        []
-                               )
-                        )
+                        , Nav.replaceUrl
+                            model.navKey
+                            ("/search/" ++ Maybe.withDefault "" updatedModel.searchPhrase)
+                        ]
                     )
 
         ( LinkClicked urlRequest, _ ) ->
@@ -637,20 +629,6 @@ updateSliderValue value player =
 updateProgress : Int -> Maybe Player -> Maybe Player
 updateProgress progress player =
     Maybe.map (\p -> { p | progress = progress }) player
-
-
-hasUpdatedSearchPhrase : Maybe String -> Maybe String -> Maybe String
-hasUpdatedSearchPhrase before after =
-    case ( before, after ) of
-        ( Just b, Just a ) ->
-            if b /= a then
-                Just a
-
-            else
-                Nothing
-
-        _ ->
-            Nothing
 
 
 getTrackInfo : TrackId -> Cmd Msg
