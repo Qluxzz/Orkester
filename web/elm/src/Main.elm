@@ -5,12 +5,13 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Css exposing (Color, Style, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, underline, width)
 import Css.Global
+import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
 import Http
 import JSPlayer
-import Page.Album as AlbumPage exposing (albumUrl, durationDisplay, formatTrackArtists)
+import Page.Album as AlbumPage exposing (albumUrl, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage

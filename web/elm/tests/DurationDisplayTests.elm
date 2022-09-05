@@ -1,7 +1,7 @@
-module DurationDisplay exposing (..)
+module DurationDisplayTests exposing (suite)
 
+import DurationDisplay exposing (durationDisplay)
 import Expect
-import Page.Album exposing (durationDisplay)
 import Test exposing (..)
 
 

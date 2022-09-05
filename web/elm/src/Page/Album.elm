@@ -1,7 +1,8 @@
-module Page.Album exposing (Model, Msg(..), albumUrl, durationDisplay, formatTrackArtists, init, update, view)
+module Page.Album exposing (Model, Msg(..), albumUrl, formatTrackArtists, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, marginRight, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
+import DurationDisplay exposing (durationDisplay)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -333,44 +334,6 @@ formatTracksDisplay tracks =
 formatAlbumLength : List Track -> String
 formatAlbumLength tracks =
     durationDisplay <| List.foldl (\track acc -> acc + track.length) 0 tracks
-
-
-{-| durationDisplay
-Returns seconds formatted as hour:min:sec
--}
-durationDisplay : Seconds -> String
-durationDisplay length =
-    let
-        oneHour : Seconds
-        oneHour =
-            3600
-
-        oneMinute : Seconds
-        oneMinute =
-            60
-
-        hours =
-            length // oneHour
-
-        minutes =
-            (length - (hours * oneHour)) // oneMinute
-
-        seconds =
-            length - (hours * oneHour) - (minutes * oneMinute)
-
-        padTime : Int -> String
-        padTime time =
-            String.padLeft 2 '0' (String.fromInt time)
-    in
-    (if hours > 0 then
-        padTime hours ++ ":"
-
-     else
-        ""
-    )
-        ++ padTime minutes
-        ++ ":"
-        ++ padTime seconds
 
 
 albumUrl : Album -> String
