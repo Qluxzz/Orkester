@@ -15,6 +15,7 @@ import Page.Album as AlbumPage exposing (albumUrl, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
+import Queue exposing (Queue)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import String exposing (toInt)
@@ -282,7 +283,8 @@ type alias Model =
 
 
 type alias Player =
-    { track : WebData Track
+    { queue : Queue TrackId
+    , track : WebData Track
     , progress : Int
     , slider : Maybe Int
     , state : PlayerState
@@ -546,11 +548,38 @@ update msg model =
                         "pause" ->
                             ( { model | player = pausePlayer model.player }, JSPlayer.pause () )
 
+                        "nexttrack" ->
+                            let
+                                ( p, trackId ) =
+                                    nextTrack model.player
+
+                                cmd : Cmd Msg
+                                cmd =
+                                    trackId
+                                        |> Maybe.map loadTrackInfo
+                                        |> Maybe.withDefault Cmd.none
+                            in
+                            ( { model | player = p }, cmd )
+
+                        "previoustrack" ->
+                            let
+                                ( p, trackId ) =
+                                    previousTrack model.player
+                                        |> Debug.log "updated"
+
+                                cmd : Cmd Msg
+                                cmd =
+                                    trackId
+                                        |> Maybe.map loadTrackInfo
+                                        |> Maybe.withDefault Cmd.none
+                            in
+                            ( { model | player = p }, cmd )
+
                         _ ->
                             Debug.todo ("unknown state change " ++ state)
 
         ( TrackInfoRecieved trackInfo, _ ) ->
-            ( { model | player = Just { track = trackInfo, progress = 0, slider = Nothing, state = Playing } }, Cmd.none )
+            ( { model | player = Just (playTrack trackInfo model.player) }, Cmd.none )
 
         ( OnDragSlider time, _ ) ->
             ( { model | player = updateSliderValue time model.player }, Cmd.none )
@@ -582,6 +611,70 @@ update msg model =
 
 
 -- HELPER FUNCTIONS
+
+
+playTrack : WebData Track -> Maybe Player -> Player
+playTrack track player =
+    case player of
+        Just p ->
+            { p
+                | track = track
+                , slider = Nothing
+                , progress = 0
+                , state = Playing
+            }
+
+        _ ->
+            { track = track
+            , slider = Nothing
+            , progress = 0
+            , state = Playing
+            , queue = Queue.empty
+            }
+
+
+previousTrack : Maybe Player -> ( Maybe Player, Maybe TrackId )
+previousTrack player =
+    let
+        updatedQueue : Maybe (Queue TrackId)
+        updatedQueue =
+            Maybe.map (\p -> Queue.previous p.queue) player
+
+        current : Maybe TrackId
+        current =
+            Maybe.andThen (\q -> Queue.getCurrent q) updatedQueue
+    in
+    ( Maybe.map2
+        (\p ->
+            \q ->
+                { p | queue = q }
+        )
+        player
+        updatedQueue
+    , current
+    )
+
+
+nextTrack : Maybe Player -> ( Maybe Player, Maybe TrackId )
+nextTrack player =
+    let
+        updatedQueue : Maybe (Queue TrackId)
+        updatedQueue =
+            Maybe.map (\p -> Queue.next p.queue) player
+
+        current : Maybe TrackId
+        current =
+            Maybe.andThen (\q -> Queue.getCurrent q) updatedQueue
+    in
+    ( Maybe.map2
+        (\p ->
+            \q ->
+                { p | queue = q }
+        )
+        player
+        updatedQueue
+    , current
+    )
 
 
 getCurrentlyPlayingTrackInfo : Maybe Player -> Maybe String
