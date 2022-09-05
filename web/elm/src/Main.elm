@@ -479,16 +479,18 @@ update msg model =
                     , loadTrackInfo trackId
                     )
 
+                SearchPage.UpdateSearchPhrase phrase ->
+                    ( { model | page = SearchPage updatedModel }
+                    , Nav.replaceUrl
+                        model.navKey
+                        ("/search/" ++ phrase)
+                    )
+
                 _ ->
                     ( { model | page = SearchPage updatedModel }
-                    , Cmd.batch
-                        [ Cmd.map
-                            SearchPageMsg
-                            updatedCmd
-                        , Nav.replaceUrl
-                            model.navKey
-                            ("/search/" ++ Maybe.withDefault "" updatedModel.searchPhrase)
-                        ]
+                    , Cmd.map
+                        SearchPageMsg
+                        updatedCmd
                     )
 
         ( LinkClicked urlRequest, _ ) ->
