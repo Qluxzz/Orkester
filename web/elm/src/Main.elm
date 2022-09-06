@@ -523,7 +523,7 @@ update msg model =
         ( JSPlayer playerMsg, _ ) ->
             case playerMsg of
                 JSPlayer.PlaybackFailed error ->
-                    Debug.todo "Handle error"
+                    Debug.todo ("Playback failed " ++ error)
 
                 JSPlayer.ProgressUpdated updatedProgress ->
                     ( { model | player = updateProgress updatedProgress model.player }, Cmd.none )
@@ -565,7 +565,6 @@ update msg model =
                             let
                                 ( p, trackId ) =
                                     previousTrack model.player
-                                        |> Debug.log "updated"
 
                                 cmd : Cmd Msg
                                 cmd =
