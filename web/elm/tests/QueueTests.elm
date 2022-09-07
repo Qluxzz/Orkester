@@ -13,6 +13,16 @@ queue =
         }
 
 
+nextRepeatOff : Queue a -> Queue a
+nextRepeatOff q =
+    Queue.next q RepeatOff
+
+
+nextRepeatAll : Queue a -> Queue a
+nextRepeatAll q =
+    Queue.next q RepeatAll
+
+
 suite : Test
 suite =
     describe "Queue"
@@ -34,10 +44,8 @@ suite =
                 Expect.equal
                     (Just 2)
                     (queue
-                        |> (\q ->
-                                Queue.next q RepeatOff
-                                    |> Queue.getCurrent
-                           )
+                        |> nextRepeatOff
+                        |> Queue.getCurrent
                     )
             )
         , test "Next, then previous"
@@ -45,27 +53,20 @@ suite =
                 Expect.equal
                     (Just 1)
                     (queue
-                        |> (\q ->
-                                Queue.next q RepeatOff
-                                    |> Queue.previous
-                                    |> Queue.getCurrent
-                           )
+                        |> nextRepeatOff
+                        |> Queue.previous
+                        |> Queue.getCurrent
                     )
             )
         , test "RepeatAll queue loops around"
             (\_ ->
-                let
-                    next : Queue a -> Queue a
-                    next q =
-                        Queue.next q RepeatAll
-                in
                 Expect.equal
                     (Just 1)
                     (queue
-                        |> next
-                        |> next
-                        |> next
-                        |> next
+                        |> nextRepeatAll
+                        |> nextRepeatAll
+                        |> nextRepeatAll
+                        |> nextRepeatAll
                         |> Queue.getCurrent
                     )
             )
