@@ -34,6 +34,16 @@ type IdNameAndUrlName struct {
 type Album = IdNameAndUrlName
 type Artist = IdNameAndUrlName
 
+func FromEntTracks(dbTracks []*ent.Track) []Track {
+	tracks := []Track{}
+
+	for _, track := range dbTracks {
+		tracks = append(tracks, FromEntTrack(track))
+	}
+
+	return tracks
+}
+
 func FromEntTrack(dbTrack *ent.Track) Track {
 	track := Track{
 		Id:          dbTrack.ID,

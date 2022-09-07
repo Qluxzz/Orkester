@@ -42,6 +42,7 @@ func main() {
 	v1 := app.Group("/api/v1")
 
 	track := v1.Group("/track")
+	track.Get("", handlers.TracksInfo(client, ctx))
 	track.Get("/:id/stream", handlers.TrackStream(client, ctx))
 	track.Get("/:id", handlers.TrackInfo(client, ctx))
 	track.Put("/:id/like", handlers.LikeTrack(client, ctx))
