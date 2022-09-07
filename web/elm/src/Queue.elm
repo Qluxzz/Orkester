@@ -1,39 +1,53 @@
-module Queue exposing (Queue, empty, getCurrent, init, next, previous, queueLast, queueNext)
+module Queue exposing (Queue, Repeat(..), empty, getCurrent, getRepeat, init, next, previous, queueLast, queueNext)
 
 
-type Queue a
-    = Queue
-        { history : List a
-        , current : Maybe a
-        , future : List a
-        }
+type Repeat
+    = Off
+      -- Apple Music: Song loops around after it has ended, pressing next starts looping the next track instead
+      -- Spotify: Songs loops around after it has ended, pressing next changes to repeat all instead of one
+      -- Orkester: ?
+    | One
+    | All
+
+
+type alias Queue a =
+    { history : List a
+    , current : Maybe a
+    , future : List a
+    , repeat : Repeat
+    }
 
 
 empty : Queue a
 empty =
-    Queue
-        { history = []
-        , current = Nothing
-        , future = []
-        }
+    { history = []
+    , current = Nothing
+    , future = []
+    , repeat = Off
+    }
 
 
-init : Maybe a -> Maybe (List a) -> Queue a
-init current future =
-    Queue
-        { history = []
-        , current = current
-        , future = Maybe.withDefault [] future
-        }
+init : { current : Maybe a, future : Maybe (List a), repeat : Repeat } -> Queue a
+init { current, future, repeat } =
+    { history = []
+    , current = current
+    , future = Maybe.withDefault [] future
+    , repeat = repeat
+    }
 
 
 getCurrent : Queue a -> Maybe a
-getCurrent (Queue { current }) =
+getCurrent { current } =
     current
 
 
+getRepeat : Queue a -> Repeat
+getRepeat { repeat } =
+    repeat
+
+
 previous : Queue a -> Queue a
-previous ((Queue { history, current, future }) as queue) =
+previous ({ history, current, future } as queue) =
     case history of
         [] ->
             queue
@@ -53,25 +67,24 @@ previous ((Queue { history, current, future }) as queue) =
                 Just tail ->
                     case current of
                         Nothing ->
-                            Queue
-                                { history = restOfHistory
+                            { queue
+                                | history = restOfHistory
                                 , current = Just tail
-                                , future = future
-                                }
+                            }
 
                         Just c ->
-                            Queue
-                                { history = restOfHistory
+                            { queue
+                                | history = restOfHistory
                                 , current = Just tail
                                 , future = c :: future
-                                }
+                            }
 
                 Nothing ->
                     queue
 
 
 next : Queue a -> Queue a
-next ((Queue { history, current, future }) as queue) =
+next ({ history, current, future, repeat } as queue) =
     case current of
         Nothing ->
             queue
@@ -79,33 +92,44 @@ next ((Queue { history, current, future }) as queue) =
         Just c ->
             case future of
                 first :: rest ->
-                    Queue
-                        { history = history ++ [ c ]
+                    { queue
+                        | history = history ++ [ c ]
                         , current = Just first
                         , future = rest
-                        }
+                    }
 
                 [] ->
-                    Queue
-                        { history = history ++ [ c ]
-                        , current = Nothing
-                        , future = []
-                        }
+                    case repeat of
+                        Off ->
+                            { queue
+                                | history = history ++ [ c ]
+                                , current = Nothing
+                            }
+
+                        One ->
+                            queue
+
+                        All ->
+                            case history of
+                                first :: rest ->
+                                    { queue
+                                        | history = history ++ [ c ]
+                                        , current = Just first
+                                        , future = rest
+                                    }
+
+                                [] ->
+                                    { queue
+                                        | history = history ++ [ c ]
+                                        , current = Nothing
+                                    }
 
 
 queueNext : List a -> Queue a -> Queue a
-queueNext entities (Queue { history, current, future }) =
-    Queue
-        { history = history
-        , current = current
-        , future = entities ++ future
-        }
+queueNext entities ({ future } as queue) =
+    { queue | future = entities ++ future }
 
 
 queueLast : List a -> Queue a -> Queue a
-queueLast entities (Queue { history, current, future }) =
-    Queue
-        { history = history
-        , current = current
-        , future = future ++ entities
-        }
+queueLast entities ({ future } as queue) =
+    { queue | future = future ++ entities }
