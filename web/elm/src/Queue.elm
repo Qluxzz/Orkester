@@ -1,20 +1,19 @@
-module Queue exposing (Queue, Repeat(..), empty, getCurrent, getRepeat, init, next, previous, queueLast, queueNext)
+module Queue exposing (Queue, Repeat(..), empty, getCurrent, init, next, previous, queueLast, queueNext)
 
 
 type Repeat
-    = Off
+    = RepeatOff
       -- Apple Music: Song loops around after it has ended, pressing next starts looping the next track instead
       -- Spotify: Songs loops around after it has ended, pressing next changes to repeat all instead of one
       -- Orkester: ?
-    | One
-    | All
+    | RepeatOne
+    | RepeatAll
 
 
 type alias Queue a =
     { history : List a
     , current : Maybe a
     , future : List a
-    , repeat : Repeat
     }
 
 
@@ -23,27 +22,20 @@ empty =
     { history = []
     , current = Nothing
     , future = []
-    , repeat = Off
     }
 
 
-init : { current : Maybe a, future : Maybe (List a), repeat : Repeat } -> Queue a
-init { current, future, repeat } =
+init : { current : Maybe a, future : Maybe (List a) } -> Queue a
+init { current, future } =
     { history = []
     , current = current
     , future = Maybe.withDefault [] future
-    , repeat = repeat
     }
 
 
 getCurrent : Queue a -> Maybe a
 getCurrent { current } =
     current
-
-
-getRepeat : Queue a -> Repeat
-getRepeat { repeat } =
-    repeat
 
 
 previous : Queue a -> Queue a
@@ -83,8 +75,8 @@ previous ({ history, current, future } as queue) =
                     queue
 
 
-next : Queue a -> Queue a
-next ({ history, current, future, repeat } as queue) =
+next : Queue a -> Repeat -> Queue a
+next ({ history, current, future } as queue) repeat =
     case current of
         Nothing ->
             queue
@@ -100,16 +92,16 @@ next ({ history, current, future, repeat } as queue) =
 
                 [] ->
                     case repeat of
-                        Off ->
+                        RepeatOff ->
                             { queue
                                 | history = history ++ [ c ]
                                 , current = Nothing
                             }
 
-                        One ->
+                        RepeatOne ->
                             queue
 
-                        All ->
+                        RepeatAll ->
                             case history of
                                 first :: rest ->
                                     { queue

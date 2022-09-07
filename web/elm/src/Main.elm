@@ -15,7 +15,7 @@ import Page.Album as AlbumPage exposing (albumUrl, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
-import Queue exposing (Queue)
+import Queue exposing (Queue, Repeat(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import String exposing (toInt)
@@ -659,7 +659,7 @@ nextTrack player =
     let
         updatedQueue : Maybe (Queue TrackId)
         updatedQueue =
-            Maybe.map (\p -> Queue.next p.queue) player
+            Maybe.map (\p -> Queue.next p.queue Queue.RepeatAll) player
 
         current : Maybe TrackId
         current =

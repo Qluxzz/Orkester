@@ -10,7 +10,6 @@ queue =
     Queue.init
         { current = Just 1
         , future = Just [ 2, 3, 4 ]
-        , repeat = Off
         }
 
 
@@ -35,8 +34,10 @@ suite =
                 Expect.equal
                     (Just 2)
                     (queue
-                        |> Queue.next
-                        |> Queue.getCurrent
+                        |> (\q ->
+                                Queue.next q RepeatOff
+                                    |> Queue.getCurrent
+                           )
                     )
             )
         , test "Next, then previous"
@@ -44,28 +45,27 @@ suite =
                 Expect.equal
                     (Just 1)
                     (queue
-                        |> Queue.next
-                        |> Queue.previous
-                        |> Queue.getCurrent
+                        |> (\q ->
+                                Queue.next q RepeatOff
+                                    |> Queue.previous
+                                    |> Queue.getCurrent
+                           )
                     )
             )
         , test "RepeatAll queue loops around"
             (\_ ->
                 let
-                    q =
-                        Queue.init
-                            { current = Just 1
-                            , future = Just [ 2, 3, 4 ]
-                            , repeat = All
-                            }
+                    next : Queue a -> Queue a
+                    next q =
+                        Queue.next q RepeatAll
                 in
                 Expect.equal
                     (Just 1)
-                    (q
-                        |> Queue.next
-                        |> Queue.next
-                        |> Queue.next
-                        |> Queue.next
+                    (queue
+                        |> next
+                        |> next
+                        |> next
+                        |> next
                         |> Queue.getCurrent
                     )
             )
