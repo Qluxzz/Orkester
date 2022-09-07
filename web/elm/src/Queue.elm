@@ -33,18 +33,10 @@ getCurrent (Queue { current }) =
 
 
 previous : Queue a -> Queue a
-previous (Queue { history, current, future }) =
-    -- If history is nothing, return existing
-    -- If history is something:
-    -- If current is something, take last from history, set as current, move current to future
-    -- If current is nothing, take last from history, set as current
+previous ((Queue { history, current, future }) as queue) =
     case history of
         [] ->
-            Queue
-                { history = []
-                , current = current
-                , future = future
-                }
+            queue
 
         _ ->
             let
@@ -75,16 +67,15 @@ previous (Queue { history, current, future }) =
                                 }
 
                 Nothing ->
-                    Queue
-                        { history = history
-                        , current = current
-                        , future = future
-                        }
+                    queue
 
 
 next : Queue a -> Queue a
-next (Queue { history, current, future }) =
+next ((Queue { history, current, future }) as queue) =
     case current of
+        Nothing ->
+            queue
+
         Just c ->
             case future of
                 first :: rest ->
@@ -100,13 +91,6 @@ next (Queue { history, current, future }) =
                         , current = Nothing
                         , future = []
                         }
-
-        _ ->
-            Queue
-                { history = history
-                , current = current
-                , future = future
-                }
 
 
 queueNext : List a -> Queue a -> Queue a
