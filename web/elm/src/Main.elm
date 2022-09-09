@@ -3,7 +3,7 @@ module Main exposing (..)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, Style, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, underline, width)
+import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
 import Css.Global
 import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (..)
@@ -259,15 +259,25 @@ playerView model =
                                 ]
                                 []
                             , div [ css [ paddingLeft (px 10) ] ] [ text (durationDisplay t.length) ]
-                            , case model.repeat of
+                            , let
+                                style : Style
+                                style =
+                                    Css.batch
+                                        [ border (px 0)
+                                        , padding (px 0)
+                                        , backgroundColor transparent
+                                        , fontSize (px 20)
+                                        ]
+                              in
+                              case model.repeat of
                                 RepeatOff ->
-                                    button [ onClick (OnRepeatChange RepeatAll) ] [ text "Repeat off" ]
+                                    button [ css [ style ], onClick (OnRepeatChange RepeatAll) ] [ text "➡️" ]
 
                                 RepeatAll ->
-                                    button [ onClick (OnRepeatChange RepeatOne) ] [ text "Repeat all" ]
+                                    button [ css [ style ], onClick (OnRepeatChange RepeatOne) ] [ text "🔁" ]
 
                                 RepeatOne ->
-                                    button [ onClick (OnRepeatChange RepeatOff) ] [ text "Repeat one" ]
+                                    button [ css [ style ], onClick (OnRepeatChange RepeatOff) ] [ text "🔂" ]
                             ]
                         ]
 
@@ -444,7 +454,7 @@ update msg model =
                 AlbumPage.PlayAlbum trackIds ->
                     let
                         updatedQueue =
-                            Queue.queueNext trackIds model.queue
+                            Queue.replaceQueue trackIds model.queue
 
                         cmd =
                             Queue.getCurrent updatedQueue
@@ -584,11 +594,25 @@ update msg model =
 
                                 cmd : Cmd Msg
                                 cmd =
-                                    Queue.getCurrent updatedQueue
-                                        |> Maybe.map loadTrackInfo
+                                    (case model.repeat of
+                                        RepeatOne ->
+                                            Just (JSPlayer.play ())
+
+                                        _ ->
+                                            Queue.getCurrent updatedQueue
+                                                |> Maybe.map loadTrackInfo
+                                    )
                                         |> Maybe.withDefault Cmd.none
+
+                                updatedPlayer =
+                                    case Queue.getCurrent updatedQueue of
+                                        Just _ ->
+                                            model.player
+
+                                        Nothing ->
+                                            pausePlayer model.player
                             in
-                            ( { model | queue = updatedQueue }, cmd )
+                            ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
 
                         "nexttrack" ->
                             let

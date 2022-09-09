@@ -1,4 +1,4 @@
-module Queue exposing (Queue, Repeat(..), empty, getCurrent, init, next, previous, queueLast, queueNext)
+module Queue exposing (Queue, Repeat(..), empty, getCurrent, init, next, previous, queueLast, queueNext, replaceQueue)
 
 
 type Repeat
@@ -137,6 +137,16 @@ queueNext entities ({ current, future } as queue) =
 
                 [] ->
                     queue
+
+
+replaceQueue : List a -> Queue a -> Queue a
+replaceQueue entities queue =
+    case entities of
+        first :: rest ->
+            { queue | current = Just first, future = rest }
+
+        [] ->
+            queue
 
 
 queueLast : List a -> Queue a -> Queue a
