@@ -1,7 +1,7 @@
 module Page.Album exposing (Model, Msg(..), albumUrl, formatTrackArtists, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (Style, alignItems, auto, backgroundColor, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, marginRight, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
+import Css exposing (Style, absolute, alignItems, auto, backgroundColor, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
 import DurationDisplay exposing (durationDisplay)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
@@ -90,7 +90,8 @@ type Msg
     | UnlikeTrack TrackId
     | Like Like.Msg
     | Unlike Unlike.Msg
-    | PlayTrack Int
+    | PlayTrack TrackId
+    | PlayAlbum (List TrackId)
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -175,8 +176,11 @@ update msg model =
         UnlikeTrack trackId ->
             ( model, Cmd.map Unlike (Unlike.unlikeTrackById trackId) )
 
-        {- this case is handled by the update method in Main.elm -}
+        {- these cases are handled by the update method in Main.elm -}
         PlayTrack _ ->
+            ( model, Cmd.none )
+
+        PlayAlbum _ ->
             ( model, Cmd.none )
 
 
@@ -205,13 +209,21 @@ albumViewOrError model =
             errorMessage "Failed to load album" err
 
 
+picture : List (Attribute msg) -> List (Html msg) -> Html msg
+picture =
+    node "picture"
+
+
 albumView : Album -> Html Msg
 albumView album =
     section
         [ css [ displayFlex, flexDirection column, overflow hidden ]
         ]
         [ div [ css [ displayFlex, alignItems end ] ]
-            [ img [ css [ property "aspect-ratio" "1/1", width (px 192) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+            [ picture [ css [ displayFlex, alignItems center, justifyContent center ] ]
+                [ img [ css [ property "aspect-ratio" "1/1", width (px 192) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+                , button [ css [ position absolute, padding (px 10) ], onClick (PlayAlbum (List.map (\t -> t.id) album.tracks)) ] [ text "Play" ]
+                ]
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
                 [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
                 , div [ css [ displayFlex, flexDirection column ] ]

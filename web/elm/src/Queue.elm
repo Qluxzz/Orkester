@@ -77,49 +77,66 @@ previous ({ history, current, future } as queue) =
 
 next : Queue a -> Repeat -> Queue a
 next ({ history, current, future } as queue) repeat =
-    case current of
-        Nothing ->
-            queue
+    let
+        updatedHistory =
+            case current of
+                Nothing ->
+                    history
 
-        Just c ->
-            case future of
-                first :: rest ->
+                Just c ->
+                    history ++ [ c ]
+    in
+    case future of
+        first :: rest ->
+            { queue
+                | history = updatedHistory
+                , current = Just first
+                , future = rest
+            }
+
+        [] ->
+            case repeat of
+                RepeatOff ->
                     { queue
-                        | history = history ++ [ c ]
-                        , current = Just first
-                        , future = rest
+                        | history = updatedHistory
+                        , current = Nothing
                     }
 
-                [] ->
-                    case repeat of
-                        RepeatOff ->
+                RepeatOne ->
+                    queue
+
+                RepeatAll ->
+                    case history of
+                        first :: rest ->
                             { queue
-                                | history = history ++ [ c ]
+                                | history = updatedHistory
+                                , current = Just first
+                                , future = rest
+                            }
+
+                        [] ->
+                            { queue
+                                | history = updatedHistory
                                 , current = Nothing
                             }
 
-                        RepeatOne ->
-                            queue
-
-                        RepeatAll ->
-                            case history of
-                                first :: rest ->
-                                    { queue
-                                        | history = history ++ [ c ]
-                                        , current = Just first
-                                        , future = rest
-                                    }
-
-                                [] ->
-                                    { queue
-                                        | history = history ++ [ c ]
-                                        , current = Nothing
-                                    }
-
 
 queueNext : List a -> Queue a -> Queue a
-queueNext entities ({ future } as queue) =
-    { queue | future = entities ++ future }
+queueNext entities ({ current, future } as queue) =
+    case current of
+        Just _ ->
+            { queue | future = entities ++ future }
+
+        Nothing ->
+            case entities of
+                first :: rest ->
+                    { queue
+                        | current = Just first
+                        , future = rest ++ future
+                    }
+
+                [] ->
+                    queue
 
 
 queueLast : List a -> Queue a -> Queue a
