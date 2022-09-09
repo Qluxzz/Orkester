@@ -1,4 +1,4 @@
-module Queue exposing (Queue, Repeat(..), empty, getCurrent, init, next, previous, queueLast, queueNext, replaceQueue)
+module Queue exposing (Queue, Repeat(..), empty, getCurrent, getFuture, getHistory, init, next, previous, queueLast, queueNext, replaceQueue)
 
 
 type Repeat
@@ -36,6 +36,16 @@ init { current, future } =
 getCurrent : Queue a -> Maybe a
 getCurrent { current } =
     current
+
+
+getHistory : Queue a -> List a
+getHistory { history } =
+    history
+
+
+getFuture : Queue a -> List a
+getFuture { future } =
+    future
 
 
 previous : Queue a -> Queue a

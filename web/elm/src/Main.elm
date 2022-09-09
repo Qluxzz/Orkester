@@ -16,6 +16,7 @@ import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
 import Queue exposing (Queue, Repeat(..))
+import QueueView exposing (queueView)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import String exposing (toInt)
@@ -118,7 +119,7 @@ baseView model mainContent =
             [ aside
                 [ css
                     [ padding (px 10)
-                    , backgroundColor (hex "#333")
+                    , backgroundColor (hex "#444")
                     , width (px 200)
                     , flexShrink (int 0)
                     , displayFlex
@@ -139,6 +140,20 @@ baseView model mainContent =
                     ]
                 ]
                 [ mainContent
+                ]
+            , aside
+                [ css
+                    [ padding (px 10)
+                    , backgroundColor (hex "#444")
+                    , width (px 200)
+                    , flexShrink (int 0)
+                    , displayFlex
+                    , flexDirection column
+                    , property "gap" "10px"
+                    ]
+                ]
+                [ queueView
+                    model.queue
                 ]
             ]
         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
@@ -623,9 +638,12 @@ update msg model =
                                 cmd =
                                     Queue.getCurrent updatedQueue
                                         |> Maybe.map loadTrackInfo
-                                        |> Maybe.withDefault Cmd.none
+                                        |> Maybe.withDefault (JSPlayer.pause ())
+
+                                updatedPlayer =
+                                    Maybe.andThen (\_ -> model.player) (Queue.getCurrent updatedQueue)
                             in
-                            ( { model | queue = updatedQueue }, cmd )
+                            ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
 
                         "previoustrack" ->
                             let
