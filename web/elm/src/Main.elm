@@ -239,20 +239,7 @@ playerView model =
                                     |> Maybe.andThen (\p -> p.slider)
                                     |> Maybe.withDefault progress
                         in
-                        [ div [ css [ displayFlex ] ]
-                            [ a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ]
-                                [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt t.album.id ++ "/image") ] []
-                                ]
-                            , div [ css [ marginLeft (px 10), overflow hidden ] ]
-                                [ h1 [] [ text t.title ]
-                                , h2 []
-                                    (formatTrackArtists t.artists
-                                        ++ [ span [] [ text " - " ]
-                                           , a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ] [ text t.album.name ]
-                                           ]
-                                    )
-                                ]
-                            ]
+                        [ currentlyPlayingView t
                         , div [ css [ displayFlex, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
                             [ div []
                                 [ case state of
@@ -284,6 +271,24 @@ playerView model =
             _ ->
                 [ text "Nothing is playing right now" ]
         )
+
+
+currentlyPlayingView : Track -> Html Msg
+currentlyPlayingView t =
+    div [ css [ displayFlex ] ]
+        [ a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ]
+            [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt t.album.id ++ "/image") ] []
+            ]
+        , div [ css [ marginLeft (px 10), overflow hidden ] ]
+            [ h1 [] [ text t.title ]
+            , h2 []
+                (formatTrackArtists t.artists
+                    ++ [ span [] [ text " - " ]
+                       , a [ href ("/album/" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName) ] [ text t.album.name ]
+                       ]
+                )
+            ]
+        ]
 
 
 repeatButton : Repeat -> Html Msg
