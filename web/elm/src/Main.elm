@@ -274,25 +274,7 @@ playerView model =
                                 ]
                                 []
                             , div [ css [ paddingLeft (px 10) ] ] [ text (durationDisplay t.length) ]
-                            , let
-                                style : Style
-                                style =
-                                    Css.batch
-                                        [ border (px 0)
-                                        , padding (px 0)
-                                        , backgroundColor transparent
-                                        , fontSize (px 20)
-                                        ]
-                              in
-                              case model.repeat of
-                                RepeatOff ->
-                                    button [ css [ style ], onClick (OnRepeatChange RepeatAll) ] [ text "➡️" ]
-
-                                RepeatAll ->
-                                    button [ css [ style ], onClick (OnRepeatChange RepeatOne) ] [ text "🔁" ]
-
-                                RepeatOne ->
-                                    button [ css [ style ], onClick (OnRepeatChange RepeatOff) ] [ text "🔂" ]
+                            , repeatButton model.repeat
                             ]
                         ]
 
@@ -302,6 +284,33 @@ playerView model =
             _ ->
                 [ text "Nothing is playing right now" ]
         )
+
+
+repeatButton : Repeat -> Html Msg
+repeatButton repeat =
+    let
+        styledButton : msg -> String -> Html msg
+        styledButton click tx =
+            button
+                [ css
+                    [ border (px 0)
+                    , padding (px 0)
+                    , backgroundColor transparent
+                    , fontSize (px 20)
+                    ]
+                , onClick click
+                ]
+                [ text tx ]
+    in
+    case repeat of
+        RepeatOff ->
+            styledButton (OnRepeatChange RepeatAll) "➡️"
+
+        RepeatAll ->
+            styledButton (OnRepeatChange RepeatOne) "🔁"
+
+        RepeatOne ->
+            styledButton (OnRepeatChange RepeatOff) "🔂"
 
 
 
