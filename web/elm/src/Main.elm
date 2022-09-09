@@ -259,6 +259,15 @@ playerView model =
                                 ]
                                 []
                             , div [ css [ paddingLeft (px 10) ] ] [ text (durationDisplay t.length) ]
+                            , case model.repeat of
+                                RepeatOff ->
+                                    button [ onClick (OnRepeatChange RepeatAll) ] [ text "Repeat off" ]
+
+                                RepeatAll ->
+                                    button [ onClick (OnRepeatChange RepeatOne) ] [ text "Repeat all" ]
+
+                                RepeatOne ->
+                                    button [ onClick (OnRepeatChange RepeatOff) ] [ text "Repeat one" ]
                             ]
                         ]
 
@@ -280,6 +289,7 @@ type alias Model =
     , navKey : Nav.Key
     , player : Maybe Player
     , queue : Queue TrackId
+    , repeat : Repeat
     }
 
 
@@ -315,6 +325,7 @@ init _ url navKey =
             , navKey = navKey
             , player = Nothing
             , queue = Queue.empty
+            , repeat = RepeatOff
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -404,6 +415,8 @@ type Msg
       -- Player slider interaction
     | OnDragSlider Int
     | OnDragSliderEnd
+      -- Repeat
+    | OnRepeatChange Repeat
 
 
 loadTrackInfo : TrackId -> Cmd Msg
@@ -424,9 +437,7 @@ update msg model =
             in
             case albumMsg of
                 AlbumPage.PlayTrack trackId ->
-                    ( { model
-                        | page = AlbumPage updatedPageModel
-                      }
+                    ( { model | page = AlbumPage updatedPageModel }
                     , loadTrackInfo trackId
                     )
 
@@ -566,10 +577,23 @@ update msg model =
                         "pause" ->
                             ( { model | player = pausePlayer model.player }, JSPlayer.pause () )
 
+                        "ended" ->
+                            let
+                                updatedQueue =
+                                    Queue.next model.queue model.repeat
+
+                                cmd : Cmd Msg
+                                cmd =
+                                    Queue.getCurrent updatedQueue
+                                        |> Maybe.map loadTrackInfo
+                                        |> Maybe.withDefault Cmd.none
+                            in
+                            ( { model | queue = updatedQueue }, cmd )
+
                         "nexttrack" ->
                             let
                                 updatedQueue =
-                                    Queue.next model.queue RepeatOff
+                                    Queue.next model.queue model.repeat
 
                                 cmd : Cmd Msg
                                 cmd =
@@ -621,6 +645,9 @@ update msg model =
                             Cmd.none
             in
             ( { model | player = clearSliderValue model.player }, cmd )
+
+        ( OnRepeatChange repeat, _ ) ->
+            ( { model | repeat = repeat }, Cmd.none )
 
         ( _, _ ) ->
             Debug.todo "Should never happen!"

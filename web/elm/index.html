@@ -34,7 +34,7 @@
 	navigator.mediaSession.setActionHandler("nexttrack", () => app.ports.stateChange.send("nexttrack"))
 
 	audio.addEventListener("ended", event => {
-		app.ports.stateChange.send("pause")
+		app.ports.stateChange.send("ended")
 	})
 
 	audio.addEventListener("timeupdate", event => {
