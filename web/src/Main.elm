@@ -597,24 +597,24 @@ update msg model =
                     ( { model | player = updateProgress updatedProgress model.player }, Cmd.none )
 
                 JSPlayer.PlayTrack _ ->
-                    ( { model | player = playPlayer model.player }, Cmd.none )
+                    ( { model | player = setPlayerAsPlaying model.player }, Cmd.none )
 
                 JSPlayer.Seek _ ->
                     ( model, Cmd.none )
 
                 JSPlayer.Pause ->
-                    ( { model | player = pausePlayer model.player }, JSPlayer.pause () )
+                    ( { model | player = setPlayerAsPaused model.player }, JSPlayer.pause () )
 
                 JSPlayer.Play ->
-                    ( { model | player = playPlayer model.player }, JSPlayer.play () )
+                    ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
 
                 JSPlayer.StateChange state ->
                     case state of
                         "play" ->
-                            ( { model | player = playPlayer model.player }, JSPlayer.play () )
+                            ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
 
                         "pause" ->
-                            ( { model | player = pausePlayer model.player }, JSPlayer.pause () )
+                            ( { model | player = setPlayerAsPaused model.player }, JSPlayer.pause () )
 
                         "ended" ->
                             let
@@ -639,7 +639,7 @@ update msg model =
                                             model.player
 
                                         Nothing ->
-                                            pausePlayer model.player
+                                            setPlayerAsPaused model.player
                             in
                             ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
 
@@ -746,13 +746,13 @@ getCurrentlyPlayingTrackInfo player =
             Nothing
 
 
-pausePlayer : Maybe Player -> Maybe Player
-pausePlayer player =
+setPlayerAsPaused : Maybe Player -> Maybe Player
+setPlayerAsPaused player =
     Maybe.map (\p -> { p | state = Paused }) player
 
 
-playPlayer : Maybe Player -> Maybe Player
-playPlayer player =
+setPlayerAsPlaying : Maybe Player -> Maybe Player
+setPlayerAsPlaying player =
     Maybe.map (\p -> { p | state = Playing }) player
 
 
