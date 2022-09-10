@@ -451,10 +451,9 @@ type Msg
       -- JS Player
     | JSPlayer JSPlayer.Msg
     | TrackInfoRecieved (WebData Track)
-      -- Player slider interaction
+      -- Controls
     | OnDragSlider Int
     | OnDragSliderEnd
-      -- Repeat
     | OnRepeatChange Repeat
 
 
