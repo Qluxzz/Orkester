@@ -24,4 +24,4 @@ yarn-error.log*
 
 content
 *.db
-web/elm/elm.js
+elm.js
