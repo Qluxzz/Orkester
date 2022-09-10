@@ -51,7 +51,7 @@ subscriptions _ =
     Sub.batch
         [ Sub.map JSPlayer (JSPlayer.playbackFailed JSPlayer.PlaybackFailed)
         , Sub.map JSPlayer (JSPlayer.progressUpdated JSPlayer.ProgressUpdated)
-        , Sub.map JSPlayer (JSPlayer.stateChange JSPlayer.StateChange)
+        , Sub.map JSPlayer (JSPlayer.stateChange JSPlayer.ExternalStateChange)
         ]
 
 
@@ -611,7 +611,7 @@ update msg model =
                 JSPlayer.Play ->
                     ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
 
-                JSPlayer.StateChange state ->
+                JSPlayer.ExternalStateChange state ->
                     case state of
                         "play" ->
                             ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
@@ -624,7 +624,6 @@ update msg model =
                                 updatedQueue =
                                     Queue.next model.queue model.repeat
 
-                                cmd : Cmd Msg
                                 cmd =
                                     (case model.repeat of
                                         RepeatOne ->
@@ -651,7 +650,6 @@ update msg model =
                                 updatedQueue =
                                     Queue.next model.queue model.repeat
 
-                                cmd : Cmd Msg
                                 cmd =
                                     Queue.getCurrent updatedQueue
                                         |> Maybe.map loadTrackInfo
