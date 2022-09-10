@@ -3,10 +3,11 @@ module Main exposing (..)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
+import Css exposing (Color, Style, alignItems, alignSelf, backgroundColor, border, center, color, column, displayFlex, end, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
 import Css.Global
 import Dict exposing (Dict)
 import DurationDisplay exposing (durationDisplay)
+import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
@@ -119,17 +120,38 @@ baseView model mainContent =
             ]
             [ aside
                 [ css
-                    [ padding (px 10)
-                    , backgroundColor (hex "#444")
-                    , width (px 200)
+                    [ backgroundColor (hex "#444")
+                    , width (px 250)
                     , flexShrink (int 0)
                     , displayFlex
                     , flexDirection column
                     , property "gap" "10px"
                     ]
                 ]
-                [ a [ href "/liked-tracks" ] [ text "Liked Tracks" ]
-                , a [ href "/search" ] [ text "Search" ]
+                [ div
+                    [ css
+                        [ padding (px 10)
+                        , flexGrow (int 1)
+                        , displayFlex
+                        , flexDirection column
+                        ]
+                    ]
+                    [ a [ href "/liked-tracks" ] [ text "Liked Tracks" ]
+                    , a [ href "/search" ] [ text "Search" ]
+                    ]
+                , case model.player of
+                    Just { track } ->
+                        a
+                            [ href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName) ]
+                            [ img
+                                [ css [ width (pct 100) ]
+                                , src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt track.album.id ++ "/image")
+                                ]
+                                []
+                            ]
+
+                    _ ->
+                        Html.Styled.text ""
                 ]
             , section
                 [ css
@@ -288,10 +310,7 @@ controls { state, slider, progress, track } repeat =
 currentlyPlayingView : Track -> Html Msg
 currentlyPlayingView { title, album, artists } =
     div [ css [ displayFlex ] ]
-        [ a [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ]
-            [ img [ css [ width (px 128), height (px 128) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
-            ]
-        , div [ css [ marginLeft (px 10), overflow hidden ] ]
+        [ div [ css [ overflow hidden ] ]
             [ h1 [] [ text title ]
             , h2 []
                 (formatTrackArtists artists
@@ -828,4 +847,4 @@ getDocumentTitle page player =
                     Just "Liked Tracks"
 
                 SearchPage { searchPhrase } ->
-                    Just (Maybe.withDefault "Search" searchPhrase)
+                    Just ("Search: " ++ Maybe.withDefault "" searchPhrase)

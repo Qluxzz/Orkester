@@ -1,7 +1,7 @@
 module Page.Album exposing (Model, Msg(..), albumUrl, formatTrackArtists, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (Style, absolute, alignItems, auto, backgroundColor, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, sticky, textAlign, textOverflow, top, whiteSpace, width)
+import Css exposing (Style, absolute, alignItems, auto, backgroundColor, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, row, sticky, textAlign, textOverflow, top, whiteSpace, width)
 import DurationDisplay exposing (durationDisplay)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
@@ -226,7 +226,7 @@ albumView album =
                 ]
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
                 [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
-                , div [ css [ displayFlex, flexDirection column ] ]
+                , div [ css [ displayFlex, flexDirection row, property "gap" "10px" ] ]
                     [ a [ css [], href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
                     , div [] [ text (formatReleaseDate album.released) ]
                     , div [] [ text (formatTracksDisplay album.tracks) ]
