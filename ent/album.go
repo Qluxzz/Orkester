@@ -5,10 +5,10 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
-	"goreact/ent/album"
-	"goreact/ent/albumimage"
-	"goreact/ent/artist"
-	"goreact/indexFiles"
+	"orkester/ent/album"
+	"orkester/ent/albumimage"
+	"orkester/ent/artist"
+	"orkester/indexFiles"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"

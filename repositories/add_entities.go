@@ -3,10 +3,10 @@ package repositories
 import (
 	"context"
 	"errors"
-	"goreact/ent"
-	"goreact/ent/album"
-	"goreact/ent/artist"
-	"goreact/indexFiles"
+	"orkester/ent"
+	"orkester/ent/album"
+	"orkester/ent/artist"
+	"orkester/indexFiles"
 
 	"github.com/gosimple/slug"
 )

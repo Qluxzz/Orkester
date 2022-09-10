@@ -4,9 +4,9 @@ package ent
 
 import (
 	"fmt"
-	"goreact/ent/album"
-	"goreact/ent/likedtrack"
-	"goreact/ent/track"
+	"orkester/ent/album"
+	"orkester/ent/likedtrack"
+	"orkester/ent/track"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"

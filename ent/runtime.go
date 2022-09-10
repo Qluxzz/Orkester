@@ -3,8 +3,8 @@
 package ent
 
 import (
-	"goreact/ent/likedtrack"
-	"goreact/ent/schema"
+	"orkester/ent/likedtrack"
+	"orkester/ent/schema"
 	"time"
 )
 

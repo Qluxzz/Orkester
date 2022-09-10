@@ -6,8 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"goreact/ent/albumimage"
-	"goreact/ent/predicate"
+	"orkester/ent/albumimage"
+	"orkester/ent/predicate"
 	"math"
 
 	"entgo.io/ent/dialect/sql"

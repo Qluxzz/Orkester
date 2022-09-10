@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"context"
-	"goreact/ent"
-	"goreact/ent/track"
-	"goreact/models"
+	"orkester/ent"
+	"orkester/ent/track"
+	"orkester/models"
 	"sort"
 
 	"github.com/gofiber/fiber/v2"

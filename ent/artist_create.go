@@ -6,9 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"goreact/ent/album"
-	"goreact/ent/artist"
-	"goreact/ent/track"
+	"orkester/ent/album"
+	"orkester/ent/artist"
+	"orkester/ent/track"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

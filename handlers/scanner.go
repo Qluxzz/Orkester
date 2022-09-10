@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"context"
-	"goreact/ent"
-	"goreact/ent/album"
-	"goreact/ent/track"
-	"goreact/indexFiles"
-	"goreact/models"
-	"goreact/repositories"
 	"log"
+	"orkester/ent"
+	"orkester/ent/album"
+	"orkester/ent/track"
+	"orkester/indexFiles"
+	"orkester/models"
+	"orkester/repositories"
 
 	"github.com/gofiber/fiber/v2"
 )

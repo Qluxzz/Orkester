@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"goreact/ent/albumimage"
+	"orkester/ent/albumimage"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

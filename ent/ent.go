@@ -5,11 +5,11 @@ package ent
 import (
 	"errors"
 	"fmt"
-	"goreact/ent/album"
-	"goreact/ent/albumimage"
-	"goreact/ent/artist"
-	"goreact/ent/likedtrack"
-	"goreact/ent/track"
+	"orkester/ent/album"
+	"orkester/ent/albumimage"
+	"orkester/ent/artist"
+	"orkester/ent/likedtrack"
+	"orkester/ent/track"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

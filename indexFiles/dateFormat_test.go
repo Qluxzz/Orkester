@@ -1,7 +1,7 @@
 package indexFiles_test
 
 import (
-	"goreact/indexFiles"
+	"orkester/indexFiles"
 	"testing"
 )
 

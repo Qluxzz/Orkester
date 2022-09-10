@@ -4,9 +4,9 @@ package enttest
 
 import (
 	"context"
-	"goreact/ent"
+	"orkester/ent"
 	// required by schema hooks.
-	_ "goreact/ent/runtime"
+	_ "orkester/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

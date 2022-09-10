@@ -3,7 +3,7 @@
 package likedtrack
 
 import (
-	"goreact/ent/predicate"
+	"orkester/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"

@@ -6,8 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"goreact/ent/likedtrack"
-	"goreact/ent/track"
+	"orkester/ent/likedtrack"
+	"orkester/ent/track"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"

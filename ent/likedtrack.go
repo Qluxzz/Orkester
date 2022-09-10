@@ -4,8 +4,8 @@ package ent
 
 import (
 	"fmt"
-	"goreact/ent/likedtrack"
-	"goreact/ent/track"
+	"orkester/ent/likedtrack"
+	"orkester/ent/track"
 	"strings"
 	"time"
 

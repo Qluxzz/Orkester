@@ -4,7 +4,7 @@ package ent
 
 import (
 	"fmt"
-	"goreact/ent/artist"
+	"orkester/ent/artist"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"

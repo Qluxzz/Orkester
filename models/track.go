@@ -1,7 +1,7 @@
 package models
 
 import (
-	"goreact/ent"
+	"orkester/ent"
 	"time"
 )
 

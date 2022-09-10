@@ -3,7 +3,7 @@
 package albumimage
 
 import (
-	"goreact/ent/predicate"
+	"orkester/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 )

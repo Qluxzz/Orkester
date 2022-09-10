@@ -1,4 +1,4 @@
-module goreact
+module orkester
 
 go 1.15
 

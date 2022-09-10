@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"log"
 
-	"goreact/ent/migrate"
+	"orkester/ent/migrate"
 
-	"goreact/ent/album"
-	"goreact/ent/albumimage"
-	"goreact/ent/artist"
-	"goreact/ent/likedtrack"
-	"goreact/ent/track"
+	"orkester/ent/album"
+	"orkester/ent/albumimage"
+	"orkester/ent/artist"
+	"orkester/ent/likedtrack"
+	"orkester/ent/track"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"

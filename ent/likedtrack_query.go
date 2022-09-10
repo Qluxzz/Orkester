@@ -6,9 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"goreact/ent/likedtrack"
-	"goreact/ent/predicate"
-	"goreact/ent/track"
+	"orkester/ent/likedtrack"
+	"orkester/ent/predicate"
+	"orkester/ent/track"
 	"math"
 
 	"entgo.io/ent/dialect/sql"

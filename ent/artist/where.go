@@ -3,7 +3,7 @@
 package artist
 
 import (
-	"goreact/ent/predicate"
+	"orkester/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"goreact/indexFiles"
+	"orkester/indexFiles"
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"

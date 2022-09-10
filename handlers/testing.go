@@ -3,14 +3,14 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"goreact/ent"
-	"goreact/indexFiles"
-	"goreact/repositories"
 	"image"
 	"image/color"
 	"image/png"
 	"math"
 	"math/rand"
+	"orkester/ent"
+	"orkester/indexFiles"
+	"orkester/repositories"
 	"strconv"
 	"time"
 

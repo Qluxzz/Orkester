@@ -5,8 +5,8 @@ package ent
 import (
 	"context"
 	"fmt"
-	"goreact/ent/predicate"
-	"goreact/ent/track"
+	"orkester/ent/predicate"
+	"orkester/ent/track"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

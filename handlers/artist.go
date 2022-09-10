@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"context"
-	"goreact/ent"
-	"goreact/ent/artist"
-	"goreact/indexFiles"
+	"orkester/ent"
+	"orkester/ent/artist"
+	"orkester/indexFiles"
 	"sort"
 	"strconv"
 

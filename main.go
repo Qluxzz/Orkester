@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"goreact/ent"
-	"goreact/handlers"
+	"orkester/ent"
+	"orkester/handlers"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"

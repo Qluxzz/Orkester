@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"context"
-	"goreact/ent"
-	"goreact/ent/album"
-	"goreact/ent/artist"
-	"goreact/ent/track"
 	"net/url"
+	"orkester/ent"
+	"orkester/ent/album"
+	"orkester/ent/artist"
+	"orkester/ent/track"
 
 	"github.com/gofiber/fiber/v2"
 )

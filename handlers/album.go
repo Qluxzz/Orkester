@@ -3,9 +3,9 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"goreact/ent"
-	"goreact/ent/album"
-	"goreact/models"
+	"orkester/ent"
+	"orkester/ent/album"
+	"orkester/models"
 	"sort"
 	"strconv"
 
