@@ -245,7 +245,7 @@ table : List Track -> List (Html Msg)
 table tracks =
     tableHeaderRow "#" "TITLE" "LIKED" "DURATION"
         :: List.map
-            (\track -> trackRow track)
+            trackRow
             tracks
 
 

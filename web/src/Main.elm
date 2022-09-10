@@ -5,6 +5,7 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
 import Css.Global
+import Dict exposing (Dict)
 import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
@@ -231,42 +232,37 @@ playerView model =
     div [ css [ displayFlex, flexDirection column ] ]
         (case model.player of
             Just { track, progress, state } ->
-                case track of
-                    RemoteData.Success t ->
-                        let
-                            sliderValue =
-                                model.player
-                                    |> Maybe.andThen (\p -> p.slider)
-                                    |> Maybe.withDefault progress
-                        in
-                        [ currentlyPlayingView t
-                        , div [ css [ displayFlex, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
-                            [ div []
-                                [ case state of
-                                    Playing ->
-                                        pauseButton
+                let
+                    sliderValue =
+                        model.player
+                            |> Maybe.andThen (\p -> p.slider)
+                            |> Maybe.withDefault progress
+                in
+                [ currentlyPlayingView track
+                , div [ css [ displayFlex, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
+                    [ div []
+                        [ case state of
+                            Playing ->
+                                pauseButton
 
-                                    Paused ->
-                                        playButton
-                                ]
-                            , div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay sliderValue) ]
-                            , input
-                                [ css [ width (pct 100) ]
-                                , type_ "range"
-                                , Html.Styled.Attributes.min "0"
-                                , Html.Styled.Attributes.max (String.fromInt t.length)
-                                , value (sliderValue |> String.fromInt)
-                                , onInput (\value -> OnDragSlider (Maybe.withDefault 0 (value |> toInt)))
-                                , onMouseUp OnDragSliderEnd
-                                ]
-                                []
-                            , div [ css [ paddingLeft (px 10) ] ] [ text (durationDisplay t.length) ]
-                            , repeatButton model.repeat
-                            ]
+                            Paused ->
+                                playButton
                         ]
-
-                    _ ->
-                        [ text "Nothing is playing right now" ]
+                    , div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay sliderValue) ]
+                    , input
+                        [ css [ width (pct 100) ]
+                        , type_ "range"
+                        , Html.Styled.Attributes.min "0"
+                        , Html.Styled.Attributes.max (String.fromInt track.length)
+                        , value (sliderValue |> String.fromInt)
+                        , onInput (\value -> OnDragSlider (Maybe.withDefault 0 (value |> toInt)))
+                        , onMouseUp OnDragSliderEnd
+                        ]
+                        []
+                    , div [ css [ paddingLeft (px 10) ] ] [ text (durationDisplay track.length) ]
+                    , repeatButton model.repeat
+                    ]
+                ]
 
             _ ->
                 [ text "Nothing is playing right now" ]
@@ -333,7 +329,7 @@ type alias Model =
 
 
 type alias Player =
-    { track : WebData Track
+    { track : Track
     , progress : Int
     , slider : Maybe Int
     , state : PlayerState
@@ -682,8 +678,16 @@ update msg model =
                         _ ->
                             Debug.todo ("unknown state change " ++ state)
 
-        ( TrackInfoRecieved trackInfo, _ ) ->
-            ( { model | player = Just (playTrack trackInfo) }, Cmd.none )
+        ( TrackInfoRecieved (Success trackInfo), _ ) ->
+            ( { model
+                | player = Just (playTrack trackInfo)
+              }
+            , Cmd.none
+            )
+
+        ( TrackInfoRecieved _, _ ) ->
+            -- TODO: Add error handling
+            ( model, Cmd.none )
 
         ( OnDragSlider time, _ ) ->
             ( { model | player = updateSliderValue time model.player }, Cmd.none )
@@ -696,13 +700,8 @@ update msg model =
                 cmd : Cmd Msg
                 cmd =
                     case ( model.player, sliderValue ) of
-                        ( Just { track }, Just time ) ->
-                            case track of
-                                RemoteData.Success _ ->
-                                    JSPlayer.seek { timestamp = time }
-
-                                _ ->
-                                    Cmd.none
+                        ( Just _, Just time ) ->
+                            JSPlayer.seek { timestamp = time }
 
                         _ ->
                             Cmd.none
@@ -720,7 +719,7 @@ update msg model =
 -- HELPER FUNCTIONS
 
 
-playTrack : WebData Track -> Player
+playTrack : Track -> Player
 playTrack track =
     { track = track
     , slider = Nothing
@@ -737,17 +736,14 @@ getCurrentlyPlayingTrackInfo player =
                 Nothing
 
             else
-                track
-                    |> RemoteData.toMaybe
-                    |> Maybe.map
-                        (\t ->
-                            t.title
-                                ++ " - "
-                                ++ (t.artists
-                                        |> List.map (\a -> a.name)
-                                        |> String.join ", "
-                                   )
-                        )
+                Just
+                    (track.title
+                        ++ " - "
+                        ++ (track.artists
+                                |> List.map .name
+                                |> String.join ", "
+                           )
+                    )
 
         _ ->
             Nothing
