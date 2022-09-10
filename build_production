@@ -1,15 +1,16 @@
 # Delete existing build folder
 rm -rf build/
 # Go to web folder and create production build
-cd web && npm run build
+cd web && elm make src/Main.elm --output elm.js
 cd ..
 # Make build and client folder
 mkdir build
 mkdir build/client
 # Copy contents of client production build to build folder
-cp -r web/build/. build/client
+cp web/elm.js build/client/elm.js
+cp web/index.html build/client/index.html
 
 # Build program in production mode and with sqlite_icu enabled
-go build -ldflags "-X main.mode=production" -tags=sqlite_icu main.go
-# Copy built go program to build folder
-cp ./main build
+go build -ldflags "-X main.mode=production"
+# Move built go program to build folder
+mv orkester build
