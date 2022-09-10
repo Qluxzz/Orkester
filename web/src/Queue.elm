@@ -150,10 +150,19 @@ queueNext entities ({ current, future } as queue) =
 
 
 replaceQueue : List a -> Queue a -> Queue a
-replaceQueue entities queue =
+replaceQueue entities ({ history, current } as queue) =
     case entities of
         first :: rest ->
-            { queue | current = Just first, future = rest }
+            let
+                updatedHistory =
+                    case current of
+                        Just c ->
+                            history ++ [ c ]
+
+                        Nothing ->
+                            history
+            in
+            { queue | current = Just first, future = rest, history = updatedHistory }
 
         [] ->
             queue

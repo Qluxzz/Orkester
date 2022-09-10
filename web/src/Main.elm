@@ -545,7 +545,11 @@ update msg model =
             in
             case searchPageMsg of
                 SearchPage.PlayTrack trackId ->
-                    ( { model | page = SearchPage updatedModel }
+                    let
+                        updatedQueue =
+                            Queue.replaceQueue [ trackId ] model.queue
+                    in
+                    ( { model | page = SearchPage updatedModel, queue = updatedQueue }
                     , loadTrackInfo trackId
                     )
 
