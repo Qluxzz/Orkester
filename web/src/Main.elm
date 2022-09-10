@@ -235,7 +235,7 @@ playerView model =
                 let
                     sliderValue =
                         model.player
-                            |> Maybe.andThen (\p -> p.slider)
+                            |> Maybe.andThen .slider
                             |> Maybe.withDefault progress
                 in
                 [ currentlyPlayingView track
@@ -486,7 +486,7 @@ update msg model =
 
                         cmd =
                             Queue.getCurrent updatedQueue
-                                |> Maybe.map (\tId -> loadTrackInfo tId)
+                                |> Maybe.map loadTrackInfo
                                 |> Maybe.withDefault Cmd.none
                     in
                     ( { model
@@ -657,6 +657,7 @@ update msg model =
                                         |> Maybe.map loadTrackInfo
                                         |> Maybe.withDefault (JSPlayer.pause ())
 
+                                -- Clear player if no new track
                                 updatedPlayer =
                                     Maybe.andThen (\_ -> model.player) (Queue.getCurrent updatedQueue)
                             in
@@ -695,7 +696,7 @@ update msg model =
         ( OnDragSliderEnd, _ ) ->
             let
                 sliderValue =
-                    Maybe.andThen (\s -> s.slider) model.player
+                    Maybe.andThen .slider model.player
 
                 cmd : Cmd Msg
                 cmd =
@@ -793,10 +794,10 @@ getDocumentTitle page player =
         _ ->
             case page of
                 ArtistPage { artist } ->
-                    artist |> RemoteData.toMaybe |> Maybe.map (\a -> a.name)
+                    artist |> RemoteData.toMaybe |> Maybe.map .name
 
                 AlbumPage { album } ->
-                    album |> RemoteData.toMaybe |> Maybe.map (\a -> a.name)
+                    album |> RemoteData.toMaybe |> Maybe.map .name
 
                 NotFoundPage ->
                     Just "Not Found"

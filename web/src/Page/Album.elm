@@ -222,7 +222,7 @@ albumView album =
         [ div [ css [ displayFlex, alignItems end ] ]
             [ picture [ css [ displayFlex, alignItems center, justifyContent center ] ]
                 [ img [ css [ property "aspect-ratio" "1/1", width (px 192) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
-                , button [ css [ position absolute, padding (px 10) ], onClick (PlayAlbum (List.map (\t -> t.id) album.tracks)) ] [ text "Play" ]
+                , button [ css [ position absolute, padding (px 10) ], onClick (PlayAlbum (List.map .id album.tracks)) ] [ text "Play" ]
                 ]
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
                 [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
