@@ -191,7 +191,15 @@ currentView page =
 
 centeredView : String -> Html Msg
 centeredView text_ =
-    div [ css [ displayFlex, width (pct 100), height (pct 100), alignItems center, justifyContent center ] ]
+    div
+        [ css
+            [ displayFlex
+            , width (pct 100)
+            , height (pct 100)
+            , alignItems center
+            , justifyContent center
+            ]
+        ]
         [ h1 [] [ text text_ ]
         ]
 
@@ -231,42 +239,50 @@ playerView : Model -> Html Msg
 playerView model =
     div [ css [ displayFlex, flexDirection column ] ]
         (case model.player of
-            Just { track, progress, state } ->
-                let
-                    sliderValue =
-                        model.player
-                            |> Maybe.andThen .slider
-                            |> Maybe.withDefault progress
-                in
+            Just ({ track } as player) ->
                 [ currentlyPlayingView track
-                , div [ css [ displayFlex, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
-                    [ div []
-                        [ case state of
-                            Playing ->
-                                pauseButton
-
-                            Paused ->
-                                playButton
-                        ]
-                    , div [ css [ paddingRight (px 10) ] ] [ text (durationDisplay sliderValue) ]
-                    , input
-                        [ css [ width (pct 100) ]
-                        , type_ "range"
-                        , Html.Styled.Attributes.min "0"
-                        , Html.Styled.Attributes.max (String.fromInt track.length)
-                        , value (sliderValue |> String.fromInt)
-                        , onInput (\value -> OnDragSlider (Maybe.withDefault 0 (value |> toInt)))
-                        , onMouseUp OnDragSliderEnd
-                        ]
-                        []
-                    , div [ css [ paddingLeft (px 10) ] ] [ text (durationDisplay track.length) ]
-                    , repeatButton model.repeat
-                    ]
+                , controls player model.repeat
                 ]
 
             _ ->
                 [ text "Nothing is playing right now" ]
         )
+
+
+controls : Player -> Repeat -> Html Msg
+controls { state, slider, progress, track } repeat =
+    let
+        sliderValue =
+            case slider of
+                NonInteractiveSlider ->
+                    progress
+
+                InteractiveSlider x ->
+                    x
+    in
+    div [ css [ displayFlex, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
+        [ div []
+            [ case state of
+                Playing ->
+                    pauseButton
+
+                Paused ->
+                    playButton
+            ]
+        , div [] [ text (durationDisplay sliderValue) ]
+        , input
+            [ css [ width (pct 100) ]
+            , type_ "range"
+            , Html.Styled.Attributes.min "0"
+            , Html.Styled.Attributes.max (String.fromInt track.length)
+            , value (sliderValue |> String.fromInt)
+            , onInput (\value -> OnDragSlider (Maybe.withDefault 0 (value |> toInt)))
+            , onMouseUp OnDragSliderEnd
+            ]
+            []
+        , div [] [ text (durationDisplay track.length) ]
+        , repeatButton repeat
+        ]
 
 
 currentlyPlayingView : Track -> Html Msg
@@ -328,10 +344,15 @@ type alias Model =
     }
 
 
+type Slider
+    = NonInteractiveSlider
+    | InteractiveSlider Int
+
+
 type alias Player =
     { track : Track
     , progress : Int
-    , slider : Maybe Int
+    , slider : Slider
     , state : PlayerState
     }
 
@@ -693,13 +714,13 @@ update msg model =
 
         ( OnDragSliderEnd, _ ) ->
             let
-                sliderValue =
-                    Maybe.andThen .slider model.player
+                slider =
+                    Maybe.map .slider model.player
 
                 cmd : Cmd Msg
                 cmd =
-                    case ( model.player, sliderValue ) of
-                        ( Just _, Just time ) ->
+                    case ( model.player, slider ) of
+                        ( Just _, Just (InteractiveSlider time) ) ->
                             JSPlayer.seek { timestamp = time }
 
                         _ ->
@@ -721,7 +742,7 @@ update msg model =
 playTrack : Track -> Player
 playTrack track =
     { track = track
-    , slider = Nothing
+    , slider = NonInteractiveSlider
     , progress = 0
     , state = Playing
     }
@@ -760,12 +781,12 @@ setPlayerAsPlaying player =
 
 clearSliderValue : Maybe Player -> Maybe Player
 clearSliderValue player =
-    Maybe.map (\p -> { p | slider = Nothing }) player
+    Maybe.map (\p -> { p | slider = NonInteractiveSlider }) player
 
 
 updateSliderValue : Int -> Maybe Player -> Maybe Player
 updateSliderValue value player =
-    Maybe.map (\p -> { p | slider = Just value }) player
+    Maybe.map (\p -> { p | slider = InteractiveSlider value }) player
 
 
 updateProgress : Int -> Maybe Player -> Maybe Player
