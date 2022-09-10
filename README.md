@@ -12,10 +12,11 @@ Built using Gofiber and Elm
 sudo dnf install mediainfo icu
 ```
 
-| package   | intent                                                         |
-| --------- | -------------------------------------------------------------- |
-| mediainfo | used to get metadata from tracks                               |
-| icu       | used to enable unicode handling of strings for SQLite database |
+| package      | intent                                                         |
+| ------------ | -------------------------------------------------------------- |
+| mediainfo    | used to get metadata from tracks                               |
+| icu          | used to enable unicode handling of strings for SQLite database |
+| libicu-devel | used to build the production version of Orkester               |
 
 ## Screenshots
 
