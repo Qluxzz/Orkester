@@ -476,7 +476,11 @@ update msg model =
             in
             case albumMsg of
                 AlbumPage.PlayTrack trackId ->
-                    ( { model | page = AlbumPage updatedPageModel }
+                    let
+                        updatedQueue =
+                            Queue.replaceQueue [ trackId ] model.queue
+                    in
+                    ( { model | page = AlbumPage updatedPageModel, queue = updatedQueue }
                     , loadTrackInfo trackId
                     )
 
