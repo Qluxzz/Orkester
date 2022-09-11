@@ -142,7 +142,9 @@ baseView model mainContent =
                 , case model.player of
                     Just { track } ->
                         a
-                            [ href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName) ]
+                            [ css [ displayFlex ]
+                            , href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName)
+                            ]
                             [ img
                                 [ css [ width (pct 100) ]
                                 , src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt track.album.id ++ "/image")
@@ -358,7 +360,7 @@ type alias Model =
     , page : Page
     , navKey : Nav.Key
     , player : Maybe Player
-    , queue : Queue TrackId
+    , queue : Queue Track
     , repeat : Repeat
     }
 
@@ -510,13 +512,13 @@ update msg model =
                     AlbumPage.update albumMsg pageModel
             in
             case albumMsg of
-                AlbumPage.PlayTrack trackId ->
+                AlbumPage.PlayTrack track ->
                     let
                         updatedQueue =
-                            Queue.replaceQueue [ trackId ] model.queue
+                            Queue.replaceQueue [ track ] model.queue
                     in
                     ( { model | page = AlbumPage updatedPageModel, queue = updatedQueue }
-                    , loadTrackInfo trackId
+                    , loadTrackInfo track.id
                     )
 
                 AlbumPage.PlayAlbum trackIds ->
@@ -526,7 +528,7 @@ update msg model =
 
                         cmd =
                             Queue.getCurrent updatedQueue
-                                |> Maybe.map loadTrackInfo
+                                |> Maybe.map (\{ id } -> loadTrackInfo id)
                                 |> Maybe.withDefault Cmd.none
                     in
                     ( { model
@@ -583,13 +585,13 @@ update msg model =
                     SearchPage.update searchPageMsg searchPageModel
             in
             case searchPageMsg of
-                SearchPage.PlayTrack trackId ->
+                SearchPage.PlayTrack track ->
                     let
                         updatedQueue =
-                            Queue.replaceQueue [ trackId ] model.queue
+                            Queue.replaceQueue [ track ] model.queue
                     in
                     ( { model | page = SearchPage updatedModel, queue = updatedQueue }
-                    , loadTrackInfo trackId
+                    , loadTrackInfo track.id
                     )
 
                 SearchPage.UpdateSearchPhrase phrase ->
@@ -671,7 +673,7 @@ update msg model =
 
                                         _ ->
                                             Queue.getCurrent updatedQueue
-                                                |> Maybe.map loadTrackInfo
+                                                |> Maybe.map (\{ id } -> loadTrackInfo id)
                                     )
                                         |> Maybe.withDefault Cmd.none
 
@@ -692,7 +694,7 @@ update msg model =
 
                                 cmd =
                                     Queue.getCurrent updatedQueue
-                                        |> Maybe.map loadTrackInfo
+                                        |> Maybe.map (\{ id } -> loadTrackInfo id)
                                         |> Maybe.withDefault (JSPlayer.pause ())
 
                                 -- Clear player if no new track
@@ -709,7 +711,7 @@ update msg model =
                                 cmd : Cmd Msg
                                 cmd =
                                     Queue.getCurrent updatedQueue
-                                        |> Maybe.map loadTrackInfo
+                                        |> Maybe.map (\{ id } -> loadTrackInfo id)
                                         |> Maybe.withDefault Cmd.none
                             in
                             ( { model | queue = updatedQueue }, cmd )

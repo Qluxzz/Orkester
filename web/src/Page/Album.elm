@@ -15,6 +15,7 @@ import Page.Artist exposing (artistUrl)
 import ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
 import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
+import TrackInfo
 import Unlike
 
 
@@ -90,8 +91,8 @@ type Msg
     | UnlikeTrack TrackId
     | Like Like.Msg
     | Unlike Unlike.Msg
-    | PlayTrack TrackId
-    | PlayAlbum (List TrackId)
+    | PlayTrack TrackInfo.Track
+    | PlayAlbum (List TrackInfo.Track)
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -222,7 +223,7 @@ albumView album =
         [ div [ css [ displayFlex, alignItems end ] ]
             [ picture [ css [ displayFlex, alignItems center, justifyContent center ] ]
                 [ img [ css [ property "aspect-ratio" "1/1", width (px 192) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
-                , button [ css [ position absolute, padding (px 10) ], onClick (PlayAlbum (List.map .id album.tracks)) ] [ text "Play" ]
+                , button [ css [ position absolute, padding (px 10) ], onClick (PlayAlbum (List.map (mapAlbumTrackToTrack album) album.tracks)) ] [ text "Play" ]
                 ]
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
                 [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
@@ -236,17 +237,19 @@ albumView album =
             ]
         , div [ css [ marginTop (px 10), displayFlex, flexDirection column, overflow auto ] ]
             (table
-                album.tracks
+                album
             )
         ]
 
 
-table : List Track -> List (Html Msg)
-table tracks =
+table : Album -> List (Html Msg)
+table album =
     tableHeaderRow "#" "TITLE" "LIKED" "DURATION"
         :: List.map
-            trackRow
-            tracks
+            (trackRow
+                album
+            )
+            album.tracks
 
 
 trackNumberColStyle : Style
@@ -292,8 +295,8 @@ tableHeaderRow col1 col2 _ col4 =
         ]
 
 
-trackRow : Track -> Html Msg
-trackRow track =
+trackRow : Album -> Track -> Html Msg
+trackRow album track =
     let
         onClickLike =
             if track.liked then
@@ -310,7 +313,7 @@ trackRow track =
                 "Like"
     in
     div [ css [ trackRowStyle ] ]
-        [ div [ css [ trackNumberColStyle ], onClick (PlayTrack track.id) ] [ text (String.fromInt track.trackNumber) ]
+        [ div [ css [ trackNumberColStyle ], onClick (PlayTrack (mapAlbumTrackToTrack album track)) ] [ text (String.fromInt track.trackNumber) ]
         , div [ css [ trackTitleColStyle, displayFlex, flexDirection column ] ]
             [ div [] [ p [ css [ whiteSpace noWrap, overflow hidden, textOverflow ellipsis ] ] [ text track.title ] ]
             , div [] (formatTrackArtists track.artists)
@@ -351,3 +354,18 @@ formatAlbumLength tracks =
 albumUrl : Album -> String
 albumUrl album =
     "/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName
+
+
+mapAlbumTrackToTrack : Album -> Track -> TrackInfo.Track
+mapAlbumTrackToTrack album track =
+    { id = track.id
+    , title = track.title
+    , length = track.length
+    , liked = track.liked
+    , album =
+        { id = album.id
+        , name = album.name
+        , urlName = album.urlName
+        }
+    , artists = track.artists
+    }

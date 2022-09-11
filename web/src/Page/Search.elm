@@ -12,6 +12,7 @@ import Json.Decode as Decode exposing (Decoder, list)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
 import Task
+import TrackInfo
 
 
 type alias IdNameAndUrlName =
@@ -29,22 +30,15 @@ type alias Artist =
     IdNameAndUrlName
 
 
-type alias Track =
-    { id : Int
-    , title : String
-    }
-
-
 type Type
     = AlbumLink
     | ArtistLink
-    | TrackLink
 
 
 type alias SearchResult =
     { albums : List Album
     , artists : List Artist
-    , tracks : List Track
+    , tracks : List TrackInfo.Track
     }
 
 
@@ -110,9 +104,6 @@ searchResultList type_ entries =
                     AlbumLink ->
                         "Albums"
 
-                    TrackLink ->
-                        "Tracks"
-
                     ArtistLink ->
                         "Artists"
                 )
@@ -140,9 +131,6 @@ searchResultEntry type_ entry =
                 AlbumLink ->
                     "album"
 
-                TrackLink ->
-                    "track"
-
         link : String
         link =
             "/"
@@ -154,15 +142,7 @@ searchResultEntry type_ entry =
     in
     li [ css [ marginTop (px 10), textDecoration underline ] ]
         [ a
-            (case type_ of
-                TrackLink ->
-                    [ onClick (PlayTrack entry.id)
-                    , href ""
-                    ]
-
-                _ ->
-                    [ href link ]
-            )
+            [ href link ]
             [ text entry.name ]
         ]
 
@@ -183,26 +163,19 @@ artistDecoder =
         |> required "urlName" Decode.string
 
 
-trackDecoder : Decoder Track
-trackDecoder =
-    Decode.succeed Track
-        |> required "id" Decode.int
-        |> required "title" Decode.string
-
-
 searchResultDecoder : Decoder SearchResult
 searchResultDecoder =
     Decode.succeed SearchResult
         |> required "albums" (list albumDecoder)
         |> required "artists" (list artistDecoder)
-        |> required "tracks" (list trackDecoder)
+        |> required "tracks" (list TrackInfo.trackInfoDecoder)
 
 
 type Msg
     = UpdateSearchPhrase String
     | SearchResultsRecieved (WebData SearchResult)
     | FocusedSearchField
-    | PlayTrack Int
+    | PlayTrack TrackInfo.Track
 
 
 getSearchResult : String -> Cmd Msg
@@ -263,7 +236,36 @@ view model =
             ]
             (case model.searchResult of
                 RemoteData.Success data ->
-                    [ searchResultList TrackLink (List.map (\x -> { id = x.id, name = x.title, urlName = "" }) data.tracks)
+                    [ let
+                        result =
+                            if List.isEmpty data.tracks then
+                                [ li [ css [ marginTop (px 10) ] ] [ text "No entry matched the phrase" ] ]
+
+                            else
+                                List.map (\t -> li [ css [ marginTop (px 10), textDecoration underline ], onClick (PlayTrack t) ] [ text t.title ]) data.tracks
+                      in
+                      div
+                        [ css
+                            [ flexGrow (int 1)
+                            , flexShrink (int 1)
+                            , flexBasis (px 0)
+                            , maxWidth (px 300)
+                            , paddingLeft (px 5)
+                            , paddingRight (px 5)
+                            ]
+                        ]
+                        [ h1 []
+                            [ text "Tracks"
+                            ]
+                        , ul
+                            [ css
+                                [ listStyle none
+                                , padding (px 0)
+                                , margin (px 0)
+                                ]
+                            ]
+                            result
+                        ]
                     , searchResultList AlbumLink data.albums
                     , searchResultList ArtistLink data.artists
                     ]
