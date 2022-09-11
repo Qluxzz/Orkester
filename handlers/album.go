@@ -3,12 +3,11 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"goreact/ent"
-	"goreact/ent/album"
-	"goreact/models"
+	"orkester/ent"
+	"orkester/ent/album"
+	"orkester/models"
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -98,7 +97,7 @@ func GetAlbumCover(client *ent.Client, ctx context.Context) fiber.Handler {
 			return err
 		}
 
-		secondsInAYear := int((24 * time.Hour * 365).Seconds())
+		const secondsInAYear int = 3600 * 24 * 365
 
 		c.Response().Header.Add("Content-Type", albumCover.ImageMimeType)
 		c.Response().Header.Add("Cache-Control", fmt.Sprintf("max-age=%d", secondsInAYear))

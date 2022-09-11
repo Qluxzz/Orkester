@@ -2,36 +2,92 @@ package handlers
 
 import (
 	"context"
-	"goreact/ent"
-	"goreact/ent/album"
-	"goreact/ent/track"
-	"goreact/indexFiles"
-	"goreact/models"
-	"goreact/repositories"
+	"fmt"
 	"log"
+	"orkester/ent"
+	"orkester/ent/album"
+	"orkester/ent/track"
+	"orkester/indexFiles"
+	"orkester/models"
+	"orkester/repositories"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func UpdateLibrary(client *ent.Client, context context.Context) fiber.Handler {
+func AddSearchPath(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tracksOnDisk, failed_tracks, err := indexFiles.ScanPathForMusicFiles("/home/qluxzz/Music")
+		type Body struct {
+			Path string `json:"path"`
+		}
+
+		body := new(Body)
+
+		err := c.BodyParser(&body)
+
 		if err != nil {
 			return err
 		}
 
-		log.Printf("%d tracks failed to be indexed", len(failed_tracks))
+		_, err = os.Stat(body.Path)
+		if os.IsNotExist(err) {
+			return c.Status(fiber.StatusBadRequest).SendString(fmt.Sprintf("Folder %s does not exist", body.Path))
+		}
 
-		log.Printf("%d tracks found", len(tracksOnDisk))
+		_, err = client.SearchPath.Create().SetPath(body.Path).Save(context)
+		if err != nil {
+			return err
+		}
 
-		removed_db_tracks, err := repositories.RemoveDeletedEntities(tracksOnDisk, client, context)
+		return c.SendStatus(fiber.StatusNoContent)
+	}
+}
+
+func UpdateLibrary(client *ent.Client, context context.Context) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		searchPaths, err := client.SearchPath.Query().All(context)
+		if err != nil {
+			return err
+		}
+
+		if len(searchPaths) == 0 {
+			return c.Status(fiber.StatusBadRequest).SendString("No search paths added, please add a search path before calling this endpoint")
+		}
+
+		uniqueTracks := make(map[string]*indexFiles.IndexedTrack)
+
+		failedTracks := []*indexFiles.FailedAudioFile{}
+
+		for _, path := range searchPaths {
+			tracksOnDisk, failed_tracks, err := indexFiles.ScanPathForMusicFiles(path.Path)
+			if err != nil {
+				return err
+			}
+
+			log.Printf("%d tracks failed to be indexed", len(failed_tracks))
+
+			log.Printf("%d tracks found", len(tracksOnDisk))
+
+			for _, track := range tracksOnDisk {
+				uniqueTracks[track.Path] = track
+			}
+
+			failedTracks = append(failedTracks, failed_tracks...)
+		}
+
+		uniqueTracksList := []*indexFiles.IndexedTrack{}
+		for _, track := range uniqueTracks {
+			uniqueTracksList = append(uniqueTracksList, track)
+		}
+
+		removed_db_tracks, err := repositories.RemoveDeletedEntities(uniqueTracksList, client, context)
 		if err != nil {
 			return err
 		}
 
 		log.Printf("Removed %d tracks", len(removed_db_tracks))
 
-		addedTrackIds, err := repositories.AddTracks(tracksOnDisk, client, context)
+		addedTrackIds, err := repositories.AddTracks(uniqueTracksList, client, context)
 		if err != nil {
 			return err
 		}
@@ -52,22 +108,22 @@ func UpdateLibrary(client *ent.Client, context context.Context) fiber.Handler {
 			return err
 		}
 
-		added_tracks := []models.TrackWithPath{}
+		addedTracks := []models.TrackWithPath{}
 
 		for _, track := range tracks {
-			added_tracks = append(added_tracks, models.FromEntTrackWithPath(track))
+			addedTracks = append(addedTracks, models.FromEntTrackWithPath(track))
 		}
 
-		removed_tracks := []models.TrackWithPath{}
+		removedTracks := []models.TrackWithPath{}
 
 		for _, track := range removed_db_tracks {
-			removed_tracks = append(removed_tracks, models.FromEntTrackWithPath(track))
+			removedTracks = append(removedTracks, models.FromEntTrackWithPath(track))
 		}
 
 		return c.JSON(&fiber.Map{
-			"tracksRemoved": removed_tracks,
-			"tracksAdded":   added_tracks,
-			"failedTracks":  failed_tracks,
+			"tracksRemoved": removedTracks,
+			"tracksAdded":   addedTracks,
+			"failedTracks":  failedTracks,
 		})
 	}
 }

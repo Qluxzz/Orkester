@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Orkester</title>
+	<style>
+		body {
+			padding: 0;
+			margin: 0;
+		}
+	</style>
+	<script type="text/javascript" src="/elm.js"></script>
+</head>
+
+<body>
+	<div id="app"></div>
+</body>
+
+<script type="text/javascript">
+	const app = Elm.Main.init({
+		node: document.getElementById("app")
+	})
+
+	const audio = new Audio()
+
+	// TODO: Implement MediaSessions API 
+	// https://developer.mozilla.org/en-US/docs/Web/API/Media_Session_API
+
+
+	navigator.mediaSession.setActionHandler("play", () => app.ports.stateChange.send("play"))
+	navigator.mediaSession.setActionHandler("pause", () => app.ports.stateChange.send("pause"))
+	navigator.mediaSession.setActionHandler("previoustrack", () => app.ports.stateChange.send("previoustrack"))
+	navigator.mediaSession.setActionHandler("nexttrack", () => app.ports.stateChange.send("nexttrack"))
+
+	audio.addEventListener("ended", event => {
+		app.ports.stateChange.send("ended")
+	})
+
+	audio.addEventListener("timeupdate", event => {
+		app.ports.progressUpdated.send(Math.floor(audio.currentTime))
+	})
+
+	app.ports.playTrack.subscribe(trackId => {
+		audio.src = `http://localhost:42000/api/v1/track/${trackId}/stream`
+		audio.play()
+			.catch(error => {
+				if (error.name === "AbortError")
+					return
+
+				// Uncomment this error in development
+				// To see player when trying to play fake tracks
+				// if (error.name === "NotSupportedError")
+				// 	return
+
+				app.ports.playbackFailed.send(error.message)
+			})
+	})
+
+	app.ports.seek.subscribe(({ timestamp }) => {
+		audio.fastSeek(timestamp)
+	})
+
+	app.ports.play.subscribe(() => {
+		audio.play()
+	})
+
+	app.ports.pause.subscribe(() => {
+		audio.pause()
+	})
+
+</script>
+
+</body>
+
+</html>

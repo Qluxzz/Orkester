@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"context"
-	"goreact/ent"
-	"goreact/ent/album"
-	"goreact/ent/artist"
-	"goreact/ent/track"
 	"net/url"
+	"orkester/ent"
+	"orkester/ent/album"
+	"orkester/ent/artist"
+	"orkester/ent/track"
+	"orkester/models"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,17 +19,14 @@ func Search(client *ent.Client, context context.Context) fiber.Handler {
 			return err
 		}
 
-		tracks := []struct {
-			Id    int    `json:"id"`
-			Title string `json:"title"`
-		}{}
-
-		err = client.
+		tracks, err := client.
 			Track.
 			Query().
 			Where(track.TitleContainsFold(query)).
-			Select(track.FieldID, track.FieldTitle).
-			Scan(context, &tracks)
+			WithAlbum().
+			WithArtists().
+			WithLiked().
+			All(context)
 
 		if err != nil {
 			return err
@@ -69,7 +67,7 @@ func Search(client *ent.Client, context context.Context) fiber.Handler {
 		}
 
 		return c.JSON(&fiber.Map{
-			"tracks":  tracks,
+			"tracks":  models.FromEntTracks(tracks),
 			"albums":  albums,
 			"artists": artists,
 		})

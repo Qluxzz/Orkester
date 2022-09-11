@@ -2,11 +2,11 @@ package repositories
 
 import (
 	"context"
-	"goreact/ent"
-	"goreact/ent/album"
-	"goreact/ent/artist"
-	"goreact/ent/track"
-	"goreact/indexFiles"
+	"orkester/ent"
+	"orkester/ent/album"
+	"orkester/ent/artist"
+	"orkester/ent/track"
+	"orkester/indexFiles"
 )
 
 func RemoveDeletedEntities(tracks []*indexFiles.IndexedTrack, client *ent.Client, context context.Context) ([]*ent.Track, error) {

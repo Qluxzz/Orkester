@@ -3,12 +3,13 @@ package handlers
 import (
 	"bufio"
 	"context"
-	"goreact/ent"
-	"goreact/ent/likedtrack"
-	"goreact/ent/track"
-	"goreact/models"
+	"orkester/ent"
+	"orkester/ent/likedtrack"
+	"orkester/ent/track"
+	"orkester/models"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -25,6 +26,7 @@ func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 			Where(track.ID(id)).
 			WithAlbum().
 			WithArtists().
+			WithLiked().
 			Only(context)
 
 		if err != nil {
@@ -32,6 +34,41 @@ func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 		}
 
 		return c.JSON(models.FromEntTrack(dbTrack))
+	}
+}
+
+func TracksInfo(client *ent.Client, context context.Context) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ids := c.Query("ids")
+
+		if ids == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("No ids were supplied!")
+		}
+
+		var trackIds []int
+
+		for _, id := range strings.Split(ids, ",") {
+			trackId, err := strconv.Atoi(id)
+			if err == nil {
+				trackIds = append(trackIds, trackId)
+			}
+		}
+
+		dbTracks, err := client.
+			Track.
+			Query().
+			Where(track.IDIn(trackIds...)).
+			WithAlbum().
+			WithArtists().
+			WithLiked().
+			All(context)
+
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		return c.JSON(models.FromEntTracks(dbTracks))
+
 	}
 }
 
@@ -76,7 +113,7 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		liked, err := client.
+		_, err = client.
 			LikedTrack.
 			Create().
 			SetTrackID(id).
@@ -85,8 +122,6 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 		if err != nil {
 			return err
 		}
-
-		client.Track.UpdateOneID(id).SetLiked(liked).Save(context)
 
 		return c.SendStatus(fiber.StatusOK)
 	}

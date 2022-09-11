@@ -3,14 +3,14 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"goreact/ent"
-	"goreact/indexFiles"
-	"goreact/repositories"
 	"image"
 	"image/color"
 	"image/png"
 	"math"
 	"math/rand"
+	"orkester/ent"
+	"orkester/indexFiles"
+	"orkester/repositories"
 	"strconv"
 	"time"
 
@@ -279,10 +279,16 @@ func AddFakeTracks(client *ent.Client, context context.Context) fiber.Handler {
 	rand.Seed(time.Now().UnixNano())
 
 	return func(c *fiber.Ctx) error {
-		amount, err := strconv.Atoi(c.Query("amount"))
+		amountString := c.Query("amount")
+
+		if amountString == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Missing query parameter \"amount\", for how many tracks to generate")
+		}
+
+		amount, err := strconv.Atoi(amountString)
 
 		if err != nil {
-			return err
+			return c.Status(fiber.StatusBadRequest).SendString("query parameter amount was not a number")
 		}
 
 		fakeTracks := []*indexFiles.IndexedTrack{}
@@ -307,17 +313,28 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 	numberOfArtists := rand.Intn(2) + 1
 
 	for i := 0; i < numberOfArtists; i++ {
-		artists = append(artists, artistNames[rand.Intn(len(artistNames))])
+		artists = append(artists, artistNames[rand.Intn(10)])
 	}
 
 	startYear := 1950
 	timeSpan := 2021 - startYear
 
+	precision := []indexFiles.ReleaseDatePrecision{
+		indexFiles.PRECISION_DATE,
+		indexFiles.PRECISION_MONTH,
+		indexFiles.PRECISION_YEAR,
+	}
+
 	year := rand.Intn(timeSpan) + startYear
 	month := rand.Intn(11) + 1
 	day := rand.Intn(31) + 1
 
-	date := time.Time{}.AddDate(year, month, day)
+	date := &indexFiles.ReleaseDate{
+		Year:      year,
+		Month:     month,
+		Date:      day,
+		Precision: precision[rand.Intn(len(precision))],
+	}
 
 	return &indexFiles.IndexedTrack{
 		Path: fakePath,
@@ -338,9 +355,9 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 
 // Generates a grid of a base color and shades in even chunks
 func generateFakeAlbumImage() []byte {
-	imageSize := 128
-	cols := 4
-	chunk := imageSize / cols
+	const imageSize = 128
+	const cols = 4
+	const chunks = imageSize / cols
 
 	img := image.NewRGBA(image.Rect(0, 0, imageSize, imageSize))
 
@@ -360,11 +377,11 @@ func generateFakeAlbumImage() []byte {
 				A: math.MaxUint8,
 			}
 
-			for x := 0; x < chunk; x++ {
-				for y := 0; y < chunk; y++ {
+			for x := 0; x < chunks; x++ {
+				for y := 0; y < chunks; y++ {
 					img.Set(
-						col*chunk+x,
-						row*chunk+y,
+						col*chunks+x,
+						row*chunks+y,
 						shade)
 				}
 			}

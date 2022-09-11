@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"orkester/indexFiles"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -17,7 +19,7 @@ func (Album) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").Immutable(),
 		field.String("url_name").Immutable(),
-		field.Time("released").Immutable(),
+		field.JSON("released", &indexFiles.ReleaseDate{}).Immutable(),
 	}
 }
 

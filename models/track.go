@@ -1,7 +1,7 @@
 package models
 
 import (
-	"goreact/ent"
+	"orkester/ent"
 	"time"
 )
 
@@ -9,9 +9,8 @@ type Track struct {
 	Id          int       `json:"id"`
 	Title       string    `json:"title"`
 	TrackNumber int       `json:"trackNumber"`
-	Date        time.Time `json:"date"`
 	Length      int       `json:"length"`
-	Album       *Album    `json:"album"`
+	Album       *Album    `json:"album,omitempty"`
 	Artists     []*Artist `json:"artists"`
 	Liked       bool      `json:"liked"`
 }
@@ -19,6 +18,11 @@ type Track struct {
 type TrackWithPath struct {
 	Track
 	Path string `json:"path"`
+}
+
+type TrackWithDate struct {
+	Track
+	DateAdded time.Time `json:"dateAdded"`
 }
 
 type IdNameAndUrlName struct {
@@ -29,6 +33,16 @@ type IdNameAndUrlName struct {
 
 type Album = IdNameAndUrlName
 type Artist = IdNameAndUrlName
+
+func FromEntTracks(dbTracks []*ent.Track) []Track {
+	tracks := []Track{}
+
+	for _, track := range dbTracks {
+		tracks = append(tracks, FromEntTrack(track))
+	}
+
+	return tracks
+}
 
 func FromEntTrack(dbTrack *ent.Track) Track {
 	track := Track{
