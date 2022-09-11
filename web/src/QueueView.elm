@@ -1,7 +1,7 @@
 module QueueView exposing (..)
 
-import Css exposing (auto, bold, bottom, fontSize, fontWeight, listStyle, none, overflow, padding, position, px, sticky, top)
-import Html.Styled exposing (Html, div, h1, li, p, text, ul)
+import Css exposing (auto, bold, fontSize, fontWeight, listStyle, none, overflow, padding, px)
+import Html.Styled exposing (Html, div, li, p, text, ul)
 import Html.Styled.Attributes exposing (css)
 import Queue exposing (Queue, getCurrent, getFuture, getHistory)
 import TrackInfo exposing (Track)
