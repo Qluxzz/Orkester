@@ -61,7 +61,9 @@ func main() {
 	playlist := v1.Group("/playlist")
 	playlist.Get("/liked", handlers.GetLikedTracks(client, ctx))
 
-	v1.Put("/scan", handlers.UpdateLibrary(client, ctx))
+	scan := v1.Group("/scan")
+	scan.Post("", handlers.AddSearchPath(client, ctx))
+	scan.Put("", handlers.UpdateLibrary(client, ctx))
 
 	if mode == "production" {
 		app.Static("/", "client/")
@@ -72,7 +74,7 @@ func main() {
 		})
 	} else {
 		// Used for end-to-end testing
-		v1.Put("/scan/fake", handlers.AddFakeTracks(client, ctx))
+		scan.Put("/fake", handlers.AddFakeTracks(client, ctx))
 	}
 
 	// Start app
