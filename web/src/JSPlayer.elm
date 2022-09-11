@@ -9,8 +9,6 @@ type Msg
       -- Changes to the JavaScript Audio object
       -- Can be that the user used shortcuts to play next/prev, pause/play
     | ExternalStateChange String
-    | Pause
-    | Play
 
 
 

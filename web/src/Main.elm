@@ -244,14 +244,14 @@ playPauseButtonStyle =
 playButton : Html Msg
 playButton =
     button
-        [ onClick (JSPlayer JSPlayer.Play), css [ playPauseButtonStyle ] ]
+        [ onClick Play, css [ playPauseButtonStyle ] ]
         [ text "Play" ]
 
 
 pauseButton : Html Msg
 pauseButton =
     button
-        [ onClick (JSPlayer JSPlayer.Pause), css [ playPauseButtonStyle ] ]
+        [ onClick Pause, css [ playPauseButtonStyle ] ]
         [ text "Pause" ]
 
 
@@ -495,6 +495,8 @@ type Msg
     | OnRepeatChange Repeat
     | PlayNext
     | PlayPrevious
+    | Pause
+    | Play
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -654,12 +656,6 @@ update msg model =
                 JSPlayer.Seek _ ->
                     ( model, Cmd.none )
 
-                JSPlayer.Pause ->
-                    ( { model | player = setPlayerAsPaused model.player }, JSPlayer.pause () )
-
-                JSPlayer.Play ->
-                    ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
-
                 JSPlayer.ExternalStateChange state ->
                     case state of
                         "play" ->
@@ -741,6 +737,12 @@ update msg model =
 
         ( PlayPrevious, _ ) ->
             playPrevious model
+
+        ( Pause, _ ) ->
+            ( { model | player = setPlayerAsPaused model.player }, JSPlayer.pause () )
+
+        ( Play, _ ) ->
+            ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
 
         ( _, _ ) ->
             Debug.todo "Should never happen!"
