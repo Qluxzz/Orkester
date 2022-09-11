@@ -3,13 +3,12 @@ module Main exposing (..)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
+import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
 import Css.Global
 import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
-import Http
 import JSPlayer
 import Page.Album as AlbumPage exposing (albumUrl, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
@@ -20,8 +19,7 @@ import QueueView exposing (queueView)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import String exposing (toInt)
-import TrackId exposing (TrackId)
-import TrackInfo exposing (Track, trackInfoDecoder)
+import TrackInfo exposing (Track)
 import Url exposing (Url)
 
 
@@ -259,7 +257,7 @@ pauseButton =
 
 playerView : Model -> Html Msg
 playerView model =
-    div [ css [ displayFlex, flexDirection column ] ]
+    div [ css [ displayFlex, flexDirection row, property "gap" "10px" ] ]
         (case model.player of
             Just ({ track } as player) ->
                 [ currentlyPlayingView track
@@ -282,34 +280,38 @@ controls { state, slider, progress, track } repeat =
                 InteractiveSlider x ->
                     x
     in
-    div [ css [ displayFlex, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
-        [ div []
-            [ case state of
+    div [ css [ displayFlex, flexDirection column, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
+        [ div [ css [ displayFlex, property "gap" "10px" ] ]
+            [ button [ onClick PlayPrevious ] [ text "⬅️" ]
+            , case state of
                 Playing ->
                     pauseButton
 
                 Paused ->
                     playButton
+            , button [ onClick PlayNext ] [ text "➡️" ]
+            , repeatButton repeat
             ]
-        , div [] [ text (durationDisplay sliderValue) ]
-        , input
-            [ css [ width (pct 100) ]
-            , type_ "range"
-            , Html.Styled.Attributes.min "0"
-            , Html.Styled.Attributes.max (String.fromInt track.length)
-            , value (sliderValue |> String.fromInt)
-            , onInput (\value -> OnDragSlider (Maybe.withDefault 0 (value |> toInt)))
-            , onMouseUp OnDragSliderEnd
+        , div [ css [ displayFlex, flexGrow (int 1), alignItems center, property "gap" "10px" ] ]
+            [ div [] [ text (durationDisplay sliderValue) ]
+            , input
+                [ css [ width (pct 100) ]
+                , type_ "range"
+                , Html.Styled.Attributes.min "0"
+                , Html.Styled.Attributes.max (String.fromInt track.length)
+                , value (sliderValue |> String.fromInt)
+                , onInput (\value -> OnDragSlider (Maybe.withDefault 0 (value |> toInt)))
+                , onMouseUp OnDragSliderEnd
+                ]
+                []
+            , div [] [ text (durationDisplay track.length) ]
             ]
-            []
-        , div [] [ text (durationDisplay track.length) ]
-        , repeatButton repeat
         ]
 
 
 currentlyPlayingView : Track -> Html Msg
 currentlyPlayingView { title, album, artists } =
-    div [ css [ displayFlex ] ]
+    div [ css [ displayFlex, flexBasis (pct 50), flexGrow (int 0) ] ]
         [ div [ css [ overflow hidden ] ]
             [ h1 [] [ text title ]
             , h2 []
@@ -491,6 +493,8 @@ type Msg
     | OnDragSlider Int
     | OnDragSliderEnd
     | OnRepeatChange Repeat
+    | PlayNext
+    | PlayPrevious
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -691,45 +695,10 @@ update msg model =
                             ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
 
                         "nexttrack" ->
-                            let
-                                updatedQueue =
-                                    Queue.next model.queue model.repeat
-
-                                cmd =
-                                    Queue.getCurrent updatedQueue
-                                        |> Maybe.map (\{ id } -> JSPlayer.playTrack id)
-                                        |> Maybe.withDefault (JSPlayer.pause ())
-
-                                -- Clear player if no new track
-                                updatedPlayer =
-                                    Maybe.andThen (\t -> Just (playTrack t)) (Queue.getCurrent updatedQueue)
-                            in
-                            ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
+                            playNext model
 
                         "previoustrack" ->
-                            let
-                                updatedQueue =
-                                    Queue.previous model.queue
-
-                                current =
-                                    Queue.getCurrent updatedQueue
-
-                                updatedPlayer =
-                                    current
-                                        |> Maybe.andThen (\c -> Just (playTrack c))
-
-                                cmd : Cmd Msg
-                                cmd =
-                                    Queue.getCurrent updatedQueue
-                                        |> Maybe.map (\{ id } -> JSPlayer.playTrack id)
-                                        |> Maybe.withDefault Cmd.none
-                            in
-                            ( { model
-                                | queue = updatedQueue
-                                , player = updatedPlayer
-                              }
-                            , cmd
-                            )
+                            playPrevious model
 
                         _ ->
                             Debug.todo ("unknown state change " ++ state)
@@ -767,12 +736,63 @@ update msg model =
         ( OnRepeatChange repeat, _ ) ->
             ( { model | repeat = repeat }, Cmd.none )
 
+        ( PlayNext, _ ) ->
+            playNext model
+
+        ( PlayPrevious, _ ) ->
+            playPrevious model
+
         ( _, _ ) ->
             Debug.todo "Should never happen!"
 
 
 
 -- HELPER FUNCTIONS
+
+
+playNext : Model -> ( Model, Cmd msg )
+playNext model =
+    let
+        updatedQueue =
+            Queue.next model.queue model.repeat
+
+        cmd =
+            Queue.getCurrent updatedQueue
+                |> Maybe.map (\{ id } -> JSPlayer.playTrack id)
+                |> Maybe.withDefault (JSPlayer.pause ())
+
+        -- Clear player if no new track
+        updatedPlayer =
+            Maybe.andThen (\t -> Just (playTrack t)) (Queue.getCurrent updatedQueue)
+    in
+    ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
+
+
+playPrevious : Model -> ( Model, Cmd Msg )
+playPrevious model =
+    let
+        updatedQueue =
+            Queue.previous model.queue
+
+        current =
+            Queue.getCurrent updatedQueue
+
+        updatedPlayer =
+            current
+                |> Maybe.andThen (\c -> Just (playTrack c))
+
+        cmd : Cmd Msg
+        cmd =
+            Queue.getCurrent updatedQueue
+                |> Maybe.map (\{ id } -> JSPlayer.playTrack id)
+                |> Maybe.withDefault Cmd.none
+    in
+    ( { model
+        | queue = updatedQueue
+        , player = updatedPlayer
+      }
+    , cmd
+    )
 
 
 playTrack : Track -> Player
