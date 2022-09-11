@@ -3,11 +3,9 @@ module Main exposing (..)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, Style, alignItems, alignSelf, backgroundColor, border, center, color, column, displayFlex, end, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, marginLeft, none, overflow, padding, padding2, paddingLeft, paddingRight, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
+import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
 import Css.Global
-import Dict exposing (Dict)
 import DurationDisplay exposing (durationDisplay)
-import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
@@ -495,14 +493,6 @@ type Msg
     | OnRepeatChange Repeat
 
 
-loadTrackInfo : TrackId -> Cmd Msg
-loadTrackInfo trackId =
-    Cmd.batch
-        [ JSPlayer.playTrack trackId
-        , getTrackInfo trackId
-        ]
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.page ) of
@@ -517,25 +507,34 @@ update msg model =
                         updatedQueue =
                             Queue.replaceQueue [ track ] model.queue
                     in
-                    ( { model | page = AlbumPage updatedPageModel, queue = updatedQueue }
-                    , loadTrackInfo track.id
+                    ( { model
+                        | page = AlbumPage updatedPageModel
+                        , queue = updatedQueue
+                        , player = Just (playTrack track)
+                      }
+                    , JSPlayer.playTrack track.id
                     )
 
-                AlbumPage.PlayAlbum trackIds ->
+                AlbumPage.PlayAlbum tracks ->
                     let
                         updatedQueue =
-                            Queue.replaceQueue trackIds model.queue
+                            Queue.replaceQueue tracks model.queue
 
-                        cmd =
+                        player =
                             Queue.getCurrent updatedQueue
-                                |> Maybe.map (\{ id } -> loadTrackInfo id)
-                                |> Maybe.withDefault Cmd.none
+                                |> Maybe.map playTrack
                     in
                     ( { model
                         | page = AlbumPage updatedPageModel
                         , queue = updatedQueue
+                        , player = player
                       }
-                    , cmd
+                    , case player of
+                        Just { track } ->
+                            JSPlayer.playTrack track.id
+
+                        Nothing ->
+                            Cmd.none
                     )
 
                 AlbumPage.AlbumReceived (RemoteData.Success album) ->
@@ -590,8 +589,12 @@ update msg model =
                         updatedQueue =
                             Queue.replaceQueue [ track ] model.queue
                     in
-                    ( { model | page = SearchPage updatedModel, queue = updatedQueue }
-                    , loadTrackInfo track.id
+                    ( { model
+                        | page = SearchPage updatedModel
+                        , queue = updatedQueue
+                        , player = Just (playTrack track)
+                      }
+                    , JSPlayer.playTrack track.id
                     )
 
                 SearchPage.UpdateSearchPhrase phrase ->
@@ -673,7 +676,7 @@ update msg model =
 
                                         _ ->
                                             Queue.getCurrent updatedQueue
-                                                |> Maybe.map (\{ id } -> loadTrackInfo id)
+                                                |> Maybe.map (\t -> JSPlayer.playTrack t.id)
                                     )
                                         |> Maybe.withDefault Cmd.none
 
@@ -694,12 +697,12 @@ update msg model =
 
                                 cmd =
                                     Queue.getCurrent updatedQueue
-                                        |> Maybe.map (\{ id } -> loadTrackInfo id)
+                                        |> Maybe.map (\{ id } -> JSPlayer.playTrack id)
                                         |> Maybe.withDefault (JSPlayer.pause ())
 
                                 -- Clear player if no new track
                                 updatedPlayer =
-                                    Maybe.andThen (\_ -> model.player) (Queue.getCurrent updatedQueue)
+                                    Maybe.andThen (\t -> Just (playTrack t)) (Queue.getCurrent updatedQueue)
                             in
                             ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
 
@@ -708,13 +711,25 @@ update msg model =
                                 updatedQueue =
                                     Queue.previous model.queue
 
+                                current =
+                                    Queue.getCurrent updatedQueue
+
+                                updatedPlayer =
+                                    current
+                                        |> Maybe.andThen (\c -> Just (playTrack c))
+
                                 cmd : Cmd Msg
                                 cmd =
                                     Queue.getCurrent updatedQueue
-                                        |> Maybe.map (\{ id } -> loadTrackInfo id)
+                                        |> Maybe.map (\{ id } -> JSPlayer.playTrack id)
                                         |> Maybe.withDefault Cmd.none
                             in
-                            ( { model | queue = updatedQueue }, cmd )
+                            ( { model
+                                | queue = updatedQueue
+                                , player = updatedPlayer
+                              }
+                            , cmd
+                            )
 
                         _ ->
                             Debug.todo ("unknown state change " ++ state)
@@ -813,16 +828,6 @@ updateSliderValue value player =
 updateProgress : Int -> Maybe Player -> Maybe Player
 updateProgress progress player =
     Maybe.map (\p -> { p | progress = progress }) player
-
-
-getTrackInfo : TrackId -> Cmd Msg
-getTrackInfo trackId =
-    Http.get
-        { url = apiBaseUrl ++ "/api/v1/track/" ++ String.fromInt trackId
-        , expect =
-            trackInfoDecoder
-                |> Http.expectJson (RemoteData.fromResult >> TrackInfoRecieved)
-        }
 
 
 getDocumentTitle : Page -> Maybe Player -> Maybe String
