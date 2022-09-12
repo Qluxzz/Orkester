@@ -556,6 +556,9 @@ update msg model =
                     , Cmd.map AlbumPageMsg updatedCmd
                     )
 
+        ( AlbumPageMsg _, _ ) ->
+            ( model, Cmd.none )
+
         ( ArtistPageMsg artistMsg, ArtistPage pageModel ) ->
             let
                 ( updatedPageModel, updatedCmd ) =
@@ -575,6 +578,9 @@ update msg model =
                     , Cmd.map ArtistPageMsg updatedCmd
                     )
 
+        ( ArtistPageMsg _, _ ) ->
+            ( model, Cmd.none )
+
         ( LikedTracksPageMsg likedTracksMsg, LikedTracksPage likedTracksModel ) ->
             let
                 ( updatedModel, updatedCmd ) =
@@ -583,6 +589,9 @@ update msg model =
             ( { model | page = LikedTracksPage updatedModel }
             , Cmd.map LikedTracksPageMsg updatedCmd
             )
+
+        ( LikedTracksPageMsg _, _ ) ->
+            ( model, Cmd.none )
 
         ( SearchPageMsg searchPageMsg, SearchPage searchPageModel ) ->
             let
@@ -616,6 +625,9 @@ update msg model =
                         SearchPageMsg
                         updatedCmd
                     )
+
+        ( SearchPageMsg _, _ ) ->
+            ( model, Cmd.none )
 
         ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
@@ -743,9 +755,6 @@ update msg model =
 
         ( Play, _ ) ->
             ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
-
-        ( _, _ ) ->
-            Debug.todo "Should never happen!"
 
 
 
