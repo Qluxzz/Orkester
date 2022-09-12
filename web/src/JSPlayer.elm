@@ -3,7 +3,6 @@ port module JSPlayer exposing (Msg(..), pause, play, playTrack, playbackFailed, 
 
 type Msg
     = PlaybackFailed String
-    | PlayTrack { id : Int }
     | Seek { timestamp : Int }
     | ProgressUpdated Int
       -- Changes to the JavaScript Audio object

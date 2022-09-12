@@ -24,12 +24,24 @@
 
 	const audio = new Audio()
 
+	function pause() {
+		audio.pause()
+		app.ports.stateChange.send("pause")
+	}
+
+	function play() {
+		audio.play()
+			.then(() => {
+				app.ports.stateChange.send("play")
+			})
+	}
+
 	// TODO: Implement MediaSessions API 
 	// https://developer.mozilla.org/en-US/docs/Web/API/Media_Session_API
 
 
-	navigator.mediaSession.setActionHandler("play", () => app.ports.stateChange.send("play"))
-	navigator.mediaSession.setActionHandler("pause", () => app.ports.stateChange.send("pause"))
+	navigator.mediaSession.setActionHandler("play", play)
+	navigator.mediaSession.setActionHandler("pause", pause)
 	navigator.mediaSession.setActionHandler("previoustrack", () => app.ports.stateChange.send("previoustrack"))
 	navigator.mediaSession.setActionHandler("nexttrack", () => app.ports.stateChange.send("nexttrack"))
 
@@ -48,6 +60,9 @@
 	app.ports.playTrack.subscribe(trackId => {
 		audio.src = `http://localhost:42000/api/v1/track/${trackId}/stream`
 		audio.play()
+			.then(() => {
+				app.ports.stateChange.send("play")
+			})
 			.catch(error => {
 				if (error.name === "AbortError")
 					return
@@ -65,13 +80,8 @@
 		audio.fastSeek(timestamp)
 	})
 
-	app.ports.play.subscribe(() => {
-		audio.play()
-	})
-
-	app.ports.pause.subscribe(() => {
-		audio.pause()
-	})
+	app.ports.play.subscribe(play)
+	app.ports.pause.subscribe(pause)
 
 </script>
 

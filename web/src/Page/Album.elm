@@ -348,7 +348,10 @@ formatTracksDisplay tracks =
 
 formatAlbumLength : List Track -> String
 formatAlbumLength tracks =
-    durationDisplay <| List.foldl (\track acc -> acc + track.length) 0 tracks
+    tracks
+        |> List.map .length
+        |> List.foldl (+) 0
+        |> durationDisplay
 
 
 albumUrl : Album -> String

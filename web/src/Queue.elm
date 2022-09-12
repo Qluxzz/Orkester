@@ -1,4 +1,6 @@
-module Queue exposing (Queue, Repeat(..), empty, getCurrent, getFuture, getHistory, init, next, previous, queueLast, queueNext, replaceQueue)
+module Queue exposing (ActiveTrack, Queue, Repeat(..), State(..), empty, getCurrent, getFuture, getHistory, init, next, previous, queueLast, queueNext, replaceQueue, updateActiveTrackProgress, updateActiveTrackState)
+
+import TrackInfo exposing (Track)
 
 
 type Repeat
@@ -10,14 +12,30 @@ type Repeat
     | RepeatAll
 
 
-type alias Queue a =
+type State
+    = Playing
+    | Paused
+
+
+type alias ActiveTrack =
+    { track : Track
+    , progress : Int
+    , state : State
+    }
+
+
+type alias Queue a b =
     { history : List a
-    , current : Maybe a
+    , current : Maybe b
     , future : List a
     }
 
 
-empty : Queue a
+type alias TrackQueue =
+    Queue Track ActiveTrack
+
+
+empty : TrackQueue
 empty =
     { history = []
     , current = Nothing
@@ -25,30 +43,44 @@ empty =
     }
 
 
-init : { current : Maybe a, future : Maybe (List a) } -> Queue a
+init : { current : Maybe Track, future : Maybe (List Track) } -> TrackQueue
 init { current, future } =
     { history = []
-    , current = current
+    , current = Maybe.map toActiveTrack current
     , future = Maybe.withDefault [] future
     }
 
 
-getCurrent : Queue a -> Maybe a
+getCurrent : Queue a b -> Maybe b
 getCurrent { current } =
     current
 
 
-getHistory : Queue a -> List a
+getHistory : Queue a b -> List a
 getHistory { history } =
     history
 
 
-getFuture : Queue a -> List a
+getFuture : Queue a b -> List a
 getFuture { future } =
     future
 
 
-previous : Queue a -> Queue a
+updateActiveTrackProgress : Queue Track ActiveTrack -> Int -> Queue Track ActiveTrack
+updateActiveTrackProgress ({ current } as queue) progress =
+    { queue
+        | current = Maybe.map (\c -> { c | progress = progress }) current
+    }
+
+
+updateActiveTrackState : Queue Track ActiveTrack -> State -> Queue Track ActiveTrack
+updateActiveTrackState ({ current } as queue) state =
+    { queue
+        | current = Maybe.map (\c -> { c | state = state }) current
+    }
+
+
+previous : Queue Track ActiveTrack -> Queue Track ActiveTrack
 previous ({ history, current, future } as queue) =
     case history of
         [] ->
@@ -56,7 +88,7 @@ previous ({ history, current, future } as queue) =
 
         _ ->
             let
-                historyTail : Maybe a
+                historyTail : Maybe Track
                 historyTail =
                     history
                         |> List.reverse
@@ -71,21 +103,21 @@ previous ({ history, current, future } as queue) =
                         Nothing ->
                             { queue
                                 | history = restOfHistory
-                                , current = Just tail
+                                , current = Just (toActiveTrack tail)
                             }
 
                         Just c ->
                             { queue
                                 | history = restOfHistory
-                                , current = Just tail
-                                , future = c :: future
+                                , current = Just (toActiveTrack tail)
+                                , future = toTrack c :: future
                             }
 
                 Nothing ->
                     queue
 
 
-next : Queue a -> Repeat -> Queue a
+next : Queue Track ActiveTrack -> Repeat -> Queue Track ActiveTrack
 next ({ history, current, future } as queue) repeat =
     let
         updatedHistory =
@@ -94,13 +126,13 @@ next ({ history, current, future } as queue) repeat =
                     history
 
                 Just c ->
-                    history ++ [ c ]
+                    history ++ [ toTrack c ]
     in
     case future of
         first :: rest ->
             { queue
                 | history = updatedHistory
-                , current = Just first
+                , current = Just (toActiveTrack first)
                 , future = rest
             }
 
@@ -120,7 +152,7 @@ next ({ history, current, future } as queue) repeat =
                         first :: rest ->
                             { queue
                                 | history = updatedHistory
-                                , current = Just first
+                                , current = Just (toActiveTrack first)
                                 , future = rest
                             }
 
@@ -131,7 +163,20 @@ next ({ history, current, future } as queue) repeat =
                             }
 
 
-queueNext : List a -> Queue a -> Queue a
+toTrack : ActiveTrack -> Track
+toTrack { track } =
+    track
+
+
+toActiveTrack : Track -> ActiveTrack
+toActiveTrack track =
+    { track = track
+    , progress = 0
+    , state = Paused
+    }
+
+
+queueNext : List Track -> Queue Track ActiveTrack -> Queue Track ActiveTrack
 queueNext entities ({ current, future } as queue) =
     case current of
         Just _ ->
@@ -141,7 +186,7 @@ queueNext entities ({ current, future } as queue) =
             case entities of
                 first :: rest ->
                     { queue
-                        | current = Just first
+                        | current = Just (toActiveTrack first)
                         , future = rest ++ future
                     }
 
@@ -149,7 +194,7 @@ queueNext entities ({ current, future } as queue) =
                     queue
 
 
-replaceQueue : List a -> Queue a -> Queue a
+replaceQueue : List Track -> Queue Track ActiveTrack -> Queue Track ActiveTrack
 replaceQueue entities ({ history, current } as queue) =
     case entities of
         first :: rest ->
@@ -157,17 +202,17 @@ replaceQueue entities ({ history, current } as queue) =
                 updatedHistory =
                     case current of
                         Just c ->
-                            history ++ [ c ]
+                            history ++ [ toTrack c ]
 
                         Nothing ->
                             history
             in
-            { queue | current = Just first, future = rest, history = updatedHistory }
+            { queue | current = Just (toActiveTrack first), future = rest, history = updatedHistory }
 
         [] ->
             queue
 
 
-queueLast : List a -> Queue a -> Queue a
+queueLast : List Track -> Queue Track ActiveTrack -> Queue Track ActiveTrack
 queueLast entities ({ future } as queue) =
     { queue | future = future ++ entities }

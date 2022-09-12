@@ -14,9 +14,9 @@ import Page.Album as AlbumPage exposing (albumUrl, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
-import Queue exposing (Queue, Repeat(..))
+import Queue exposing (ActiveTrack, Queue, Repeat(..), State(..), updateActiveTrackState)
 import QueueView exposing (queueView)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import String exposing (toInt)
 import TrackInfo exposing (Track)
@@ -96,7 +96,7 @@ globalStyle =
 
 view : Model -> Document Msg
 view model =
-    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page model.player)
+    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page (Queue.getCurrent model.queue))
     , body = [ baseView model (currentView model.page) |> toUnstyled ]
     }
 
@@ -135,7 +135,7 @@ baseView model mainContent =
                     [ a [ href "/liked-tracks" ] [ text "Liked Tracks" ]
                     , a [ href "/search" ] [ text "Search" ]
                     ]
-                , case model.player of
+                , case Queue.getCurrent model.queue of
                     Just { track } ->
                         a
                             [ css [ displayFlex ]
@@ -258,10 +258,10 @@ pauseButton =
 playerView : Model -> Html Msg
 playerView model =
     div [ css [ displayFlex, flexDirection row, property "gap" "10px" ] ]
-        (case model.player of
-            Just ({ track } as player) ->
-                [ currentlyPlayingView track
-                , controls player model.repeat
+        (case Queue.getCurrent model.queue of
+            Just activeTrack ->
+                [ currentlyPlayingView activeTrack.track
+                , controls model activeTrack
                 ]
 
             _ ->
@@ -269,18 +269,18 @@ playerView model =
         )
 
 
-controls : Player -> Repeat -> Html Msg
-controls { state, slider, progress, track } repeat =
+controls : Model -> ActiveTrack -> Html Msg
+controls { progressSlider, repeat, volume } { track, progress, state } =
     let
         sliderValue =
-            case slider of
+            case progressSlider of
                 NonInteractiveSlider ->
                     progress
 
                 InteractiveSlider x ->
                     x
     in
-    div [ css [ displayFlex, flexDirection column, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
+    div [ css [ displayFlex, flexDirection row, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
         [ div [ css [ displayFlex, property "gap" "10px" ] ]
             [ button [ onClick PlayPrevious ] [ text "⬅️" ]
             , case state of
@@ -300,8 +300,8 @@ controls { state, slider, progress, track } repeat =
                 , Html.Styled.Attributes.min "0"
                 , Html.Styled.Attributes.max (String.fromInt track.length)
                 , value (sliderValue |> String.fromInt)
-                , onInput (\value -> OnDragSlider (Maybe.withDefault 0 (value |> toInt)))
-                , onMouseUp OnDragSliderEnd
+                , onInput (\value -> OnDragProgressSlider (Maybe.withDefault 0 (value |> toInt)))
+                , onMouseUp OnDragProgressSliderEnd
                 ]
                 []
             , div [] [ text (durationDisplay track.length) ]
@@ -370,8 +370,8 @@ type alias Model =
     { route : Route
     , page : Page
     , navKey : Nav.Key
-    , player : Maybe Player
-    , queue : Queue Track
+    , progressSlider : Slider
+    , queue : Queue Track ActiveTrack
     , repeat : Repeat
     , volume : Int
     }
@@ -380,19 +380,6 @@ type alias Model =
 type Slider
     = NonInteractiveSlider
     | InteractiveSlider Int
-
-
-type alias Player =
-    { track : Track
-    , progress : Int
-    , slider : Slider
-    , state : PlayerState
-    }
-
-
-type PlayerState
-    = Playing
-    | Paused
 
 
 type Page
@@ -412,10 +399,10 @@ init _ url navKey =
             { route = Route.parseUrl url
             , page = NotFoundPage
             , navKey = navKey
-            , player = Nothing
             , queue = Queue.empty
             , repeat = RepeatOff
             , volume = 50
+            , progressSlider = NonInteractiveSlider
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -501,8 +488,9 @@ type Msg
     | UrlChanged Url
       -- JS Player
     | JSPlayer JSPlayer.Msg
-    | TrackInfoRecieved (WebData Track)
       -- Controls
+    | OnDragProgressSlider Int
+    | OnDragProgressSliderEnd
     | OnDragVolumeSlider Int
     | OnRepeatChange Repeat
     | PlayNext
@@ -528,7 +516,6 @@ update msg model =
                     ( { model
                         | page = AlbumPage updatedPageModel
                         , queue = updatedQueue
-                        , player = Just (playTrack track)
                       }
                     , JSPlayer.playTrack track.id
                     )
@@ -538,18 +525,16 @@ update msg model =
                         updatedQueue =
                             Queue.replaceQueue tracks model.queue
 
-                        player =
+                        track =
                             Queue.getCurrent updatedQueue
-                                |> Maybe.map playTrack
                     in
                     ( { model
                         | page = AlbumPage updatedPageModel
                         , queue = updatedQueue
-                        , player = player
                       }
-                    , case player of
-                        Just { track } ->
-                            JSPlayer.playTrack track.id
+                    , case track of
+                        Just t ->
+                            JSPlayer.playTrack t.track.id
 
                         Nothing ->
                             Cmd.none
@@ -619,7 +604,6 @@ update msg model =
                     ( { model
                         | page = SearchPage updatedModel
                         , queue = updatedQueue
-                        , player = Just (playTrack track)
                       }
                     , JSPlayer.playTrack track.id
                     )
@@ -672,10 +656,7 @@ update msg model =
                     Debug.todo ("Playback failed " ++ error)
 
                 JSPlayer.ProgressUpdated updatedProgress ->
-                    ( { model | player = updateProgress updatedProgress model.player }, Cmd.none )
-
-                JSPlayer.PlayTrack _ ->
-                    ( { model | player = setPlayerAsPlaying model.player }, Cmd.none )
+                    ( { model | queue = Queue.updateActiveTrackProgress model.queue updatedProgress }, Cmd.none )
 
                 JSPlayer.Seek _ ->
                     ( model, Cmd.none )
@@ -683,10 +664,10 @@ update msg model =
                 JSPlayer.ExternalStateChange state ->
                     case state of
                         "play" ->
-                            ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
+                            ( { model | queue = Queue.updateActiveTrackState model.queue Playing }, Cmd.none )
 
                         "pause" ->
-                            ( { model | player = setPlayerAsPaused model.player }, JSPlayer.pause () )
+                            ( { model | queue = Queue.updateActiveTrackState model.queue Paused }, Cmd.none )
 
                         "ended" ->
                             let
@@ -700,19 +681,11 @@ update msg model =
 
                                         _ ->
                                             Queue.getCurrent updatedQueue
-                                                |> Maybe.map (\t -> JSPlayer.playTrack t.id)
+                                                |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
                                     )
                                         |> Maybe.withDefault Cmd.none
-
-                                updatedPlayer =
-                                    case Queue.getCurrent updatedQueue of
-                                        Just _ ->
-                                            model.player
-
-                                        Nothing ->
-                                            setPlayerAsPaused model.player
                             in
-                            ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
+                            ( { model | queue = updatedQueue }, cmd )
 
                         "nexttrack" ->
                             playNext model
@@ -723,34 +696,22 @@ update msg model =
                         _ ->
                             Debug.todo ("unknown state change " ++ state)
 
-        ( TrackInfoRecieved (Success trackInfo), _ ) ->
-            ( { model
-                | player = Just (playTrack trackInfo)
-              }
-            , Cmd.none
-            )
+        ( OnDragProgressSlider time, _ ) ->
+            ( { model | progressSlider = InteractiveSlider time }, Cmd.none )
 
-        ( TrackInfoRecieved _, _ ) ->
-            -- TODO: Add error handling
-            ( model, Cmd.none )
-
-        ( OnDragSlider time, _ ) ->
-            ( { model | player = updateSliderValue time model.player }, Cmd.none )
-
-        ( OnDragSliderEnd, _ ) ->
+        ( OnDragProgressSliderEnd, _ ) ->
             let
-                slider =
-                    Maybe.map .slider model.player
-
                 cmd : Cmd Msg
                 cmd =
-                    case ( model.player, slider ) of
-                        ( Just _, Just (InteractiveSlider time) ) ->
+                    case model.progressSlider of
+                        InteractiveSlider time ->
                             JSPlayer.seek { timestamp = time }
 
                         _ ->
                             Cmd.none
             in
+            ( { model | progressSlider = NonInteractiveSlider }, cmd )
+
         ( OnDragVolumeSlider volume, _ ) ->
             ( { model | volume = volume }, JSPlayer.setVolume volume )
 
@@ -764,10 +725,10 @@ update msg model =
             playPrevious model
 
         ( Pause, _ ) ->
-            ( { model | player = setPlayerAsPaused model.player }, JSPlayer.pause () )
+            ( model, JSPlayer.pause () )
 
         ( Play, _ ) ->
-            ( { model | player = setPlayerAsPlaying model.player }, JSPlayer.play () )
+            ( model, JSPlayer.play () )
 
 
 
@@ -782,14 +743,12 @@ playNext model =
 
         cmd =
             Queue.getCurrent updatedQueue
-                |> Maybe.map (\{ id } -> JSPlayer.playTrack id)
+                |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
                 |> Maybe.withDefault (JSPlayer.pause ())
 
         -- Clear player if no new track
-        updatedPlayer =
-            Maybe.andThen (\t -> Just (playTrack t)) (Queue.getCurrent updatedQueue)
     in
-    ( { model | queue = updatedQueue, player = updatedPlayer }, cmd )
+    ( { model | queue = updatedQueue }, cmd )
 
 
 playPrevious : Model -> ( Model, Cmd Msg )
@@ -801,87 +760,38 @@ playPrevious model =
         current =
             Queue.getCurrent updatedQueue
 
-        updatedPlayer =
-            current
-                |> Maybe.andThen (\c -> Just (playTrack c))
-
         cmd : Cmd Msg
         cmd =
-            Queue.getCurrent updatedQueue
-                |> Maybe.map (\{ id } -> JSPlayer.playTrack id)
+            current
+                |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
                 |> Maybe.withDefault Cmd.none
     in
-    ( { model
-        | queue = updatedQueue
-        , player = updatedPlayer
-      }
-    , cmd
-    )
+    ( { model | queue = updatedQueue }, cmd )
 
 
-playTrack : Track -> Player
-playTrack track =
-    { track = track
-    , slider = NonInteractiveSlider
-    , progress = 0
-    , state = Playing
-    }
+getCurrentlyPlayingTrackInfo : Track -> String
+getCurrentlyPlayingTrackInfo track =
+    track.title
+        ++ " - "
+        ++ (track.artists
+                |> List.map .name
+                |> String.join ", "
+           )
 
 
-getCurrentlyPlayingTrackInfo : Maybe Player -> Maybe String
-getCurrentlyPlayingTrackInfo player =
-    case player of
-        Just { track, state } ->
-            if state == Paused then
-                Nothing
+getDocumentTitle : Page -> Maybe ActiveTrack -> Maybe String
+getDocumentTitle page maybeActiveTrack =
+    maybeActiveTrack
+        |> Maybe.map
+            (\{ track, state } ->
+                if state == Playing then
+                    Just ("► " ++ getCurrentlyPlayingTrackInfo track)
 
-            else
-                Just
-                    (track.title
-                        ++ " - "
-                        ++ (track.artists
-                                |> List.map .name
-                                |> String.join ", "
-                           )
-                    )
-
-        _ ->
-            Nothing
-
-
-setPlayerAsPaused : Maybe Player -> Maybe Player
-setPlayerAsPaused player =
-    Maybe.map (\p -> { p | state = Paused }) player
-
-
-setPlayerAsPlaying : Maybe Player -> Maybe Player
-setPlayerAsPlaying player =
-    Maybe.map (\p -> { p | state = Playing }) player
-
-
-clearSliderValue : Maybe Player -> Maybe Player
-clearSliderValue player =
-    Maybe.map (\p -> { p | slider = NonInteractiveSlider }) player
-
-
-updateSliderValue : Int -> Maybe Player -> Maybe Player
-updateSliderValue value player =
-    Maybe.map (\p -> { p | slider = InteractiveSlider value }) player
-
-
-updateProgress : Int -> Maybe Player -> Maybe Player
-updateProgress progress player =
-    Maybe.map (\p -> { p | progress = progress }) player
-
-
-getDocumentTitle : Page -> Maybe Player -> Maybe String
-getDocumentTitle page player =
-    case getCurrentlyPlayingTrackInfo player of
-        Just title ->
-            Just ("► " ++ title)
-
-        _ ->
-            case page of
+                else
+                    Nothing
+            )
+        |> Maybe.withDefault
+            (case page of
                 ArtistPage { artist } ->
                     artist |> RemoteData.toMaybe |> Maybe.map .name
 
@@ -899,3 +809,4 @@ getDocumentTitle page player =
 
                 SearchPage { searchPhrase } ->
                     Just ("Search: " ++ Maybe.withDefault "" searchPhrase)
+            )
