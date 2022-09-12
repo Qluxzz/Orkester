@@ -1,6 +1,7 @@
 module Main exposing (..)
 
-import ApiBaseUrl exposing (apiBaseUrl)
+import AlbumUrl exposing (albumImageUrl, albumUrl)
+import ArtistUrl exposing (artistUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
@@ -10,11 +11,11 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
 import JSPlayer
-import Page.Album as AlbumPage exposing (albumImageUrl, albumUrl, formatTrackArtists)
-import Page.Artist as ArtistPage exposing (artistUrl)
+import Page.Album as AlbumPage exposing (formatTrackArtists)
+import Page.Artist as ArtistPage
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
-import Queue exposing (ActiveTrack, Queue, Repeat(..), State(..), updateActiveTrackState)
+import Queue exposing (ActiveTrack, Queue, Repeat(..), State(..))
 import QueueView exposing (queueView)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)

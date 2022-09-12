@@ -1,6 +1,8 @@
-module Page.Album exposing (Model, Msg(..), albumImageUrl, albumUrl, formatTrackArtists, init, update, view)
+module Page.Album exposing (Model, Msg(..), formatTrackArtists, init, update, view)
 
+import AlbumUrl exposing (albumImageUrl)
 import ApiBaseUrl exposing (apiBaseUrl)
+import ArtistUrl exposing (artistUrl)
 import Css exposing (Style, absolute, alignItems, auto, backgroundColor, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, row, sticky, textAlign, textOverflow, top, whiteSpace, width)
 import DurationDisplay exposing (durationDisplay)
 import ErrorMessage exposing (errorMessage)
@@ -11,7 +13,6 @@ import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Like
-import Page.Artist exposing (artistUrl)
 import ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
 import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
@@ -352,16 +353,6 @@ formatAlbumLength tracks =
         |> List.map .length
         |> List.foldl (+) 0
         |> durationDisplay
-
-
-albumUrl : { r | id : Int, urlName : String } -> String
-albumUrl { id, urlName } =
-    "/album/" ++ String.fromInt id ++ "/" ++ urlName
-
-
-albumImageUrl : { r | id : Int } -> String
-albumImageUrl { id } =
-    apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt id ++ "/image"
 
 
 mapAlbumTrackToTrack : Album -> Track -> TrackInfo.Track

@@ -1,5 +1,6 @@
-module Page.Artist exposing (Model, Msg(..), artistUrl, init, update, view)
+module Page.Artist exposing (Model, Msg(..), init, update, view)
 
+import AlbumUrl exposing (albumImageUrl, albumUrl)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (Style, absolute, auto, backgroundColor, block, bold, column, display, displayFlex, ellipsis, flex3, flexDirection, fontWeight, height, hex, hidden, left, lineHeight, marginTop, noWrap, overflow, padding, padding4, paddingTop, pct, position, property, px, relative, textOverflow, top, whiteSpace, width)
 import ErrorMessage exposing (errorMessage)
@@ -8,7 +9,6 @@ import Html.Styled.Attributes exposing (css, href, src)
 import Http
 import Json.Decode as Decode exposing (Decoder, int, list, string)
 import Json.Decode.Pipeline exposing (required)
-import Page.Album exposing (albumImageUrl, albumUrl)
 import ReleaseDate exposing (ReleaseDate(..), releaseDateDecoder)
 import RemoteData exposing (WebData)
 
@@ -203,8 +203,3 @@ releaseYear releaseDate =
             Date { year } ->
                 year
         )
-
-
-artistUrl : { r | id : Int, urlName : String } -> String
-artistUrl artist =
-    "/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName
