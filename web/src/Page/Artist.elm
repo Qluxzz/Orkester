@@ -8,6 +8,7 @@ import Html.Styled.Attributes exposing (css, href, src)
 import Http
 import Json.Decode as Decode exposing (Decoder, int, list, string)
 import Json.Decode.Pipeline exposing (required)
+import Page.Album exposing (albumImageUrl, albumUrl)
 import ReleaseDate exposing (ReleaseDate(..), releaseDateDecoder)
 import RemoteData exposing (WebData)
 
@@ -146,7 +147,7 @@ pStyle =
 albumView : Album -> Html Msg
 albumView album =
     a
-        [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName)
+        [ href (albumUrl album)
         ]
         [ div
             [ css
@@ -175,7 +176,7 @@ albumView album =
                         , width (pct 100)
                         , height (pct 100)
                         ]
-                    , src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image")
+                    , src (albumImageUrl album)
                     ]
                     []
                 ]

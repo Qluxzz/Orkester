@@ -1,4 +1,4 @@
-module Page.Album exposing (Model, Msg(..), albumUrl, formatTrackArtists, init, update, view)
+module Page.Album exposing (Model, Msg(..), albumImageUrl, albumUrl, formatTrackArtists, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (Style, absolute, alignItems, auto, backgroundColor, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, row, sticky, textAlign, textOverflow, top, whiteSpace, width)
@@ -222,13 +222,13 @@ albumView album =
         ]
         [ div [ css [ displayFlex, alignItems end ] ]
             [ picture [ css [ displayFlex, alignItems center, justifyContent center ] ]
-                [ img [ css [ property "aspect-ratio" "1/1", width (px 192) ], src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt album.id ++ "/image") ] []
+                [ img [ css [ property "aspect-ratio" "1/1", width (px 192) ], src (albumImageUrl album) ] []
                 , button [ css [ position absolute, padding (px 10) ], onClick (PlayAlbum (List.map (mapAlbumTrackToTrack album) album.tracks)) ] [ text "Play" ]
                 ]
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
                 [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
                 , div [ css [ displayFlex, flexDirection row, property "gap" "10px" ] ]
-                    [ a [ css [], href ("/artist/" ++ String.fromInt album.artist.id ++ "/" ++ album.artist.urlName) ] [ text album.artist.name ]
+                    [ a [ css [], href (artistUrl album.artist) ] [ text album.artist.name ]
                     , div [] [ text (formatReleaseDate album.released) ]
                     , div [] [ text (formatTracksDisplay album.tracks) ]
                     , div [] [ text (formatAlbumLength album.tracks) ]
@@ -354,9 +354,14 @@ formatAlbumLength tracks =
         |> durationDisplay
 
 
-albumUrl : Album -> String
-albumUrl album =
-    "/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName
+albumUrl : { r | id : Int, urlName : String } -> String
+albumUrl { id, urlName } =
+    "/album/" ++ String.fromInt id ++ "/" ++ urlName
+
+
+albumImageUrl : { r | id : Int } -> String
+albumImageUrl { id } =
+    apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt id ++ "/image"
 
 
 mapAlbumTrackToTrack : Album -> Track -> TrackInfo.Track

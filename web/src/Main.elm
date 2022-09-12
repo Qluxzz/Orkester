@@ -10,7 +10,7 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
 import JSPlayer
-import Page.Album as AlbumPage exposing (albumUrl, formatTrackArtists)
+import Page.Album as AlbumPage exposing (albumImageUrl, albumUrl, formatTrackArtists)
 import Page.Artist as ArtistPage exposing (artistUrl)
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
@@ -139,11 +139,11 @@ baseView model mainContent =
                     Just { track } ->
                         a
                             [ css [ displayFlex ]
-                            , href ("/album/" ++ String.fromInt track.album.id ++ "/" ++ track.album.urlName)
+                            , href (albumUrl track.album)
                             ]
                             [ img
                                 [ css [ width (pct 100) ]
-                                , src (apiBaseUrl ++ "/api/v1/album/" ++ String.fromInt track.album.id ++ "/image")
+                                , src (albumImageUrl track.album)
                                 ]
                                 []
                             ]
@@ -328,7 +328,7 @@ currentlyPlayingView { title, album, artists } =
             , h2 []
                 (formatTrackArtists artists
                     ++ [ span [] [ text " - " ]
-                       , a [ href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ] [ text album.name ]
+                       , a [ href (albumUrl album) ] [ text album.name ]
                        ]
                 )
             ]
