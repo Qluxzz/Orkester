@@ -2,7 +2,7 @@ module Page.Search exposing (Model, Msg(..), init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
 import Browser.Dom
-import Css exposing (auto, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, marginTop, maxWidth, none, overflow, padding, paddingLeft, paddingRight, px, textDecoration, underline)
+import Css exposing (auto, column, cursor, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, marginTop, maxWidth, none, overflow, padding, paddingLeft, paddingRight, pointer, px, textDecoration, underline)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
 import Html.Styled.Attributes exposing (css, href, id, type_, value)
@@ -236,15 +236,7 @@ view model =
             ]
             (case model.searchResult of
                 RemoteData.Success data ->
-                    [ let
-                        result =
-                            if List.isEmpty data.tracks then
-                                [ li [ css [ marginTop (px 10) ] ] [ text "No entry matched the phrase" ] ]
-
-                            else
-                                List.map (\t -> li [ css [ marginTop (px 10), textDecoration underline ], onClick (PlayTrack t) ] [ text t.title ]) data.tracks
-                      in
-                      div
+                    [ div
                         [ css
                             [ flexGrow (int 1)
                             , flexShrink (int 1)
@@ -264,7 +256,24 @@ view model =
                                 , margin (px 0)
                                 ]
                             ]
-                            result
+                            (if List.isEmpty data.tracks then
+                                [ li [ css [ marginTop (px 10) ] ] [ text "No entry matched the phrase" ] ]
+
+                             else
+                                List.map
+                                    (\t ->
+                                        li
+                                            [ css
+                                                [ marginTop (px 10)
+                                                , textDecoration underline
+                                                , cursor pointer
+                                                ]
+                                            , onClick (PlayTrack t)
+                                            ]
+                                            [ text t.title ]
+                                    )
+                                    data.tracks
+                            )
                         ]
                     , searchResultList AlbumLink data.albums
                     , searchResultList ArtistLink data.artists
