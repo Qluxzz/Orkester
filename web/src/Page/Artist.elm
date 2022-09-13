@@ -3,6 +3,7 @@ module Page.Artist exposing (Model, Msg(..), init, update, view)
 import AlbumUrl exposing (albumImageUrl, albumUrl)
 import ApiBaseUrl exposing (apiBaseUrl)
 import Css exposing (Style, absolute, auto, backgroundColor, block, bold, column, display, displayFlex, ellipsis, flex3, flexDirection, fontWeight, height, hex, hidden, left, lineHeight, marginTop, noWrap, overflow, padding, padding4, paddingTop, pct, position, property, px, relative, textOverflow, top, whiteSpace, width)
+import CssExtensions exposing (gap)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -118,7 +119,7 @@ artistView artist =
         , div
             [ css
                 [ property "display" "grid"
-                , property "gap" "24px"
+                , gap (px 24)
                 , property "grid-template-columns" "repeat(auto-fill, minmax(256px, 1fr))"
                 , property "grid-template-rows" "1fr"
                 , overflow auto

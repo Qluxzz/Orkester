@@ -4,8 +4,9 @@ import AlbumUrl exposing (albumImageUrl, albumUrl)
 import ArtistUrl exposing (artistUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, property, px, row, sansSerif, textDecoration, transparent, underline, width)
+import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, px, row, sansSerif, textDecoration, transparent, underline, width)
 import Css.Global
+import CssExtensions exposing (gap)
 import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
@@ -123,7 +124,7 @@ baseView model mainContent =
                     , flexShrink (int 0)
                     , displayFlex
                     , flexDirection column
-                    , property "gap" "10px"
+                    , gap (px 10)
                     ]
                 ]
                 [ div
@@ -172,7 +173,7 @@ baseView model mainContent =
                     , flexShrink (int 0)
                     , displayFlex
                     , flexDirection column
-                    , property "gap" "10px"
+                    , gap (px 10)
                     ]
                 ]
                 [ queueView
@@ -259,7 +260,7 @@ pauseButton =
 
 playerView : Model -> Html Msg
 playerView model =
-    div [ css [ displayFlex, flexDirection row, property "gap" "10px" ] ]
+    div [ css [ displayFlex, flexDirection row, gap (px 10) ] ]
         (case TrackQueue.getActiveTrack model.queue of
             Just activeTrack ->
                 [ currentlyPlayingView activeTrack.track
@@ -282,8 +283,8 @@ controls { progressSlider, repeat, volume } { track, progress, state } =
                 InteractiveSlider x ->
                     x
     in
-    div [ css [ displayFlex, flexDirection row, alignItems center, flexGrow (int 1), property "gap" "10px" ] ]
-        [ div [ css [ displayFlex, property "gap" "10px" ] ]
+    div [ css [ displayFlex, flexDirection row, alignItems center, flexGrow (int 1), gap (px 10) ] ]
+        [ div [ css [ displayFlex, gap (px 10) ] ]
             [ button [ onClick PlayPrevious ] [ text "⬅️" ]
             , case state of
                 Playing ->
@@ -294,7 +295,7 @@ controls { progressSlider, repeat, volume } { track, progress, state } =
             , button [ onClick PlayNext ] [ text "➡️" ]
             , repeatButton repeat
             ]
-        , div [ css [ displayFlex, flexGrow (int 1), alignItems center, property "gap" "10px" ] ]
+        , div [ css [ displayFlex, flexGrow (int 1), alignItems center, gap (px 10) ] ]
             [ div [] [ text (durationDisplay sliderValue) ]
             , input
                 [ css [ width (pct 100) ]

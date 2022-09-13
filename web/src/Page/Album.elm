@@ -4,6 +4,7 @@ import AlbumUrl exposing (albumImageUrl)
 import ApiBaseUrl exposing (apiBaseUrl)
 import ArtistUrl exposing (artistUrl)
 import Css exposing (Style, absolute, alignItems, auto, backgroundColor, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, row, sticky, textAlign, textOverflow, top, whiteSpace, width)
+import CssExtensions exposing (gap)
 import DurationDisplay exposing (durationDisplay)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
@@ -228,7 +229,7 @@ albumView album =
                 ]
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
                 [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
-                , div [ css [ displayFlex, flexDirection row, property "gap" "10px" ] ]
+                , div [ css [ displayFlex, flexDirection row, gap (px 10) ] ]
                     [ a [ css [], href (artistUrl album.artist) ] [ text album.artist.name ]
                     , div [] [ text (formatReleaseDate album.released) ]
                     , div [] [ text (formatTracksDisplay album.tracks) ]
@@ -277,7 +278,7 @@ trackRowStyle : Style
 trackRowStyle =
     Css.batch
         [ displayFlex
-        , property "gap" "10px"
+        , gap (px 10)
         , padding (px 10)
         , nthChild "even"
             [ backgroundColor (hex "#333") ]
