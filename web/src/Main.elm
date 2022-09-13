@@ -15,12 +15,13 @@ import Page.Album as AlbumPage exposing (formatTrackArtists)
 import Page.Artist as ArtistPage
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
-import Queue exposing (ActiveTrack, Queue, Repeat(..), State(..))
+import Queue
 import QueueView exposing (queueView)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import String exposing (toInt)
 import TrackInfo exposing (Track)
+import TrackQueue exposing (ActiveTrack, Repeat(..), State(..), TrackQueue)
 import Url exposing (Url)
 
 
@@ -97,7 +98,7 @@ globalStyle =
 
 view : Model -> Document Msg
 view model =
-    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page (Queue.getCurrent model.queue))
+    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page (TrackQueue.getActiveTrack model.queue))
     , body = [ baseView model (currentView model.page) |> toUnstyled ]
     }
 
@@ -136,7 +137,7 @@ baseView model mainContent =
                     [ a [ href "/liked-tracks" ] [ text "Liked Tracks" ]
                     , a [ href "/search" ] [ text "Search" ]
                     ]
-                , case Queue.getCurrent model.queue of
+                , case TrackQueue.getActiveTrack model.queue of
                     Just { track } ->
                         a
                             [ css [ displayFlex ]
@@ -259,7 +260,7 @@ pauseButton =
 playerView : Model -> Html Msg
 playerView model =
     div [ css [ displayFlex, flexDirection row, property "gap" "10px" ] ]
-        (case Queue.getCurrent model.queue of
+        (case TrackQueue.getActiveTrack model.queue of
             Just activeTrack ->
                 [ currentlyPlayingView activeTrack.track
                 , controls model activeTrack
@@ -372,7 +373,7 @@ type alias Model =
     , page : Page
     , navKey : Nav.Key
     , progressSlider : Slider
-    , queue : Queue Track ActiveTrack
+    , queue : TrackQueue
     , repeat : Repeat
     , volume : Int
     }
@@ -512,7 +513,7 @@ update msg model =
                 AlbumPage.PlayTrack track ->
                     let
                         updatedQueue =
-                            Queue.replaceQueue [ track ] model.queue
+                            TrackQueue.replaceQueue [ track ] model.queue
                     in
                     ( { model
                         | page = AlbumPage updatedPageModel
@@ -524,10 +525,10 @@ update msg model =
                 AlbumPage.PlayAlbum tracks ->
                     let
                         updatedQueue =
-                            Queue.replaceQueue tracks model.queue
+                            TrackQueue.replaceQueue tracks model.queue
 
                         track =
-                            Queue.getCurrent updatedQueue
+                            TrackQueue.getActiveTrack updatedQueue
                     in
                     ( { model
                         | page = AlbumPage updatedPageModel
@@ -600,7 +601,7 @@ update msg model =
                 SearchPage.PlayTrack track ->
                     let
                         updatedQueue =
-                            Queue.replaceQueue [ track ] model.queue
+                            TrackQueue.replaceQueue [ track ] model.queue
                     in
                     ( { model
                         | page = SearchPage updatedModel
@@ -657,7 +658,7 @@ update msg model =
                     Debug.todo ("Playback failed " ++ error)
 
                 JSPlayer.ProgressUpdated updatedProgress ->
-                    ( { model | queue = Queue.updateActiveTrackProgress model.queue updatedProgress }, Cmd.none )
+                    ( { model | queue = TrackQueue.updateActiveTrackProgress model.queue updatedProgress }, Cmd.none )
 
                 JSPlayer.Seek _ ->
                     ( model, Cmd.none )
@@ -665,15 +666,15 @@ update msg model =
                 JSPlayer.ExternalStateChange state ->
                     case state of
                         "play" ->
-                            ( { model | queue = Queue.updateActiveTrackState model.queue Playing }, Cmd.none )
+                            ( { model | queue = TrackQueue.updateActiveTrackState model.queue Playing }, Cmd.none )
 
                         "pause" ->
-                            ( { model | queue = Queue.updateActiveTrackState model.queue Paused }, Cmd.none )
+                            ( { model | queue = TrackQueue.updateActiveTrackState model.queue Paused }, Cmd.none )
 
                         "ended" ->
                             let
                                 updatedQueue =
-                                    Queue.next model.queue model.repeat
+                                    TrackQueue.next model.queue model.repeat
 
                                 cmd =
                                     (case model.repeat of
@@ -681,7 +682,7 @@ update msg model =
                                             Just (JSPlayer.play ())
 
                                         _ ->
-                                            Queue.getCurrent updatedQueue
+                                            TrackQueue.getActiveTrack updatedQueue
                                                 |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
                                     )
                                         |> Maybe.withDefault Cmd.none
@@ -740,10 +741,10 @@ playNext : Model -> ( Model, Cmd msg )
 playNext model =
     let
         updatedQueue =
-            Queue.next model.queue model.repeat
+            TrackQueue.next model.queue model.repeat
 
         cmd =
-            Queue.getCurrent updatedQueue
+            TrackQueue.getActiveTrack updatedQueue
                 |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
                 |> Maybe.withDefault (JSPlayer.pause ())
 
@@ -756,10 +757,10 @@ playPrevious : Model -> ( Model, Cmd Msg )
 playPrevious model =
     let
         updatedQueue =
-            Queue.previous model.queue
+            TrackQueue.previous model.queue
 
         current =
-            Queue.getCurrent updatedQueue
+            TrackQueue.getActiveTrack updatedQueue
 
         cmd : Cmd Msg
         cmd =
