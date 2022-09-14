@@ -4,13 +4,14 @@ import AlbumUrl exposing (albumImageUrl, albumUrl)
 import ArtistUrl exposing (artistUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, Style, alignItems, backgroundColor, border, center, color, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, px, row, sansSerif, textDecoration, transparent, underline, width)
+import Css exposing (Color, Style, alignItems, backgroundColor, border, borderRadius, center, color, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, px, row, sansSerif, textDecoration, transparent, underline, width)
 import Css.Global
 import CssExtensions exposing (gap)
 import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
+import Icon exposing (iconUrl)
 import JSPlayer
 import Page.Album as AlbumPage exposing (formatTrackArtists)
 import Page.Artist as ArtistPage
@@ -22,7 +23,7 @@ import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import String exposing (toInt)
 import TrackInfo exposing (Track)
-import TrackQueue exposing (ActiveTrack, Repeat(..), State(..), TrackQueue)
+import TrackQueue exposing (ActiveTrack, State(..), TrackQueue)
 import Url exposing (Url)
 
 
@@ -237,25 +238,34 @@ notFoundView =
     centeredView "Page was not found"
 
 
-playPauseButtonStyle : Style
-playPauseButtonStyle =
+playerButtonStyle : Style
+playerButtonStyle =
     Css.batch
-        [ width (px 50)
+        [ width (px 24)
+        , height (px 24)
+        , border (px 0)
+        , backgroundColor transparent
+        , borderRadius (pct 50)
+        , displayFlex
+        , justifyContent center
+        , alignItems center
+        , padding (px 15)
+        , hover [ backgroundColor (hex "111") ]
         ]
 
 
 playButton : Html Msg
 playButton =
     button
-        [ onClick Play, css [ playPauseButtonStyle ] ]
-        [ text "Play" ]
+        [ onClick Play, css [ playerButtonStyle ] ]
+        [ img [ src (iconUrl Icon.Play) ] [] ]
 
 
 pauseButton : Html Msg
 pauseButton =
     button
-        [ onClick Pause, css [ playPauseButtonStyle ] ]
-        [ text "Pause" ]
+        [ onClick Pause, css [ playerButtonStyle ] ]
+        [ img [ src (iconUrl Icon.Pause) ] [] ]
 
 
 playerView : Model -> Html Msg
@@ -285,14 +295,14 @@ controls { progressSlider, repeat, volume } { track, progress, state } =
     in
     div [ css [ displayFlex, flexDirection row, alignItems center, flexGrow (int 1), gap (px 10) ] ]
         [ div [ css [ displayFlex, gap (px 10) ] ]
-            [ button [ onClick PlayPrevious ] [ text "⬅️" ]
+            [ button [ css [ playerButtonStyle ], onClick PlayPrevious ] [ img [ src (iconUrl Icon.Previous) ] [] ]
             , case state of
                 Playing ->
                     pauseButton
 
                 Paused ->
                     playButton
-            , button [ onClick PlayNext ] [ text "➡️" ]
+            , button [ css [ playerButtonStyle ], onClick PlayNext ] [ img [ src (iconUrl Icon.Next) ] [] ]
             , repeatButton repeat
             ]
         , div [ css [ displayFlex, flexGrow (int 1), alignItems center, gap (px 10) ] ]
@@ -338,31 +348,27 @@ currentlyPlayingView { title, album, artists } =
         ]
 
 
-repeatButton : Repeat -> Html Msg
+repeatButton : TrackQueue.Repeat -> Html Msg
 repeatButton repeat =
     let
         styledButton : msg -> String -> Html msg
-        styledButton click tx =
+        styledButton click icon =
             button
                 [ css
-                    [ border (px 0)
-                    , padding (px 0)
-                    , backgroundColor transparent
-                    , fontSize (px 20)
-                    ]
+                    [ playerButtonStyle ]
                 , onClick click
                 ]
-                [ text tx ]
+                [ img [ src icon ] [] ]
     in
     case repeat of
-        RepeatOff ->
-            styledButton (OnRepeatChange RepeatAll) "➡️"
+        TrackQueue.RepeatOff ->
+            styledButton (OnRepeatChange TrackQueue.RepeatAll) (iconUrl Icon.RepeatOff)
 
-        RepeatAll ->
-            styledButton (OnRepeatChange RepeatOne) "🔁"
+        TrackQueue.RepeatAll ->
+            styledButton (OnRepeatChange TrackQueue.RepeatOne) (iconUrl Icon.RepeatAll)
 
-        RepeatOne ->
-            styledButton (OnRepeatChange RepeatOff) "🔂"
+        TrackQueue.RepeatOne ->
+            styledButton (OnRepeatChange TrackQueue.RepeatOff) (iconUrl Icon.RepeatOne)
 
 
 
@@ -375,7 +381,7 @@ type alias Model =
     , navKey : Nav.Key
     , progressSlider : Slider
     , queue : TrackQueue
-    , repeat : Repeat
+    , repeat : TrackQueue.Repeat
     , volume : Int
     }
 
@@ -403,7 +409,7 @@ init _ url navKey =
             , page = NotFoundPage
             , navKey = navKey
             , queue = Queue.empty
-            , repeat = RepeatOff
+            , repeat = TrackQueue.RepeatOff
             , volume = 50
             , progressSlider = NonInteractiveSlider
             }
@@ -495,7 +501,7 @@ type Msg
     | OnDragProgressSlider Int
     | OnDragProgressSliderEnd
     | OnDragVolumeSlider Int
-    | OnRepeatChange Repeat
+    | OnRepeatChange TrackQueue.Repeat
     | PlayNext
     | PlayPrevious
     | Pause
@@ -679,7 +685,7 @@ update msg model =
 
                                 cmd =
                                     (case model.repeat of
-                                        RepeatOne ->
+                                        TrackQueue.RepeatOne ->
                                             Just (JSPlayer.play ())
 
                                         _ ->
