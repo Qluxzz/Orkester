@@ -375,6 +375,11 @@ repeatButton repeat =
 -- MODEL
 
 
+type OnPrevious
+    = PlayPreviousTrack
+    | RestartCurrent
+
+
 type alias Model =
     { route : Route
     , page : Page
@@ -382,6 +387,7 @@ type alias Model =
     , progressSlider : Slider
     , queue : TrackQueue
     , repeat : TrackQueue.Repeat
+    , onPreviousBehaviour : OnPrevious
     , volume : Int
     }
 
@@ -412,6 +418,7 @@ init _ url navKey =
             , repeat = TrackQueue.RepeatOff
             , volume = 50
             , progressSlider = NonInteractiveSlider
+            , onPreviousBehaviour = RestartCurrent
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -763,6 +770,9 @@ playNext model =
 playPrevious : Model -> ( Model, Cmd Msg )
 playPrevious model =
     let
+        prev : ( Model, Cmd Msg )
+        prev =
+            let
         updatedQueue =
             TrackQueue.previous model.queue
 
@@ -775,7 +785,22 @@ playPrevious model =
                 |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
                 |> Maybe.withDefault Cmd.none
     in
-    ( { model | queue = updatedQueue }, cmd )
+            ( { model | queue = updatedQueue, onPreviousBehaviour = RestartCurrent }, cmd )
+    in
+    case model.onPreviousBehaviour of
+        PlayPreviousTrack ->
+            prev
+
+        RestartCurrent ->
+            case Queue.getCurrent model.queue |> Maybe.map (\{ progress } -> progress > 5) of
+                Just True ->
+                    prev
+
+                Just False ->
+                    ( { model | onPreviousBehaviour = PlayPreviousTrack }, JSPlayer.seek { timestamp = 0 } )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 getCurrentlyPlayingTrackInfo : Track -> String
