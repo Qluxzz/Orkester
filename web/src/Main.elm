@@ -100,7 +100,7 @@ globalStyle =
 
 view : Model -> Document Msg
 view model =
-    { title = Maybe.withDefault "Orkester" (getDocumentTitle model.page (TrackQueue.getActiveTrack model.queue))
+    { title = getDocumentTitle model.page (TrackQueue.getActiveTrack model.queue)
     , body = [ baseView model (currentView model.page) |> toUnstyled ]
     }
 
@@ -813,19 +813,19 @@ getCurrentlyPlayingTrackInfo track =
            )
 
 
-getDocumentTitle : Page -> Maybe ActiveTrack -> Maybe String
+getDocumentTitle : Page -> Maybe ActiveTrack -> String
 getDocumentTitle page maybeActiveTrack =
+    let
+        trackIsPlaying =
     maybeActiveTrack
-        |> Maybe.map
-            (\{ track, state } ->
-                if state == Playing then
-                    Just ("► " ++ getCurrentlyPlayingTrackInfo track)
+                |> Maybe.map (\{ state } -> state == Playing)
+                |> Maybe.withDefault False
+    in
+    (if trackIsPlaying then
+        Maybe.map (\{ track } -> "► " ++ getCurrentlyPlayingTrackInfo track) maybeActiveTrack
 
                 else
-                    Nothing
-            )
-        |> Maybe.withDefault
-            (case page of
+        case page of
                 ArtistPage { artist } ->
                     artist |> RemoteData.toMaybe |> Maybe.map .name
 
@@ -844,3 +844,4 @@ getDocumentTitle page maybeActiveTrack =
                 SearchPage { searchPhrase } ->
                     Just ("Search: " ++ Maybe.withDefault "" searchPhrase)
             )
+        |> Maybe.withDefault "Orkester"
