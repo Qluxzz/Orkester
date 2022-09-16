@@ -3,7 +3,7 @@ module Page.Album exposing (Model, Msg(..), formatTrackArtists, init, update, vi
 import AlbumUrl exposing (albumImageUrl)
 import ApiBaseUrl exposing (apiBaseUrl)
 import ArtistUrl exposing (artistUrl)
-import Css exposing (Style, absolute, alignItems, auto, backgroundColor, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, hex, hidden, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pointer, position, property, px, right, row, sticky, textAlign, textOverflow, top, whiteSpace, width)
+import Css exposing (Style, absolute, alignItems, auto, backgroundColor, border, borderRadius, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, height, hex, hidden, hover, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pct, pointer, position, property, px, rgba, right, row, sticky, textAlign, textOverflow, top, transparent, whiteSpace, width)
 import CssExtensions exposing (gap)
 import DurationDisplay exposing (durationDisplay)
 import ErrorMessage exposing (errorMessage)
@@ -11,6 +11,7 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
 import Http
+import Icon exposing (iconUrl)
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Like
@@ -217,6 +218,29 @@ picture =
     node "picture"
 
 
+playButton : Msg -> Html Msg
+playButton msg =
+    button
+        [ onClick msg
+        , css
+            [ width (px 48)
+            , height (px 48)
+            , border (px 0)
+            , backgroundColor transparent
+            , borderRadius (pct 50)
+            , displayFlex
+            , justifyContent center
+            , alignItems center
+            , padding (px 15)
+            , backgroundColor (rgba 0 0 0 0.8)
+            , hover [ backgroundColor (hex "333") ]
+            , cursor pointer
+            , position absolute
+            ]
+        ]
+        [ img [ src (iconUrl Icon.Play) ] [] ]
+
+
 albumView : Album -> Html Msg
 albumView album =
     section
@@ -225,7 +249,7 @@ albumView album =
         [ div [ css [ displayFlex, alignItems end ] ]
             [ picture [ css [ displayFlex, alignItems center, justifyContent center ] ]
                 [ img [ css [ property "aspect-ratio" "1/1", width (px 192) ], src (albumImageUrl album) ] []
-                , button [ css [ position absolute, padding (px 10) ], onClick (PlayAlbum (List.map (mapAlbumTrackToTrack album) album.tracks)) ] [ text "Play" ]
+                , playButton (PlayAlbum (List.map (mapAlbumTrackToTrack album) album.tracks))
                 ]
             , div [ css [ Css.paddingLeft (px 10), overflow hidden ] ]
                 [ h1 [ css [ whiteSpace noWrap, textOverflow ellipsis, overflowX hidden, overflowY auto ] ] [ text album.name ]
