@@ -4,24 +4,22 @@ import AlbumUrl exposing (albumImageUrl, albumUrl)
 import ArtistUrl exposing (artistUrl)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Css exposing (Color, Style, alignItems, backgroundColor, border, borderRadius, center, color, column, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, px, row, sansSerif, textDecoration, transparent, underline, width)
+import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, px, row, sansSerif, textDecoration, underline, width)
 import Css.Global
 import CssExtensions exposing (gap)
-import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, href, src, type_, value)
-import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
-import Icon exposing (iconUrl)
+import Html.Styled.Attributes exposing (css, href, src)
 import JSPlayer
-import Page.Album as AlbumPage exposing (formatTrackArtists)
+import Page.Album as AlbumPage
 import Page.Artist as ArtistPage
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
+import PlayerBar
 import Queue
 import QueueView exposing (queueView)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
-import String exposing (toInt)
+import String
 import TrackInfo exposing (Track)
 import TrackQueue exposing (ActiveTrack, State(..), TrackQueue)
 import Url exposing (Url)
@@ -182,7 +180,11 @@ baseView model mainContent =
                 ]
             ]
         , div [ css [ backgroundColor (hex "#333"), padding (px 10) ] ]
-            [ playerView model
+            [ Html.Styled.map (\msg -> PlayerBar msg)
+                (PlayerBar.view
+                    model.controls
+                    (TrackQueue.getActiveTrack model.queue)
+                )
             ]
         ]
 
@@ -238,139 +240,6 @@ notFoundView =
     centeredView "Page was not found"
 
 
-playerButtonStyle : Style
-playerButtonStyle =
-    Css.batch
-        [ width (px 24)
-        , height (px 24)
-        , border (px 0)
-        , backgroundColor transparent
-        , borderRadius (pct 50)
-        , displayFlex
-        , justifyContent center
-        , alignItems center
-        , padding (px 15)
-        , hover [ backgroundColor (hex "111") ]
-        ]
-
-
-playButton : Html Msg
-playButton =
-    button
-        [ onClick Play, css [ playerButtonStyle ] ]
-        [ img [ src (iconUrl Icon.Play) ] [] ]
-
-
-pauseButton : Html Msg
-pauseButton =
-    button
-        [ onClick Pause, css [ playerButtonStyle ] ]
-        [ img [ src (iconUrl Icon.Pause) ] [] ]
-
-
-playerView : Model -> Html Msg
-playerView model =
-    div [ css [ displayFlex, flexDirection row, gap (px 10) ] ]
-        (case TrackQueue.getActiveTrack model.queue of
-            Just activeTrack ->
-                [ currentlyPlayingView activeTrack.track
-                , controls model activeTrack
-                ]
-
-            _ ->
-                [ text "Nothing is playing right now" ]
-        )
-
-
-controls : Model -> ActiveTrack -> Html Msg
-controls { progressSlider, repeat, volume } { track, progress, state } =
-    let
-        sliderValue =
-            case progressSlider of
-                NonInteractiveSlider ->
-                    progress
-
-                InteractiveSlider x ->
-                    x
-    in
-    div [ css [ displayFlex, flexDirection row, alignItems center, flexGrow (int 1), gap (px 10) ] ]
-        [ div [ css [ displayFlex, gap (px 10) ] ]
-            [ button [ css [ playerButtonStyle ], onClick PlayPrevious ] [ img [ src (iconUrl Icon.Previous) ] [] ]
-            , case state of
-                Playing ->
-                    pauseButton
-
-                Paused ->
-                    playButton
-            , button [ css [ playerButtonStyle ], onClick PlayNext ] [ img [ src (iconUrl Icon.Next) ] [] ]
-            , repeatButton repeat
-            ]
-        , div [ css [ displayFlex, flexGrow (int 1), alignItems center, gap (px 10) ] ]
-            [ div [] [ text (durationDisplay sliderValue) ]
-            , input
-                [ css [ width (pct 100) ]
-                , type_ "range"
-                , Html.Styled.Attributes.min "0"
-                , Html.Styled.Attributes.max (String.fromInt track.length)
-                , value (sliderValue |> String.fromInt)
-                , onInput (\value -> OnDragProgressSlider (Maybe.withDefault 0 (value |> toInt)))
-                , onMouseUp OnDragProgressSliderEnd
-                ]
-                []
-            , div [] [ text (durationDisplay track.length) ]
-            ]
-        , div [ css [ displayFlex ] ]
-            [ input
-                [ css [ width (pct 100) ]
-                , type_ "range"
-                , Html.Styled.Attributes.min "0"
-                , Html.Styled.Attributes.max "100"
-                , value (volume |> String.fromInt)
-                , onInput (\value -> OnDragVolumeSlider (Maybe.withDefault 0 (value |> toInt)))
-                ]
-                []
-            ]
-        ]
-
-
-currentlyPlayingView : Track -> Html Msg
-currentlyPlayingView { title, album, artists } =
-    div [ css [ displayFlex, flexBasis (pct 50), flexGrow (int 0) ] ]
-        [ div [ css [ overflow hidden ] ]
-            [ h1 [] [ text title ]
-            , h2 []
-                (formatTrackArtists artists
-                    ++ [ span [] [ text " - " ]
-                       , a [ href (albumUrl album) ] [ text album.name ]
-                       ]
-                )
-            ]
-        ]
-
-
-repeatButton : TrackQueue.Repeat -> Html Msg
-repeatButton repeat =
-    let
-        styledButton : msg -> String -> Html msg
-        styledButton click icon =
-            button
-                [ css
-                    [ playerButtonStyle ]
-                , onClick click
-                ]
-                [ img [ src icon ] [] ]
-    in
-    case repeat of
-        TrackQueue.RepeatOff ->
-            styledButton (OnRepeatChange TrackQueue.RepeatAll) (iconUrl Icon.RepeatOff)
-
-        TrackQueue.RepeatAll ->
-            styledButton (OnRepeatChange TrackQueue.RepeatOne) (iconUrl Icon.RepeatAll)
-
-        TrackQueue.RepeatOne ->
-            styledButton (OnRepeatChange TrackQueue.RepeatOff) (iconUrl Icon.RepeatOne)
-
-
 
 -- MODEL
 
@@ -384,17 +253,10 @@ type alias Model =
     { route : Route
     , page : Page
     , navKey : Nav.Key
-    , progressSlider : Slider
     , queue : TrackQueue
-    , repeat : TrackQueue.Repeat
+    , controls : PlayerBar.Model
     , onPreviousBehaviour : OnPrevious
-    , volume : Int
     }
-
-
-type Slider
-    = NonInteractiveSlider
-    | InteractiveSlider Int
 
 
 type Page
@@ -415,10 +277,8 @@ init _ url navKey =
             , page = NotFoundPage
             , navKey = navKey
             , queue = Queue.empty
-            , repeat = TrackQueue.RepeatOff
-            , volume = 50
-            , progressSlider = NonInteractiveSlider
-            , onPreviousBehaviour = RestartCurrent
+            , controls = PlayerBar.init
+            , onPreviousBehaviour = PlayPreviousTrack
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -504,15 +364,7 @@ type Msg
     | UrlChanged Url
       -- JS Player
     | JSPlayer JSPlayer.Msg
-      -- Controls
-    | OnDragProgressSlider Int
-    | OnDragProgressSliderEnd
-    | OnDragVolumeSlider Int
-    | OnRepeatChange TrackQueue.Repeat
-    | PlayNext
-    | PlayPrevious
-    | Pause
-    | Play
+    | PlayerBar PlayerBar.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -688,10 +540,10 @@ update msg model =
                         "ended" ->
                             let
                                 updatedQueue =
-                                    TrackQueue.next model.queue model.repeat
+                                    TrackQueue.next model.queue model.controls.repeat
 
                                 cmd =
-                                    (case model.repeat of
+                                    (case model.controls.repeat of
                                         TrackQueue.RepeatOne ->
                                             Just (JSPlayer.play ())
 
@@ -712,39 +564,42 @@ update msg model =
                         _ ->
                             Debug.todo ("unknown state change " ++ state)
 
-        ( OnDragProgressSlider time, _ ) ->
-            ( { model | progressSlider = InteractiveSlider time }, Cmd.none )
-
-        ( OnDragProgressSliderEnd, _ ) ->
+        ( PlayerBar playerMsg, _ ) ->
             let
-                cmd : Cmd Msg
-                cmd =
-                    case model.progressSlider of
-                        InteractiveSlider time ->
-                            JSPlayer.seek { timestamp = time }
-
-                        _ ->
-                            Cmd.none
+                updatedModel =
+                    PlayerBar.update model.controls playerMsg
             in
-            ( { model | progressSlider = NonInteractiveSlider }, cmd )
+            case playerMsg of
+                PlayerBar.OnDragProgressSliderEnd ->
+                    let
+                        cmd : Cmd Msg
+                        cmd =
+                            case model.controls.progressSlider of
+                                PlayerBar.InteractiveSlider time ->
+                                    JSPlayer.seek { timestamp = time }
 
-        ( OnDragVolumeSlider volume, _ ) ->
-            ( { model | volume = volume }, JSPlayer.setVolume volume )
+                                _ ->
+                                    Cmd.none
+                    in
+                    ( { model | controls = updatedModel }, cmd )
 
-        ( OnRepeatChange repeat, _ ) ->
-            ( { model | repeat = repeat }, Cmd.none )
+                PlayerBar.OnDragVolumeSlider volume ->
+                    ( { model | controls = updatedModel }, JSPlayer.setVolume volume )
 
-        ( PlayNext, _ ) ->
-            playNext model
+                PlayerBar.PlayNext ->
+                    playNext model
 
-        ( PlayPrevious, _ ) ->
-            playPrevious model
+                PlayerBar.PlayPrevious ->
+                    playPrevious model
 
-        ( Pause, _ ) ->
-            ( model, JSPlayer.pause () )
+                PlayerBar.Pause ->
+                    ( { model | controls = updatedModel }, JSPlayer.pause () )
 
-        ( Play, _ ) ->
-            ( model, JSPlayer.play () )
+                PlayerBar.Play ->
+                    ( { model | controls = updatedModel }, JSPlayer.play () )
+
+                _ ->
+                    ( { model | controls = updatedModel }, Cmd.none )
 
 
 
@@ -755,14 +610,12 @@ playNext : Model -> ( Model, Cmd msg )
 playNext model =
     let
         updatedQueue =
-            TrackQueue.next model.queue model.repeat
+            TrackQueue.next model.queue model.controls.repeat
 
         cmd =
             TrackQueue.getActiveTrack updatedQueue
                 |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
                 |> Maybe.withDefault (JSPlayer.pause ())
-
-        -- Clear player if no new track
     in
     ( { model | queue = updatedQueue }, cmd )
 
@@ -780,18 +633,18 @@ playPrevious model =
         prev : ( Model, Cmd Msg )
         prev =
             let
-        updatedQueue =
-            TrackQueue.previous model.queue
+                updatedQueue =
+                    TrackQueue.previous model.queue
 
-        current =
-            TrackQueue.getActiveTrack updatedQueue
+                current =
+                    TrackQueue.getActiveTrack updatedQueue
 
-        cmd : Cmd Msg
-        cmd =
-            current
-                |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
-                |> Maybe.withDefault Cmd.none
-    in
+                cmd : Cmd Msg
+                cmd =
+                    current
+                        |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
+                        |> Maybe.withDefault Cmd.none
+            in
             ( { model | queue = updatedQueue, onPreviousBehaviour = RestartCurrent }, cmd )
     in
     case model.onPreviousBehaviour of
@@ -824,31 +677,31 @@ getDocumentTitle : Page -> Maybe ActiveTrack -> String
 getDocumentTitle page maybeActiveTrack =
     let
         trackIsPlaying =
-    maybeActiveTrack
+            maybeActiveTrack
                 |> Maybe.map (\{ state } -> state == Playing)
                 |> Maybe.withDefault False
     in
     (if trackIsPlaying then
         Maybe.map (\{ track } -> "► " ++ getCurrentlyPlayingTrackInfo track) maybeActiveTrack
 
-                else
+     else
         case page of
-                ArtistPage { artist } ->
-                    artist |> RemoteData.toMaybe |> Maybe.map .name
+            ArtistPage { artist } ->
+                artist |> RemoteData.toMaybe |> Maybe.map .name
 
-                AlbumPage { album } ->
-                    album |> RemoteData.toMaybe |> Maybe.map .name
+            AlbumPage { album } ->
+                album |> RemoteData.toMaybe |> Maybe.map .name
 
-                NotFoundPage ->
-                    Just "Not Found"
+            NotFoundPage ->
+                Just "Not Found"
 
-                IndexPage ->
-                    Nothing
+            IndexPage ->
+                Nothing
 
-                LikedTracksPage _ ->
-                    Just "Liked Tracks"
+            LikedTracksPage _ ->
+                Just "Liked Tracks"
 
-                SearchPage { searchPhrase } ->
-                    Just ("Search: " ++ Maybe.withDefault "" searchPhrase)
-            )
+            SearchPage { searchPhrase } ->
+                Just ("Search: " ++ Maybe.withDefault "" searchPhrase)
+    )
         |> Maybe.withDefault "Orkester"
