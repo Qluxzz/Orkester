@@ -767,6 +767,13 @@ playNext model =
     ( { model | queue = updatedQueue }, cmd )
 
 
+{-|
+
+    Plays previous if progress on current track
+    is less than threshold, otherwise it restarts the current track
+    and if pressed again, it jumps to the previous track
+
+-}
 playPrevious : Model -> ( Model, Cmd Msg )
 playPrevious model =
     let
