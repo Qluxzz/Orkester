@@ -109,8 +109,16 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 	case ".flac":
 	case ".mp3":
 		break
-	default:
+	case ".m4a":
+	case ".ogg":
+	case ".wav":
+	case ".wave":
+	case ".aiff":
+	case ".aif":
+	case ".aifc":
 		return nil, fmt.Errorf("unsupported file extension: %s", filepath.Ext(path))
+	default:
+		return nil, nil
 	}
 
 	metaData := getTrackMetaData(path)
