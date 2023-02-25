@@ -701,7 +701,7 @@ getDocumentTitle page maybeActiveTrack =
             LikedTracksPage _ ->
                 Just "Liked Tracks"
 
-            SearchPage { searchPhrase } ->
-                Just ("Search: " ++ Maybe.withDefault "" searchPhrase)
+            SearchPage { search } ->
+                Just ("Search: " ++ search)
     )
         |> Maybe.withDefault "Orkester"

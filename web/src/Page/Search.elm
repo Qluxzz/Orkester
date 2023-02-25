@@ -10,6 +10,7 @@ import Html.Styled.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Decode exposing (Decoder, list)
 import Json.Decode.Pipeline exposing (required)
+import Process
 import RemoteData exposing (WebData)
 import Task
 import TrackInfo
@@ -45,33 +46,39 @@ type alias SearchResult =
 
 type alias Model =
     { searchResult : WebData SearchResult
-    , searchPhrase : Maybe String
+    , search : String
     }
 
 
 init : Maybe String -> ( Model, Cmd Msg )
-init phrase =
+init search =
     let
         p : String
         p =
-            Maybe.withDefault "" phrase
+            Maybe.withDefault "" search
+                |> String.replace "%20" " "
     in
     if String.isEmpty p then
         ( { searchResult = RemoteData.NotAsked
-          , searchPhrase = Nothing
+          , search = ""
           }
         , focusSearchField
         )
 
     else
-        ( { searchResult = RemoteData.Loading
-          , searchPhrase = Just p
+        ( { searchResult = RemoteData.NotAsked
+          , search = p
           }
         , Cmd.batch
-            [ getSearchResult p
+            [ debounceSearch p
             , focusSearchField
             ]
         )
+
+
+debounceSearch : String -> Cmd Msg
+debounceSearch search =
+    Process.sleep 250 |> Task.perform (\_ -> DebouncedSearch search)
 
 
 focusSearchField : Cmd Msg
@@ -174,6 +181,7 @@ searchResultDecoder =
 
 type Msg
     = UpdateSearchPhrase String
+    | DebouncedSearch String
     | SearchResultsRecieved (WebData SearchResult)
     | FocusedSearchField
     | PlayTrack TrackInfo.Track
@@ -194,15 +202,21 @@ update message model =
     case message of
         UpdateSearchPhrase phrase ->
             if String.isEmpty phrase then
-                ( { model
-                    | searchPhrase = Nothing
-                    , searchResult = RemoteData.NotAsked
-                  }
+                ( model
                 , Cmd.none
                 )
 
             else
-                ( { model | searchPhrase = Just phrase, searchResult = RemoteData.Loading }, getSearchResult phrase )
+                ( { model | search = phrase }
+                , debounceSearch phrase
+                )
+
+        DebouncedSearch search ->
+            if model.search == search then
+                ( { model | searchResult = RemoteData.Loading }, getSearchResult search )
+
+            else
+                ( model, Cmd.none )
 
         SearchResultsRecieved searchResult ->
             ( { model | searchResult = searchResult }, Cmd.none )
@@ -223,7 +237,7 @@ view model =
                 [ flexGrow (int 1)
                 ]
             , type_ "text"
-            , value (Maybe.withDefault "" model.searchPhrase)
+            , value model.search
             , onInput UpdateSearchPhrase
             , id "search-field"
             ]
