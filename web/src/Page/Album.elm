@@ -20,6 +20,7 @@ import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
 import TrackInfo
 import Unlike
+import Utilities.DelayedLoader
 
 
 type alias Album =
@@ -204,7 +205,7 @@ albumViewOrError model =
             text ""
 
         RemoteData.Loading ->
-            h3 [] [ text "Loading..." ]
+            Utilities.DelayedLoader.default (Css.ms 500)
 
         RemoteData.Success album ->
             albumView album

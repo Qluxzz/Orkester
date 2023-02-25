@@ -1,7 +1,7 @@
 module Page.LikedTracks exposing (Model, Msg, init, update, view)
 
 import ApiBaseUrl exposing (apiBaseUrl)
-import Css exposing (marginBottom, px)
+import Css exposing (marginBottom, ms, px)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
@@ -13,6 +13,7 @@ import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
 import Unlike
 import Url exposing (Protocol(..))
+import Utilities.DelayedLoader
 
 
 type alias Track =
@@ -126,7 +127,7 @@ likedTracksViewOrError model =
             text ""
 
         RemoteData.Loading ->
-            h3 [] [ text "Loading..." ]
+            Utilities.DelayedLoader.default (ms 500)
 
         RemoteData.Success tracks ->
             likedTracksView tracks

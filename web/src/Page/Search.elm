@@ -13,6 +13,7 @@ import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
 import Task
 import TrackInfo
+import Utilities.DelayedLoader
 
 
 type alias IdNameAndUrlName =
@@ -285,7 +286,7 @@ view model =
                 RemoteData.NotAsked ->
                     [ h1 [] [ text "Start typing to search..." ] ]
 
-                _ ->
-                    []
+                RemoteData.Loading ->
+                    [ Utilities.DelayedLoader.default (Css.ms 500) ]
             )
         ]

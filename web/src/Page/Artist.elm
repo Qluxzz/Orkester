@@ -12,6 +12,7 @@ import Json.Decode as Decode exposing (Decoder, int, list, string)
 import Json.Decode.Pipeline exposing (required)
 import ReleaseDate exposing (ReleaseDate(..), releaseDateDecoder)
 import RemoteData exposing (WebData)
+import Utilities.DelayedLoader
 
 
 type alias Artist =
@@ -103,7 +104,7 @@ artistViewOrError model =
             text ""
 
         RemoteData.Loading ->
-            h3 [] [ text "Loading..." ]
+            Utilities.DelayedLoader.default (Css.ms 500)
 
         RemoteData.Success artist ->
             artistView artist
