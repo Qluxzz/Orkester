@@ -14,15 +14,6 @@
             }
         },
         {
-            "label": "watch react client",
-            "type": "shell",
-            "command": "cd web/react && npm install && npm start",
-            "problemMatcher": [],
-            "presentation": {
-                "group": "watch"
-            }
-        },
-        {
             "label": "watch elm client",
             "type": "shell",
             "command": "cd web/ && elm-live src/Main.elm --pushstate -- --output=elm.js --debug",
