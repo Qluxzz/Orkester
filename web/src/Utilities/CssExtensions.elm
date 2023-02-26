@@ -1,4 +1,4 @@
-module CssExtensions exposing (..)
+module Utilities.CssExtensions exposing (..)
 
 import Css exposing (LengthOrNumber, property)
 

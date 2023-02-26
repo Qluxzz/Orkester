@@ -6,7 +6,6 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, px, row, sansSerif, textDecoration, underline, width)
 import Css.Global
-import CssExtensions exposing (gap)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import JSPlayer
@@ -23,6 +22,7 @@ import String
 import TrackInfo exposing (Track)
 import TrackQueue exposing (ActiveTrack, State(..), TrackQueue)
 import Url exposing (Url)
+import Utilities.CssExtensions exposing (gap)
 
 
 

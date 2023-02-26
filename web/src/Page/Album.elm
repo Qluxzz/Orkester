@@ -4,7 +4,6 @@ import AlbumUrl exposing (albumImageUrl)
 import ApiBaseUrl exposing (apiBaseUrl)
 import ArtistUrl exposing (artistUrl)
 import Css exposing (Style, absolute, alignItems, auto, backgroundColor, border, borderRadius, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, height, hex, hidden, hover, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pct, pointer, position, property, px, rgba, right, row, sticky, textAlign, textOverflow, top, transparent, whiteSpace, width)
-import CssExtensions exposing (gap)
 import DurationDisplay exposing (durationDisplay)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
@@ -20,6 +19,7 @@ import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
 import TrackInfo
 import Unlike
+import Utilities.CssExtensions exposing (gap)
 import Utilities.DelayedLoader
 
 
