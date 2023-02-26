@@ -1,7 +1,6 @@
 module Page.Album exposing (Model, Msg(..), formatTrackArtists, init, update, view)
 
 import Css exposing (Style, absolute, alignItems, auto, backgroundColor, border, borderRadius, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, height, hex, hidden, hover, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pct, pointer, position, property, px, rgba, right, row, sticky, textAlign, textOverflow, top, transparent, whiteSpace, width)
-import DurationDisplay exposing (durationDisplay)
 import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -21,6 +20,7 @@ import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 import Utilities.ArtistUrl exposing (artistUrl)
 import Utilities.CssExtensions exposing (gap)
 import Utilities.DelayedLoader
+import Utilities.DurationDisplay exposing (durationDisplay)
 
 
 type alias Album =

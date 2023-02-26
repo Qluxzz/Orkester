@@ -1,7 +1,6 @@
 module PlayerBar exposing (..)
 
 import Css exposing (Style, alignItems, backgroundColor, border, borderRadius, center, displayFlex, flexBasis, flexDirection, flexGrow, height, hex, hidden, hover, int, justifyContent, overflow, padding, pct, px, row, transparent, width)
-import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (Html, a, button, div, h1, h2, img, input, span, text)
 import Html.Styled.Attributes exposing (href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
@@ -13,6 +12,7 @@ import TrackQueue exposing (ActiveTrack, State(..))
 import Types.TrackInfo exposing (Track)
 import Utilities.AlbumUrl exposing (albumUrl)
 import Utilities.CssExtensions exposing (gap)
+import Utilities.DurationDisplay exposing (durationDisplay)
 
 
 init : Model

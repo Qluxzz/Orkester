@@ -1,4 +1,4 @@
-module DurationDisplay exposing (durationDisplay)
+module Utilities.DurationDisplay exposing (durationDisplay)
 
 
 type alias Seconds =

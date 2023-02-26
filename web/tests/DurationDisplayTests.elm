@@ -1,8 +1,8 @@
 module DurationDisplayTests exposing (suite)
 
-import DurationDisplay exposing (durationDisplay)
 import Expect
 import Test exposing (..)
+import Utilities.DurationDisplay exposing (durationDisplay)
 
 
 type alias Seconds =
