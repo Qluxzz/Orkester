@@ -1,4 +1,4 @@
-module Queue exposing (Queue, empty, getCurrent, getFuture, getHistory, init, queueLast)
+module Types.Queue exposing (Queue, empty, getCurrent, getFuture, getHistory, init, queueLast)
 
 
 type alias Queue a b =

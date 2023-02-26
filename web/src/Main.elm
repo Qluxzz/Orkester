@@ -12,12 +12,12 @@ import Page.Artist as ArtistPage
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
 import PlayerBar
-import Queue
 import QueueView exposing (queueView)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import String
 import TrackQueue exposing (ActiveTrack, State(..), TrackQueue)
+import Types.Queue
 import Types.TrackInfo exposing (Track)
 import Url exposing (Url)
 import Utilities.AlbumUrl exposing (albumImageUrl, albumUrl)
@@ -276,7 +276,7 @@ init _ url navKey =
             { route = Route.parseUrl url
             , page = NotFoundPage
             , navKey = navKey
-            , queue = Queue.empty
+            , queue = Types.Queue.empty
             , controls = PlayerBar.init
             , onPreviousBehaviour = PlayPreviousTrack
             }
@@ -652,7 +652,7 @@ playPrevious model =
             prev
 
         RestartCurrent ->
-            case Queue.getCurrent model.queue |> Maybe.map (\{ progress } -> progress > 5) of
+            case Types.Queue.getCurrent model.queue |> Maybe.map (\{ progress } -> progress > 5) of
                 Just True ->
                     prev
 

@@ -1,6 +1,6 @@
 module TrackQueue exposing (ActiveTrack, Repeat(..), State(..), TrackQueue, getActiveTrack, init, next, previous, queueLast, queueNext, replaceQueue, updateActiveTrackProgress, updateActiveTrackState)
 
-import Queue exposing (Queue)
+import Types.Queue exposing (Queue)
 import Types.TrackInfo exposing (Track)
 
 
@@ -136,7 +136,7 @@ next ({ history, current, future } as queue) repeat =
 
 getActiveTrack : TrackQueue -> Maybe ActiveTrack
 getActiveTrack =
-    Queue.getCurrent
+    Types.Queue.getCurrent
 
 
 toTrack : ActiveTrack -> Track
@@ -176,7 +176,7 @@ queueNext entities ({ current, future } as queue) =
 -}
 queueLast : List Track -> TrackQueue -> TrackQueue
 queueLast =
-    Queue.queueLast
+    Types.Queue.queueLast
 
 
 {-| Replaces the currently queued tracks with a new list of tracks

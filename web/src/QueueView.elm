@@ -3,8 +3,8 @@ module QueueView exposing (..)
 import Css exposing (auto, bold, fontSize, fontWeight, listStyle, none, overflow, padding, px)
 import Html.Styled exposing (Html, div, li, p, text, ul)
 import Html.Styled.Attributes exposing (css)
-import Queue exposing (getFuture, getHistory)
 import TrackQueue exposing (TrackQueue, getActiveTrack)
+import Types.Queue exposing (getFuture, getHistory)
 
 
 styledList : List (Html msg) -> Html msg
