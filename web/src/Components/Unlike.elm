@@ -1,4 +1,4 @@
-module Like exposing (Msg(..), likeTrackById)
+module Components.Unlike exposing (..)
 
 import Http
 import RemoteData exposing (WebData)
@@ -7,17 +7,17 @@ import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 
 
 type Msg
-    = LikeTrackResponse TrackId (WebData ())
+    = UnlikeTrackResponse TrackId (WebData ())
 
 
-likeTrackById : TrackId -> Cmd Msg
-likeTrackById trackId =
+unlikeTrackById : TrackId -> Cmd Msg
+unlikeTrackById trackId =
     Http.request
-        { method = "PUT"
+        { method = "DELETE"
         , headers = []
         , url = apiBaseUrl ++ "/api/v1/track/" ++ String.fromInt trackId ++ "/like"
         , body = Http.emptyBody
-        , expect = Http.expectWhatever (RemoteData.fromResult >> LikeTrackResponse trackId)
+        , expect = Http.expectWhatever (RemoteData.fromResult >> UnlikeTrackResponse trackId)
         , timeout = Nothing
         , tracker = Nothing
         }

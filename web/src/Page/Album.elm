@@ -1,5 +1,7 @@
 module Page.Album exposing (Model, Msg(..), formatTrackArtists, init, update, view)
 
+import Components.Like as Like
+import Components.Unlike as Unlike
 import Css exposing (Style, absolute, alignItems, auto, backgroundColor, border, borderRadius, center, column, cursor, displayFlex, ellipsis, end, flexDirection, flexGrow, flexShrink, height, hex, hidden, hover, int, justifyContent, marginTop, noWrap, nthChild, overflow, overflowX, overflowY, padding, pct, pointer, position, property, px, rgba, right, row, sticky, textAlign, textOverflow, top, transparent, whiteSpace, width)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
@@ -7,12 +9,10 @@ import Html.Styled.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
-import Like
 import RemoteData exposing (WebData)
 import Types.ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
 import Types.TrackId exposing (TrackId)
 import Types.TrackInfo
-import Unlike
 import Utilities.AlbumUrl exposing (albumImageUrl)
 import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 import Utilities.ArtistUrl exposing (artistUrl)
