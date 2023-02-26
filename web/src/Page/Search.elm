@@ -86,75 +86,6 @@ focusSearchField =
     Task.attempt (\_ -> FocusedSearchField) (Browser.Dom.focus "search-field")
 
 
-searchResultList : Type -> List { a | id : Int, name : String, urlName : String } -> Html Msg
-searchResultList type_ entries =
-    let
-        result =
-            if List.isEmpty entries then
-                [ li [ css [ marginTop (px 10) ] ] [ text "No entry matched the phrase" ] ]
-
-            else
-                List.map (searchResultEntry type_) entries
-    in
-    div
-        [ css
-            [ flexGrow (int 1)
-            , flexShrink (int 1)
-            , flexBasis (px 0)
-            , maxWidth (px 300)
-            , paddingLeft (px 5)
-            , paddingRight (px 5)
-            ]
-        ]
-        [ h1 []
-            [ text
-                (case type_ of
-                    AlbumLink ->
-                        "Albums"
-
-                    ArtistLink ->
-                        "Artists"
-                )
-            ]
-        , ul
-            [ css
-                [ listStyle none
-                , padding (px 0)
-                , margin (px 0)
-                ]
-            ]
-            result
-        ]
-
-
-searchResultEntry : Type -> { a | id : Int, name : String, urlName : String } -> Html Msg
-searchResultEntry type_ entry =
-    let
-        linkType : String
-        linkType =
-            case type_ of
-                ArtistLink ->
-                    "artist"
-
-                AlbumLink ->
-                    "album"
-
-        link : String
-        link =
-            "/"
-                ++ linkType
-                ++ "/"
-                ++ String.fromInt entry.id
-                ++ "/"
-                ++ entry.urlName
-    in
-    li [ css [ marginTop (px 10), textDecoration underline ] ]
-        [ a
-            [ href link ]
-            [ text entry.name ]
-        ]
-
-
 albumDecoder : Decoder Album
 albumDecoder =
     Decode.succeed IdNameAndUrlName
@@ -303,4 +234,73 @@ view model =
                 RemoteData.Loading ->
                     [ Utilities.DelayedLoader.default (Css.ms 500) ]
             )
+        ]
+
+
+searchResultList : Type -> List { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultList type_ entries =
+    let
+        result =
+            if List.isEmpty entries then
+                [ li [ css [ marginTop (px 10) ] ] [ text "No entry matched the phrase" ] ]
+
+            else
+                List.map (searchResultEntry type_) entries
+    in
+    div
+        [ css
+            [ flexGrow (int 1)
+            , flexShrink (int 1)
+            , flexBasis (px 0)
+            , maxWidth (px 300)
+            , paddingLeft (px 5)
+            , paddingRight (px 5)
+            ]
+        ]
+        [ h1 []
+            [ text
+                (case type_ of
+                    AlbumLink ->
+                        "Albums"
+
+                    ArtistLink ->
+                        "Artists"
+                )
+            ]
+        , ul
+            [ css
+                [ listStyle none
+                , padding (px 0)
+                , margin (px 0)
+                ]
+            ]
+            result
+        ]
+
+
+searchResultEntry : Type -> { a | id : Int, name : String, urlName : String } -> Html Msg
+searchResultEntry type_ entry =
+    let
+        linkType : String
+        linkType =
+            case type_ of
+                ArtistLink ->
+                    "artist"
+
+                AlbumLink ->
+                    "album"
+
+        link : String
+        link =
+            "/"
+                ++ linkType
+                ++ "/"
+                ++ String.fromInt entry.id
+                ++ "/"
+                ++ entry.urlName
+    in
+    li [ css [ marginTop (px 10), textDecoration underline ] ]
+        [ a
+            [ href link ]
+            [ text entry.name ]
         ]
