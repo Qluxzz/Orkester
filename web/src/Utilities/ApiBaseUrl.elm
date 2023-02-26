@@ -1,4 +1,4 @@
-module ApiBaseUrl exposing (apiBaseUrl)
+module Utilities.ApiBaseUrl exposing (apiBaseUrl)
 
 
 apiBaseUrl : String

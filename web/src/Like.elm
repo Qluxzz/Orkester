@@ -1,9 +1,9 @@
 module Like exposing (Msg(..), likeTrackById)
 
-import ApiBaseUrl exposing (apiBaseUrl)
 import Http
 import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
+import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 
 
 type Msg

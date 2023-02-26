@@ -1,4 +1,4 @@
-module ArtistUrl exposing (..)
+module Utilities.ArtistUrl exposing (..)
 
 
 artistUrl : { r | id : Int, urlName : String } -> String

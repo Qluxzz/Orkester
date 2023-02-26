@@ -1,9 +1,9 @@
 module Unlike exposing (..)
 
-import ApiBaseUrl exposing (apiBaseUrl)
 import Http
 import RemoteData exposing (WebData)
 import TrackId exposing (TrackId)
+import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 
 
 type Msg

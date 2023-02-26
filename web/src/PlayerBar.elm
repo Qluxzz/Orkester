@@ -1,6 +1,5 @@
 module PlayerBar exposing (..)
 
-import AlbumUrl exposing (albumUrl)
 import Css exposing (Style, alignItems, backgroundColor, border, borderRadius, center, displayFlex, flexBasis, flexDirection, flexGrow, height, hex, hidden, hover, int, justifyContent, overflow, padding, pct, px, row, transparent, width)
 import DurationDisplay exposing (durationDisplay)
 import Html.Styled exposing (Html, a, button, div, h1, h2, img, input, span, text)
@@ -12,6 +11,7 @@ import String exposing (toInt)
 import Svg.Styled.Attributes exposing (css)
 import TrackInfo exposing (Track)
 import TrackQueue exposing (ActiveTrack, State(..))
+import Utilities.AlbumUrl exposing (albumUrl)
 import Utilities.CssExtensions exposing (gap)
 
 

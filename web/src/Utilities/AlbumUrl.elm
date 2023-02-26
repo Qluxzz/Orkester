@@ -1,6 +1,6 @@
-module AlbumUrl exposing (..)
+module Utilities.AlbumUrl exposing (..)
 
-import ApiBaseUrl exposing (apiBaseUrl)
+import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 
 
 albumUrl : { r | id : Int, urlName : String } -> String

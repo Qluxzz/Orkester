@@ -1,6 +1,5 @@
 module Page.Search exposing (Model, Msg(..), init, update, view)
 
-import ApiBaseUrl exposing (apiBaseUrl)
 import Browser.Dom
 import Css exposing (auto, column, cursor, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, marginTop, maxWidth, none, overflow, padding, paddingLeft, paddingRight, pointer, px, textDecoration, underline)
 import ErrorMessage exposing (errorMessage)
@@ -14,6 +13,7 @@ import Process
 import RemoteData exposing (WebData)
 import Task
 import TrackInfo
+import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 import Utilities.DelayedLoader
 
 
