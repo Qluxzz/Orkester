@@ -1,4 +1,4 @@
-module Icon exposing (IconType(..), iconUrl)
+module Utilities.Icon exposing (IconType(..), url)
 
 
 type IconType
@@ -21,8 +21,8 @@ iconExtension =
     ".svg"
 
 
-iconUrl : IconType -> String
-iconUrl type_ =
+url : IconType -> String
+url type_ =
     iconBaseUrl
         ++ (case type_ of
                 Play ->

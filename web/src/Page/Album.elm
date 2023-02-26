@@ -5,7 +5,6 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
 import Http
-import Icon exposing (iconUrl)
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Like
@@ -21,6 +20,7 @@ import Utilities.CssExtensions exposing (gap)
 import Utilities.DelayedLoader
 import Utilities.DurationDisplay exposing (durationDisplay)
 import Utilities.ErrorMessage exposing (errorMessage)
+import Utilities.Icon as Icon
 
 
 type alias Album =
@@ -239,7 +239,7 @@ playButton msg =
             , position absolute
             ]
         ]
-        [ img [ src (iconUrl Icon.Play) ] [] ]
+        [ img [ src (Icon.url Icon.Play) ] [] ]
 
 
 albumView : Album -> Html Msg

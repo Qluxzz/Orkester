@@ -4,7 +4,6 @@ import Css exposing (Style, alignItems, backgroundColor, border, borderRadius, c
 import Html.Styled exposing (Html, a, button, div, h1, h2, img, input, span, text)
 import Html.Styled.Attributes exposing (href, src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
-import Icon exposing (IconType(..), iconUrl)
 import Page.Album exposing (Model, formatTrackArtists)
 import String exposing (toInt)
 import Svg.Styled.Attributes exposing (css)
@@ -13,6 +12,7 @@ import Types.TrackInfo exposing (Track)
 import Utilities.AlbumUrl exposing (albumUrl)
 import Utilities.CssExtensions exposing (gap)
 import Utilities.DurationDisplay exposing (durationDisplay)
+import Utilities.Icon as Icon
 
 
 init : Model
@@ -84,14 +84,14 @@ playButton : Html Msg
 playButton =
     button
         [ onClick Play, css [ playerButtonStyle ] ]
-        [ img [ src (iconUrl Icon.Play) ] [] ]
+        [ img [ src (Icon.url Icon.Play) ] [] ]
 
 
 pauseButton : Html Msg
 pauseButton =
     button
         [ onClick Pause, css [ playerButtonStyle ] ]
-        [ img [ src (iconUrl Icon.Pause) ] [] ]
+        [ img [ src (Icon.url Icon.Pause) ] [] ]
 
 
 controls : Model -> ActiveTrack -> Html Msg
@@ -107,14 +107,14 @@ controls { progressSlider, repeat, volume } { track, progress, state } =
     in
     div [ css [ displayFlex, flexDirection row, alignItems center, flexGrow (int 1), gap (px 10) ] ]
         [ div [ css [ displayFlex, gap (px 10) ] ]
-            [ button [ css [ playerButtonStyle ], onClick PlayPrevious ] [ img [ src (iconUrl Icon.Previous) ] [] ]
+            [ button [ css [ playerButtonStyle ], onClick PlayPrevious ] [ img [ src (Icon.url Icon.Previous) ] [] ]
             , case state of
                 Playing ->
                     pauseButton
 
                 Paused ->
                     playButton
-            , button [ css [ playerButtonStyle ], onClick PlayNext ] [ img [ src (iconUrl Icon.Next) ] [] ]
+            , button [ css [ playerButtonStyle ], onClick PlayNext ] [ img [ src (Icon.url Icon.Next) ] [] ]
             , repeatButton repeat
             ]
         , div [ css [ displayFlex, flexGrow (int 1), alignItems center, gap (px 10) ] ]
@@ -174,13 +174,13 @@ repeatButton repeat =
     in
     case repeat of
         TrackQueue.RepeatOff ->
-            styledButton (OnRepeatChange TrackQueue.RepeatAll) (iconUrl Icon.RepeatOff)
+            styledButton (OnRepeatChange TrackQueue.RepeatAll) (Icon.url Icon.RepeatOff)
 
         TrackQueue.RepeatAll ->
-            styledButton (OnRepeatChange TrackQueue.RepeatOne) (iconUrl Icon.RepeatAll)
+            styledButton (OnRepeatChange TrackQueue.RepeatOne) (Icon.url Icon.RepeatAll)
 
         TrackQueue.RepeatOne ->
-            styledButton (OnRepeatChange TrackQueue.RepeatOff) (iconUrl Icon.RepeatOne)
+            styledButton (OnRepeatChange TrackQueue.RepeatOff) (Icon.url Icon.RepeatOne)
 
 
 
