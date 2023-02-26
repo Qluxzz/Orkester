@@ -1,4 +1,18 @@
-module TrackQueue exposing (ActiveTrack, Repeat(..), State(..), TrackQueue, getActiveTrack, init, next, previous, queueLast, queueNext, replaceQueue, updateActiveTrackProgress, updateActiveTrackState)
+module Components.TrackQueue exposing
+    ( ActiveTrack
+    , Repeat(..)
+    , State(..)
+    , TrackQueue
+    , getActiveTrack
+    , init
+    , next
+    , previous
+    , queueLast
+    , queueNext
+    , replaceQueue
+    , updateActiveTrackProgress
+    , updateActiveTrackState
+    )
 
 import Types.Queue exposing (Queue)
 import Types.TrackInfo exposing (Track)

@@ -1,5 +1,6 @@
-module PlayerBar exposing (..)
+module Components.PlayerBar exposing (..)
 
+import Components.TrackQueue as TrackQueue
 import Css exposing (Style, alignItems, backgroundColor, border, borderRadius, center, displayFlex, flexBasis, flexDirection, flexGrow, height, hex, hidden, hover, int, justifyContent, overflow, padding, pct, px, row, transparent, width)
 import Html.Styled exposing (Html, a, button, div, h1, h2, img, input, span, text)
 import Html.Styled.Attributes exposing (href, src, type_, value)
@@ -7,7 +8,6 @@ import Html.Styled.Events exposing (onClick, onInput, onMouseUp)
 import Page.Album exposing (Model, formatTrackArtists)
 import String exposing (toInt)
 import Svg.Styled.Attributes exposing (css)
-import TrackQueue exposing (ActiveTrack, State(..))
 import Types.TrackInfo exposing (Track)
 import Utilities.AlbumUrl exposing (albumUrl)
 import Utilities.CssExtensions exposing (gap)
@@ -50,7 +50,7 @@ type Slider
 -- VIEW
 
 
-view : Model -> Maybe ActiveTrack -> Html Msg
+view : Model -> Maybe TrackQueue.ActiveTrack -> Html Msg
 view model track =
     div [ css [ displayFlex, flexDirection row, gap (px 10) ] ]
         (case track of
@@ -94,7 +94,7 @@ pauseButton =
         [ img [ src (Icon.url Icon.Pause) ] [] ]
 
 
-controls : Model -> ActiveTrack -> Html Msg
+controls : Model -> TrackQueue.ActiveTrack -> Html Msg
 controls { progressSlider, repeat, volume } { track, progress, state } =
     let
         sliderValue =
@@ -109,10 +109,10 @@ controls { progressSlider, repeat, volume } { track, progress, state } =
         [ div [ css [ displayFlex, gap (px 10) ] ]
             [ button [ css [ playerButtonStyle ], onClick PlayPrevious ] [ img [ src (Icon.url Icon.Previous) ] [] ]
             , case state of
-                Playing ->
+                TrackQueue.Playing ->
                     pauseButton
 
-                Paused ->
+                TrackQueue.Paused ->
                     playButton
             , button [ css [ playerButtonStyle ], onClick PlayNext ] [ img [ src (Icon.url Icon.Next) ] [] ]
             , repeatButton repeat

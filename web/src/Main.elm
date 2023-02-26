@@ -2,6 +2,9 @@ module Main exposing (..)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
+import Components.PlayerBar as PlayerBar
+import Components.QueueView exposing (queueView)
+import Components.TrackQueue as TrackQueue
 import Css exposing (Color, alignItems, backgroundColor, center, color, column, displayFlex, flexDirection, flexGrow, flexShrink, fontFamily, fontSize, height, hex, hidden, hover, int, justifyContent, margin, none, overflow, padding, pct, px, row, sansSerif, textDecoration, underline, width)
 import Css.Global
 import Html.Styled exposing (..)
@@ -11,12 +14,9 @@ import Page.Album as AlbumPage
 import Page.Artist as ArtistPage
 import Page.LikedTracks as LikedTracksPage
 import Page.Search as SearchPage
-import PlayerBar
-import QueueView exposing (queueView)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import String
-import TrackQueue exposing (ActiveTrack, State(..), TrackQueue)
 import Types.Queue
 import Types.TrackInfo exposing (Track)
 import Url exposing (Url)
@@ -253,7 +253,7 @@ type alias Model =
     { route : Route
     , page : Page
     , navKey : Nav.Key
-    , queue : TrackQueue
+    , queue : TrackQueue.TrackQueue
     , controls : PlayerBar.Model
     , onPreviousBehaviour : OnPrevious
     }
@@ -532,10 +532,10 @@ update msg model =
                 JSPlayer.ExternalStateChange state ->
                     case state of
                         "play" ->
-                            ( { model | queue = TrackQueue.updateActiveTrackState model.queue Playing }, Cmd.none )
+                            ( { model | queue = TrackQueue.updateActiveTrackState model.queue TrackQueue.Playing }, Cmd.none )
 
                         "pause" ->
-                            ( { model | queue = TrackQueue.updateActiveTrackState model.queue Paused }, Cmd.none )
+                            ( { model | queue = TrackQueue.updateActiveTrackState model.queue TrackQueue.Paused }, Cmd.none )
 
                         "ended" ->
                             let
@@ -673,12 +673,12 @@ getCurrentlyPlayingTrackInfo track =
            )
 
 
-getDocumentTitle : Page -> Maybe ActiveTrack -> String
+getDocumentTitle : Page -> Maybe TrackQueue.ActiveTrack -> String
 getDocumentTitle page maybeActiveTrack =
     let
         trackIsPlaying =
             maybeActiveTrack
-                |> Maybe.map (\{ state } -> state == Playing)
+                |> Maybe.map (\{ state } -> state == TrackQueue.Playing)
                 |> Maybe.withDefault False
     in
     (if trackIsPlaying then
