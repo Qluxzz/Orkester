@@ -1,7 +1,6 @@
 module Page.Artist exposing (Model, Msg(..), init, update, view)
 
 import Css exposing (Style, absolute, auto, backgroundColor, block, bold, column, display, displayFlex, ellipsis, flex3, flexDirection, fontWeight, height, hex, hidden, left, lineHeight, marginTop, noWrap, overflow, padding, padding4, paddingTop, pct, position, property, px, relative, textOverflow, top, whiteSpace, width)
-import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
 import Http
@@ -13,6 +12,7 @@ import Utilities.AlbumUrl exposing (albumImageUrl, albumUrl)
 import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 import Utilities.CssExtensions exposing (gap)
 import Utilities.DelayedLoader
+import Utilities.ErrorMessage exposing (errorMessage)
 
 
 type alias Artist =

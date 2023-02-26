@@ -2,7 +2,6 @@ module Page.Search exposing (Model, Msg(..), init, update, view)
 
 import Browser.Dom
 import Css exposing (auto, column, cursor, displayFlex, flexBasis, flexDirection, flexGrow, flexShrink, hidden, int, listStyle, margin, marginTop, maxWidth, none, overflow, padding, paddingLeft, paddingRight, pointer, px, textDecoration, underline)
-import ErrorMessage exposing (errorMessage)
 import Html.Styled exposing (Html, a, div, h1, input, li, text, ul)
 import Html.Styled.Attributes exposing (css, href, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
@@ -15,6 +14,7 @@ import Task
 import Types.TrackInfo
 import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 import Utilities.DelayedLoader
+import Utilities.ErrorMessage exposing (errorMessage)
 
 
 type alias IdNameAndUrlName =

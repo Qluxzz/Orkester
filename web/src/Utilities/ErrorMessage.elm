@@ -1,4 +1,4 @@
-module ErrorMessage exposing (..)
+module Utilities.ErrorMessage exposing (..)
 
 import Css exposing (border3, hex, marginTop, padding, px, solid)
 import Html.Styled exposing (Html, div, h1, p, text)
