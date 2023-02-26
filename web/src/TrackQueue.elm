@@ -1,7 +1,7 @@
 module TrackQueue exposing (ActiveTrack, Repeat(..), State(..), TrackQueue, getActiveTrack, init, next, previous, queueLast, queueNext, replaceQueue, updateActiveTrackProgress, updateActiveTrackState)
 
 import Queue exposing (Queue)
-import TrackInfo exposing (Track)
+import Types.TrackInfo exposing (Track)
 
 
 type Repeat

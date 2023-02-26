@@ -9,7 +9,7 @@ import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Page.Album exposing (Msg(..))
 import RemoteData exposing (WebData)
-import TrackId exposing (TrackId)
+import Types.TrackId exposing (TrackId)
 import Unlike
 import Url exposing (Protocol(..))
 import Utilities.ApiBaseUrl exposing (apiBaseUrl)

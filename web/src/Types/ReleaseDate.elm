@@ -1,4 +1,4 @@
-module ReleaseDate exposing (ReleaseDate(..), formatReleaseDate, releaseDateDecoder)
+module Types.ReleaseDate exposing (ReleaseDate(..), formatReleaseDate, releaseDateDecoder)
 
 import Json.Decode as Decode exposing (Decoder, int, string)
 import Json.Decode.Pipeline exposing (required)

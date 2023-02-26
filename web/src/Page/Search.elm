@@ -12,7 +12,7 @@ import Json.Decode.Pipeline exposing (required)
 import Process
 import RemoteData exposing (WebData)
 import Task
-import TrackInfo
+import Types.TrackInfo
 import Utilities.ApiBaseUrl exposing (apiBaseUrl)
 import Utilities.DelayedLoader
 
@@ -40,7 +40,7 @@ type Type
 type alias SearchResult =
     { albums : List Album
     , artists : List Artist
-    , tracks : List TrackInfo.Track
+    , tracks : List Types.TrackInfo.Track
     }
 
 
@@ -176,7 +176,7 @@ searchResultDecoder =
     Decode.succeed SearchResult
         |> required "albums" (list albumDecoder)
         |> required "artists" (list artistDecoder)
-        |> required "tracks" (list TrackInfo.trackInfoDecoder)
+        |> required "tracks" (list Types.TrackInfo.trackInfoDecoder)
 
 
 type Msg
@@ -184,7 +184,7 @@ type Msg
     | DebouncedSearch String
     | SearchResultsRecieved (WebData SearchResult)
     | FocusedSearchField
-    | PlayTrack TrackInfo.Track
+    | PlayTrack Types.TrackInfo.Track
 
 
 getSearchResult : String -> Cmd Msg

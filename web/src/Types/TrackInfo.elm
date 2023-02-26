@@ -1,8 +1,8 @@
-module TrackInfo exposing (Track, trackInfoDecoder)
+module Types.TrackInfo exposing (Track, trackInfoDecoder)
 
 import Json.Decode exposing (Decoder, bool, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (required)
-import TrackId exposing (TrackId)
+import Types.TrackId exposing (TrackId)
 
 
 type alias Track =

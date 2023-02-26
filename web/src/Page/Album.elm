@@ -11,10 +11,10 @@ import Icon exposing (iconUrl)
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Like
-import ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
 import RemoteData exposing (WebData)
-import TrackId exposing (TrackId)
-import TrackInfo
+import Types.ReleaseDate exposing (ReleaseDate, formatReleaseDate, releaseDateDecoder)
+import Types.TrackId exposing (TrackId)
+import Types.TrackInfo
 import Unlike
 import Utilities.AlbumUrl exposing (albumImageUrl)
 import Utilities.ApiBaseUrl exposing (apiBaseUrl)
@@ -95,8 +95,8 @@ type Msg
     | UnlikeTrack TrackId
     | Like Like.Msg
     | Unlike Unlike.Msg
-    | PlayTrack TrackInfo.Track
-    | PlayAlbum (List TrackInfo.Track)
+    | PlayTrack Types.TrackInfo.Track
+    | PlayAlbum (List Types.TrackInfo.Track)
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -381,7 +381,7 @@ formatAlbumLength tracks =
         |> durationDisplay
 
 
-mapAlbumTrackToTrack : Album -> Track -> TrackInfo.Track
+mapAlbumTrackToTrack : Album -> Track -> Types.TrackInfo.Track
 mapAlbumTrackToTrack album track =
     { id = track.id
     , title = track.title
