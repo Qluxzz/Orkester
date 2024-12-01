@@ -1,41 +1,41 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "watch server",
-            "type": "shell",
-            "command": "reflex -r '\\.go$' -s -- go run main.go -tags sqlite_icu",
-            "problemMatcher": [],
-            "runOptions": {
-                "runOn": "folderOpen"
-            },
-            "presentation": {
-                "group": "watch"
-            }
-        },
-        {
-            "label": "watch elm client",
-            "type": "shell",
-            "command": "cd web/ && elm-live src/Main.elm --pushstate -- --output=elm.js --debug",
-            "problemMatcher": [],
-            "runOptions": {
-                "runOn": "folderOpen"
-            },
-            "presentation": {
-                "group": "watch"
-            }
-        },
-        {
-            "label": "run tests",
-            "type": "shell",
-            "command": "go test ./...",
-            "problemMatcher": []
-        },
-        {
-            "label": "build production build",
-            "type": "shell",
-            "command": "./build_production",
-            "problemMatcher": []
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "watch server",
+      "type": "shell",
+      "command": "reflex -r '\\.go$' -s -- go run main.go -tags sqlite_icu",
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "group": "watch"
+      }
+    },
+    {
+      "label": "watch elm client",
+      "type": "shell",
+      "command": "cd web/ && npx elm-live src/Main.elm --pushstate -- --output=elm.js --debug",
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "group": "watch"
+      }
+    },
+    {
+      "label": "run tests",
+      "type": "shell",
+      "command": "go test ./...",
+      "problemMatcher": []
+    },
+    {
+      "label": "build production build",
+      "type": "shell",
+      "command": "./build_production",
+      "problemMatcher": []
+    }
+  ]
 }

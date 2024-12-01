@@ -1,0 +1,19 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "npx elm-test"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "elm-format": "^0.8.7",
+    "elm-live": "^4.0.2",
+    "elm-test": "^0.19.1-revision12"
+  }
+}
