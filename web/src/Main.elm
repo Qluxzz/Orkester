@@ -29,7 +29,12 @@ import Utilities.CssExtensions exposing (gap)
 -- MAIN
 
 
-main : Program () Model Msg
+type alias Flags =
+    { volume : Maybe Int
+    }
+
+
+main : Program Flags Model Msg
 main =
     Browser.application
         { init = init
@@ -268,8 +273,8 @@ type Page
     | SearchPage SearchPage.Model
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url navKey =
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url navKey =
     let
         model : Model
         model =
@@ -277,7 +282,7 @@ init _ url navKey =
             , page = NotFoundPage
             , navKey = navKey
             , queue = Types.Queue.empty
-            , controls = PlayerBar.init
+            , controls = PlayerBar.init flags.volume
             , onPreviousBehaviour = PlayPreviousTrack
             }
     in

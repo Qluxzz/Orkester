@@ -18,11 +18,31 @@
 </body>
 
 <script type="text/javascript">
+
+	const volume = (() => {
+		const v = localStorage.getItem("volume")
+		if (v === null)
+			return null
+
+		const v1 = parseInt(v)
+
+		if (isNaN(v1))
+			return null
+
+		return v1
+	})()
+
 	const app = Elm.Main.init({
-		node: document.getElementById("app")
+		node: document.getElementById("app"),
+		flags: {
+			volume: volume
+		}
 	})
 
 	const audio = new Audio()
+	if (volume !== null) {
+		audio.volume = volume / 100
+	}
 
 	function pause() {
 		audio.pause()
@@ -55,6 +75,7 @@
 
 	app.ports.setVolume.subscribe(volume => {
 		audio.volume = volume / 100
+		localStorage.setItem("volume", volume)
 	})
 
 	app.ports.playTrack.subscribe(trackId => {

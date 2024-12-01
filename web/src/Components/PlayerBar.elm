@@ -15,11 +15,11 @@ import Utilities.DurationDisplay exposing (durationDisplay)
 import Utilities.Icon as Icon
 
 
-init : Model
-init =
+init : Maybe Int -> Model
+init volume =
     { progressSlider = NonInteractiveSlider
     , repeat = TrackQueue.RepeatOff
-    , volume = 50
+    , volume = Maybe.withDefault 100 volume
     }
 
 
