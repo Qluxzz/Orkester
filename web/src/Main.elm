@@ -260,7 +260,7 @@ type alias Model =
     , navKey : Nav.Key
     , queue : TrackQueue.TrackQueue
     , controls : PlayerBar.Model
-    , onPreviousBehaviour : OnPrevious
+    , onPreviousBehavior : OnPrevious
     }
 
 
@@ -283,7 +283,7 @@ init flags url navKey =
             , navKey = navKey
             , queue = Types.Queue.empty
             , controls = PlayerBar.init flags.volume
-            , onPreviousBehaviour = PlayPreviousTrack
+            , onPreviousBehavior = PlayPreviousTrack
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -435,7 +435,7 @@ update msg model =
                     ArtistPage.update artistMsg pageModel
             in
             case artistMsg of
-                ArtistPage.ArtistRecieved (RemoteData.Success artist) ->
+                ArtistPage.ArtistReceived (RemoteData.Success artist) ->
                     ( { model | page = ArtistPage updatedPageModel }
                     , Cmd.batch
                         [ Cmd.map ArtistPageMsg updatedCmd
@@ -650,9 +650,9 @@ playPrevious model =
                         |> Maybe.map (\{ track } -> JSPlayer.playTrack track.id)
                         |> Maybe.withDefault Cmd.none
             in
-            ( { model | queue = updatedQueue, onPreviousBehaviour = RestartCurrent }, cmd )
+            ( { model | queue = updatedQueue, onPreviousBehavior = RestartCurrent }, cmd )
     in
-    case model.onPreviousBehaviour of
+    case model.onPreviousBehavior of
         PlayPreviousTrack ->
             prev
 
@@ -662,7 +662,7 @@ playPrevious model =
                     prev
 
                 Just False ->
-                    ( { model | onPreviousBehaviour = PlayPreviousTrack }, JSPlayer.seek { timestamp = 0 } )
+                    ( { model | onPreviousBehavior = PlayPreviousTrack }, JSPlayer.seek { timestamp = 0 } )
 
                 _ ->
                     ( model, Cmd.none )

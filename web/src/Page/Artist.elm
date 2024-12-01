@@ -56,7 +56,7 @@ type alias Model =
 
 type Msg
     = FetchArtist Int
-    | ArtistRecieved (WebData Artist)
+    | ArtistReceived (WebData Artist)
 
 
 init : Int -> ( Model, Cmd Msg )
@@ -70,7 +70,7 @@ getArtist artistId =
         { url = apiBaseUrl ++ "/api/v1/artist/" ++ String.fromInt artistId
         , expect =
             artistDecoder
-                |> Http.expectJson (RemoteData.fromResult >> ArtistRecieved)
+                |> Http.expectJson (RemoteData.fromResult >> ArtistReceived)
         }
 
 
@@ -84,7 +84,7 @@ update msg model =
         FetchArtist artistId ->
             ( { model | artist = RemoteData.Loading }, getArtist artistId )
 
-        ArtistRecieved artist ->
+        ArtistReceived artist ->
             ( { model | artist = artist }, Cmd.none )
 
 

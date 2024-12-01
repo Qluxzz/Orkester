@@ -113,7 +113,7 @@ searchResultDecoder =
 type Msg
     = UpdateSearchPhrase String
     | DebouncedSearch String
-    | SearchResultsRecieved (WebData SearchResult)
+    | SearchResultsReceived (WebData SearchResult)
     | FocusedSearchField
     | PlayTrack Types.TrackInfo.Track
 
@@ -124,7 +124,7 @@ getSearchResult query =
         { url = apiBaseUrl ++ "/api/v1/search/" ++ query
         , expect =
             searchResultDecoder
-                |> Http.expectJson (RemoteData.fromResult >> SearchResultsRecieved)
+                |> Http.expectJson (RemoteData.fromResult >> SearchResultsReceived)
         }
 
 
@@ -149,7 +149,7 @@ update message model =
             else
                 ( model, Cmd.none )
 
-        SearchResultsRecieved searchResult ->
+        SearchResultsReceived searchResult ->
             ( { model | searchResult = searchResult }, Cmd.none )
 
         FocusedSearchField ->
