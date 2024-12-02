@@ -1,10 +1,10 @@
 module Page.LikedTracks exposing (Model, Msg, init, update, view)
 
+import Components.Table
 import Components.Unlike as Unlike
 import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes as HA exposing (css)
-import Html.Styled.Events as HE
 import Http
 import Json.Decode as Decode exposing (Decoder, bool, list, string)
 import Json.Decode.Pipeline
@@ -160,13 +160,38 @@ likedTracksViewOrError model =
 
 likedTracksView : List Track -> Html Msg
 likedTracksView tracks =
-    section []
+    section [ css [ displayFlex, flexDirection column, overflow hidden, gap (px 10), textOverflow ellipsis ] ]
         (h1 [ css [ marginBottom (px 20) ] ] [ text "Liked Tracks" ]
             :: (if List.length tracks == 0 then
                     [ text "You haven't liked any tracks yet!" ]
 
                 else
-                    table tracks
+                    [ Components.Table.table
+                        [ Components.Table.clickableColumn "#" (\( i, _ ) -> String.fromInt (i + 1) |> Html.Styled.text) (\( _, t ) -> PlayTrack t)
+                        , Components.Table.defaultColumn "TITLE"
+                            (\( _, t ) ->
+                                div [ css [ displayFlex, flexDirection row ] ]
+                                    [ picture [ css [ displayFlex, alignItems center, justifyContent center ] ]
+                                        [ img [ css [ property "aspect-ratio" "1/1", width (px 32) ], HA.src (albumImageUrl t.album) ] []
+                                        ]
+                                    , div [ css [ displayFlex, flexDirection column ] ]
+                                        [ div [] [ p [ css [ whiteSpace noWrap, overflow hidden, textOverflow ellipsis ] ] [ text t.title ] ]
+                                        , div [] (formatTrackArtists t.artists)
+                                        ]
+                                    ]
+                            )
+                            |> Components.Table.grow
+                            |> Components.Table.alignHeader Components.Table.Left
+                        , Components.Table.textColumn "Added" (\( _, t ) -> formatDate t.dateAdded)
+                            |> Components.Table.alignHeader Components.Table.Center
+                            |> Components.Table.alignData Components.Table.Center
+                        , Components.Table.clickableColumn "Liked" (\_ -> Html.Styled.text "Liked") (\( _, t ) -> UnlikeTrack t.id)
+                        , Components.Table.textColumn "Duration" (Tuple.second >> .length >> durationDisplay)
+                            |> Components.Table.alignHeader Components.Table.Center
+                            |> Components.Table.alignData Components.Table.Center
+                        ]
+                        (List.indexedMap Tuple.pair tracks)
+                    ]
                )
         )
 
@@ -174,85 +199,6 @@ likedTracksView tracks =
 picture : List (Attribute msg) -> List (Html msg) -> Html msg
 picture =
     node "picture"
-
-
-trackRow : Int -> Track -> Html Msg
-trackRow index track =
-    let
-        onClickLike =
-            UnlikeTrack track.id
-    in
-    div [ css [ trackRowStyle ] ]
-        [ div [ css [ trackNumberColStyle ], HE.onClick (PlayTrack track) ] [ text (String.fromInt <| index + 1) ]
-        , div [ css [ trackTitleColStyle, displayFlex, flexDirection row ] ]
-            [ picture [ css [ displayFlex, alignItems center, justifyContent center ] ]
-                [ img [ css [ property "aspect-ratio" "1/1", width (px 32) ], HA.src (albumImageUrl track.album) ] []
-                ]
-            , div [ css [ displayFlex, flexDirection column ] ]
-                [ div [] [ p [ css [ whiteSpace noWrap, overflow hidden, textOverflow ellipsis ] ] [ text track.title ] ]
-                , div [] (formatTrackArtists track.artists)
-                ]
-            ]
-        , div [ css [ trackAddedColStyle ] ] [ text (formatDate track.dateAdded) ]
-        , div [ css [ trackLikedColStyle ], HE.onClick onClickLike ] [ text "Liked" ]
-        , div [ css [ trackDurationColStyle ] ] [ text (durationDisplay track.length) ]
-        ]
-
-
-table : List Track -> List (Html Msg)
-table likedTracks =
-    tableHeaderRow "#" "TITLE" "ADDED" "LIKED" "DURATION"
-        :: List.indexedMap trackRow likedTracks
-
-
-trackNumberColStyle : Style
-trackNumberColStyle =
-    Css.batch [ width (px 30), cursor pointer, flexShrink (int 0) ]
-
-
-trackTitleColStyle : Style
-trackTitleColStyle =
-    Css.batch [ flexGrow (int 1), overflow hidden, gap (px 10), textOverflow ellipsis ]
-
-
-trackLikedColStyle : Style
-trackLikedColStyle =
-    Css.batch [ width (px 50), flexShrink (int 0) ]
-
-
-trackAddedColStyle : Style
-trackAddedColStyle =
-    Css.batch [ width (px 120), flexShrink (int 0) ]
-
-
-trackDurationColStyle : Style
-trackDurationColStyle =
-    Css.batch [ width (px 85), textAlign right, flexShrink (int 0) ]
-
-
-trackRowStyle : Style
-trackRowStyle =
-    Css.batch
-        [ displayFlex
-        , gap (px 10)
-        , padding (px 10)
-        , nthChild "even"
-            [ backgroundColor (hex "#333") ]
-        , nthChild "odd"
-            [ backgroundColor (hex "#222") ]
-        , alignItems center
-        ]
-
-
-tableHeaderRow : String -> String -> String -> String -> String -> Html msg
-tableHeaderRow col1 col2 col3 col4 col5 =
-    div [ css [ trackRowStyle, position sticky, top (px 0) ] ]
-        [ div [ css [ trackNumberColStyle ] ] [ text col1 ]
-        , div [ css [ trackTitleColStyle ] ] [ text col2 ]
-        , div [ css [ trackAddedColStyle ] ] [ text col3 ]
-        , div [ css [ trackLikedColStyle ] ] []
-        , div [ css [ trackDurationColStyle ] ] [ text col5 ]
-        ]
 
 
 formatTrackArtists : List Artist -> List (Html msg)
