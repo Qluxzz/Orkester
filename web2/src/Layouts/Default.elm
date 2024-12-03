@@ -67,10 +67,10 @@ subscriptions model =
 view : { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view { toContentMsg, model, content } =
     { title = content.title
-    , body = 
-        [ Html.aside [ Html.Attributes.class "side-bar" ] [ Html.text "Sidebar"]
+    , body =
+        [ Html.aside [ Html.Attributes.class "side-bar" ] [ Html.text "Sidebar" ]
         , Html.main_ [] content.body
-        , Html.aside [ Html.Attributes.class "queue" ] [ Html.text "Queue"]
-        , Html.div [ Html.Attributes.class "player-bar"] [ Html.text "player bar"]
+        , Html.aside [ Html.Attributes.class "queue" ] [ Html.text "Queue" ]
+        , Html.div [ Html.Attributes.class "player-bar" ] [ Html.text "player bar" ]
         ]
     }

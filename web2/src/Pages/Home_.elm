@@ -1,12 +1,12 @@
 module Pages.Home_ exposing (Model, Msg, page)
 
 import Effect exposing (Effect)
-import Route exposing (Route)
 import Html
+import Layouts
 import Page exposing (Page)
+import Route exposing (Route)
 import Shared
 import View exposing (View)
-import Layouts
 
 
 page : Shared.Model -> Route () -> Page Model Msg
@@ -23,6 +23,8 @@ page shared route =
 toLayout : Model -> Layouts.Layout Msg
 toLayout model =
     Layouts.Default {}
+
+
 
 -- INIT
 
