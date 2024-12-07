@@ -76,26 +76,22 @@ main {
     flex-direction: column;
     overflow: hidden;
 
-    >div {
+    .album-info {
         display: flex;
+        gap: 10px;
         align-items: end;
 
-        >div {
-            padding-left: 10px;
-            overflow: hidden;
 
-            h1 {
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                overflow-x: hidden;
-                overflow-y: auto;
-            }
+        h1 {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
 
-            >div {
-                display: flex;
-                flex-direction: row;
-                gap: 10px;
-            }
+        .info {
+            display: flex;
+            gap: 10px;
         }
     }
 

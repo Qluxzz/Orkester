@@ -96,13 +96,13 @@ view model =
 albumView : Api.Album.Album -> Html.Html Msg
 albumView album =
     Html.section [ Html.Attributes.class "album" ]
-        [ Html.div []
+        [ Html.div [ Html.Attributes.class "album-info"]
             [ picture []
                 [ Html.img [ Html.Attributes.src (albumImageUrl album.id) ] []
                 ]
             , Html.div []
                 [ Html.h1 [] [ Html.text album.name ]
-                , Html.div []
+                , Html.div [ Html.Attributes.class "info"]
                     [ Html.div [] [ Html.text (formatReleaseDate album.released) ]
                     , Html.div [] [ Html.text (formatTracksDisplay album.tracks) ]
                     , Html.div [] [ Html.text (formatAlbumLength album.tracks) ]
