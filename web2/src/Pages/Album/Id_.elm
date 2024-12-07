@@ -147,7 +147,7 @@ picture =
 
 albumImageUrl : Int -> String
 albumImageUrl id =
-    "http://localhost:42000/api/v1/album/" ++ String.fromInt id ++ "/image"
+    "/api/v1/album/" ++ String.fromInt id ++ "/image"
 
 
 formatTrackArtists : List Api.Album.Artist -> List (Html.Html msg)

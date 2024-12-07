@@ -259,7 +259,7 @@ toCmd options effect =
         SendApiRequest data ->
             Http.request
                 { method = "GET"
-                , url = "http://localhost:42000" ++ data.endpoint
+                , url = data.endpoint
                 , headers = []
                 , body = Http.emptyBody
                 , expect =
