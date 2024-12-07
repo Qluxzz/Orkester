@@ -1,6 +1,6 @@
-module Pages.Album.Id_ exposing (Model, Msg, page)
+module Pages.Artist.Id_ exposing (Model, Msg, page)
 
-import Api.Album
+import Api.Artist
 import Effect exposing (Effect)
 import Html
 import Layouts
@@ -13,7 +13,7 @@ import View exposing (View)
 
 
 page : Shared.Model -> Route { id : String } -> Page Model Msg
-page _ route =
+page shared route =
     Page.new
         { init = \_ -> init route.params.id
         , update = update
@@ -33,16 +33,16 @@ toLayout _ =
 
 
 type alias Model =
-    { album : RemoteData.WebData Api.Album.Album }
+    { artist : RemoteData.WebData Api.Artist.Artist }
 
 
 init : String -> ( Model, Effect Msg )
-init id =
+init artistId =
     ( Model RemoteData.Loading
     , Effect.sendApiRequest
-        { endpoint = "/api/v1/album/" ++ id
-        , decoder = Api.Album.albumDecoder
-        , onResponse = RemoteData.fromResult >> GotAlbum
+        { endpoint = "/api/v1/artist/" ++ artistId
+        , decoder = Api.Artist.artistDecoder
+        , onResponse = RemoteData.fromResult >> GotArtist
         }
     )
 
@@ -52,23 +52,21 @@ init id =
 
 
 type Msg
-    = GotAlbum (RemoteData.WebData Api.Album.Album)
+    = GotArtist (RemoteData.WebData Api.Artist.Artist)
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        GotAlbum album ->
-            case album of
+        GotArtist artist ->
+            case artist of
                 RemoteData.Success a ->
-                    ( { model | album = album }
-                    , Effect.replaceRoutePath (Path.Album_Id__Name_ { id = String.fromInt a.id, name = a.urlName })
+                    ( model
+                    , Effect.replaceRoutePath (Path.Artist_Id__Name_ { id = String.fromInt a.id, name = a.urlName })
                     )
 
                 _ ->
-                    ( { model | album = album }
-                    , Effect.none
-                    )
+                    ( model, Effect.none )
 
 
 
@@ -76,7 +74,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.none
 
 
@@ -85,7 +83,7 @@ subscriptions _ =
 
 
 view : Model -> View Msg
-view _ =
-    { title = "Pages.Album.Id_"
-    , body = [ Html.text "Loading..." ]
+view model =
+    { title = "Artist"
+    , body = [ Html.text "Loading" ]
     }

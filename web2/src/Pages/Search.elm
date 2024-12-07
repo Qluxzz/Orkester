@@ -1,15 +1,15 @@
 module Pages.Search exposing (Model, Msg, page)
 
 import Effect exposing (Effect)
-import Route exposing (Route)
 import Html
 import Html.Attributes
 import Html.Events
+import Layouts
 import Page exposing (Page)
+import Route exposing (Route)
+import Route.Path exposing (Path(..))
 import Shared
 import View exposing (View)
-import Layouts
-import Route.Path exposing (Path(..))
 
 
 page : Shared.Model -> Route () -> Page Model Msg
@@ -23,10 +23,11 @@ page shared route =
         |> Page.withLayout toLayout
 
 
-
 toLayout : Model -> Layouts.Layout Msg
 toLayout model =
     Layouts.Default {}
+
+
 
 -- INIT
 
@@ -54,7 +55,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         UpdateSearchPhrase phrase ->
-            ( model, Effect.pushRoutePath (Route.Path.Search_Query_ { query = phrase}))
+            ( model, Effect.pushRoutePath (Route.Path.Search_Query_ { query = phrase }) )
 
 
 
@@ -73,7 +74,9 @@ subscriptions model =
 view : Model -> View Msg
 view model =
     { title = "Search"
-    , body = [Html.div [ Html.Attributes.class "search-start-page"] [
-            Html.input [ Html.Attributes.type_ "text", Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field"] []
-        ]]
+    , body =
+        [ Html.div [ Html.Attributes.class "search-start-page" ]
+            [ Html.input [ Html.Attributes.type_ "text", Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field" ] []
+            ]
+        ]
     }

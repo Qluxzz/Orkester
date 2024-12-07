@@ -1,18 +1,18 @@
 module Pages.Album.Id_.Name_ exposing (Model, Msg, page)
 
-import Effect exposing (Effect)
-import Route exposing (Route)
-import Html
-import Page exposing (Page)
-import Shared
-import View exposing (View)
-import Layouts
 import Api.Album
 import Components.Table
+import Effect exposing (Effect)
+import Html
 import Html.Attributes
-import Utilities.DurationDisplay
-import Types.ReleaseDate
+import Layouts
+import Page exposing (Page)
 import RemoteData exposing (WebData)
+import Route exposing (Route)
+import Shared
+import Types.ReleaseDate
+import Utilities.DurationDisplay
+import View exposing (View)
 
 
 page : Shared.Model -> Route { id : String, name : String } -> Page Model Msg
@@ -36,7 +36,7 @@ toLayout model =
 
 
 type alias Model =
-    { album: WebData Api.Album.Album}
+    { album : WebData Api.Album.Album }
 
 
 init : String -> ( Model, Effect Msg )
@@ -83,26 +83,26 @@ subscriptions model =
 view : Model -> View Msg
 view model =
     { title = "Pages.Album.Id_.Name_"
-    , body = case model.album of
+    , body =
+        case model.album of
             RemoteData.Success album ->
                 [ albumView album ]
 
             _ ->
                 [ Html.text "Loading" ]
-        
     }
 
 
 albumView : Api.Album.Album -> Html.Html Msg
 albumView album =
     Html.section [ Html.Attributes.class "album" ]
-        [ Html.div [ Html.Attributes.class "album-info"]
+        [ Html.div [ Html.Attributes.class "album-info" ]
             [ picture []
                 [ Html.img [ Html.Attributes.src (albumImageUrl album.id) ] []
                 ]
             , Html.div []
                 [ Html.h1 [] [ Html.text album.name ]
-                , Html.div [ Html.Attributes.class "info"]
+                , Html.div [ Html.Attributes.class "info" ]
                     [ Html.div [] [ Html.text (Types.ReleaseDate.formatReleaseDate album.released) ]
                     , Html.div [] [ Html.text (formatTracksDisplay album.tracks) ]
                     , Html.div [] [ Html.text (formatAlbumLength album.tracks) ]

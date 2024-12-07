@@ -1,21 +1,21 @@
 module Pages.Search.Query_ exposing (Model, Msg, page)
 
+import Api.Album exposing (Album)
+import Api.Search
 import Effect exposing (Effect)
-import Route exposing (Route)
 import Html
 import Html.Attributes
 import Html.Events
-import Page exposing (Page)
-import Shared
-import View exposing (View)
-import RemoteData exposing (WebData)
-import Api.Album exposing (Album)
-import Api.Search
-import Url exposing (Url)
 import Http
 import Layout exposing (Layout)
 import Layouts
+import Page exposing (Page)
+import RemoteData exposing (WebData)
+import Route exposing (Route)
 import Route.Path exposing (Path(..))
+import Shared
+import Url exposing (Url)
+import View exposing (View)
 
 
 page : Shared.Model -> Route { query : String } -> Page Model Msg
@@ -28,6 +28,7 @@ page shared route =
         }
         |> Page.withLayout toLayout
 
+
 toLayout : Model -> Layouts.Layout Msg
 toLayout model =
     Layouts.Default {}
@@ -38,8 +39,8 @@ toLayout model =
 
 
 type alias Model =
-    { searchResult: WebData Api.Search.SearchResult
-    , search: String
+    { searchResult : WebData Api.Search.SearchResult
+    , search : String
     }
 
 
@@ -47,21 +48,23 @@ init : Maybe String -> ( Model, Effect Msg )
 init search =
     let
         p : String
-        p = search
-            |> Maybe.map Url.percentEncode
-            |> Maybe.withDefault ""
-    in 
-    if String.isEmpty p then 
-        ( { searchResult = RemoteData.NotAsked, search = ""}
+        p =
+            search
+                |> Maybe.map Url.percentEncode
+                |> Maybe.withDefault ""
+    in
+    if String.isEmpty p then
+        ( { searchResult = RemoteData.NotAsked, search = "" }
         , Effect.none
         )
+
     else
-        ( { searchResult = RemoteData.NotAsked, search = p}
-        , Effect.sendApiRequest {
-            endpoint = "/api/v1/search/" ++ p,
-            decoder = Api.Search.searchResultDecoder,
-            onResponse = RemoteData.fromResult >> SearchResultsReceived
-        }
+        ( { searchResult = RemoteData.NotAsked, search = p }
+        , Effect.sendApiRequest
+            { endpoint = "/api/v1/search/" ++ p
+            , decoder = Api.Search.searchResultDecoder
+            , onResponse = RemoteData.fromResult >> SearchResultsReceived
+            }
         )
 
 
@@ -78,7 +81,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         SearchResultsReceived data ->
-            ( { model | searchResult = data }, Effect.none)
+            ( { model | searchResult = data }, Effect.none )
 
         UpdateSearchPhrase phrase ->
             if String.isEmpty phrase then
@@ -88,13 +91,14 @@ update msg model =
 
             else
                 ( { model | search = phrase }
-                , Effect.batch [ Effect.sendApiRequest {
-                        endpoint = "/api/v1/search/" ++ Url.percentEncode phrase,
-                        decoder = Api.Search.searchResultDecoder,
-                        onResponse = RemoteData.fromResult >> SearchResultsReceived
-                    },
-                    Effect.replaceRoutePath (Search_Query_ { query = phrase })
-                ]
+                , Effect.batch
+                    [ Effect.sendApiRequest
+                        { endpoint = "/api/v1/search/" ++ Url.percentEncode phrase
+                        , decoder = Api.Search.searchResultDecoder
+                        , onResponse = RemoteData.fromResult >> SearchResultsReceived
+                        }
+                    , Effect.replaceRoutePath (Search_Query_ { query = phrase })
+                    ]
                 )
 
 
@@ -114,46 +118,46 @@ subscriptions model =
 view : Model -> View Msg
 view model =
     { title = "Search " ++ model.search
-    , body = [
-        Html.div [ Html.Attributes.class "search-results-page"] [
-            Html.input [ Html.Attributes.type_ "text", Html.Attributes.value model.search, Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field"] []
-        ,
-        case model.searchResult of
+    , body =
+        [ Html.div [ Html.Attributes.class "search-results-page" ]
+            [ Html.input [ Html.Attributes.type_ "text", Html.Attributes.value model.search, Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field" ] []
+            , case model.searchResult of
                 RemoteData.Success data ->
-                    Html.div [ Html.Attributes.class "search-results"] [
-                        Html.div [] [
-                            Html.h1 [] [ Html.text "Tracks" ]
-                            , Html.ul [] (
-                                if List.isEmpty data.tracks then
-                                    [ Html.li [] [ Html.text "No tracks found!"]]
-                                else
+                    Html.div [ Html.Attributes.class "search-results" ]
+                        [ Html.div []
+                            [ Html.h1 [] [ Html.text "Tracks" ]
+                            , Html.ul []
+                                (if List.isEmpty data.tracks then
+                                    [ Html.li [] [ Html.text "No tracks found!" ] ]
+
+                                 else
                                     List.map (\t -> Html.li [] [ Html.text t.title ]) data.tracks
-                            )
-                        ],
+                                )
+                            ]
+                        , Html.div []
+                            [ Html.h1 [] [ Html.text "Albums" ]
+                            , Html.ul []
+                                (if List.isEmpty data.albums then
+                                    [ Html.li [] [ Html.text "No albums found!" ] ]
 
-                        Html.div [] [
-                            Html.h1 [] [ Html.text "Albums" ]
-                            , Html.ul [] (
-                                if List.isEmpty data.albums then
-                                    [ Html.li [] [ Html.text "No albums found!"]]
-                                else
-                                    List.map (\album -> Html.li [] [ Html.a [ Html.Attributes.href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName)] [ Html.text album.name ] ]) data.albums
-                            )
-                        ],
+                                 else
+                                    List.map (\album -> Html.li [] [ Html.a [ Html.Attributes.href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ] [ Html.text album.name ] ]) data.albums
+                                )
+                            ]
+                        , Html.div []
+                            [ Html.h1 [] [ Html.text "Artists" ]
+                            , Html.ul []
+                                (if List.isEmpty data.artists then
+                                    [ Html.li [] [ Html.text "No artists found!" ] ]
 
-                        Html.div [] [
-                            Html.h1 [] [ Html.text "Artists" ]
-                            , Html.ul [] (
-                                if List.isEmpty data.artists then
-                                    [ Html.li [] [ Html.text "No artists found!"]]
-                                else
-                                    List.map (\artist -> Html.li [] [ Html.a [ Html.Attributes.href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName)] [ Html.text artist.name ] ]) data.artists
-                            )
+                                 else
+                                    List.map (\artist -> Html.li [] [ Html.a [ Html.Attributes.href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName) ] [ Html.text artist.name ] ]) data.artists
+                                )
+                            ]
                         ]
 
-                    ]
-
-                _ -> Html.text ""
+                _ ->
+                    Html.text ""
+            ]
         ]
-    ]
     }

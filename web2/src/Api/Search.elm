@@ -1,8 +1,8 @@
 module Api.Search exposing (..)
+
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import Types.TrackInfo
-
 
 
 type alias SearchResult =
@@ -11,11 +11,13 @@ type alias SearchResult =
     , tracks : List Types.TrackInfo.Track
     }
 
+
 type alias IdNameAndUrlName =
     { id : Int
     , name : String
     , urlName : String
     }
+
 
 type alias Album =
     IdNameAndUrlName

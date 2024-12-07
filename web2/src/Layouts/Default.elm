@@ -68,9 +68,9 @@ view : { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Mo
 view { toContentMsg, model, content } =
     { title = content.title
     , body =
-        [ Html.aside [ Html.Attributes.class "sidebar" ] [ 
-            Html.ul [] [ Html.li [] [ Html.a [ Html.Attributes.href "/search"] [ Html.text "Search"] ]]
-         ]
+        [ Html.aside [ Html.Attributes.class "sidebar" ]
+            [ Html.ul [] [ Html.li [] [ Html.a [ Html.Attributes.href "/search" ] [ Html.text "Search" ] ] ]
+            ]
         , Html.main_ [] content.body
         , Html.aside [ Html.Attributes.class "queue" ] [ Html.text "Queue" ]
         , Html.div [ Html.Attributes.class "player-bar" ] [ Html.text "player bar" ]
