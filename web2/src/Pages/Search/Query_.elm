@@ -21,7 +21,7 @@ import View exposing (View)
 page : Shared.Model -> Route { query : String } -> Page Model Msg
 page shared route =
     Page.new
-        { init = \_ -> init (Just route.params.query)
+        { init = \_ -> init route.params.query
         , update = update
         , subscriptions = subscriptions
         , view = view
@@ -44,24 +44,17 @@ type alias Model =
     }
 
 
-init : Maybe String -> ( Model, Effect Msg )
+init : String -> ( Model, Effect Msg )
 init search =
-    let
-        p : String
-        p =
-            search
-                |> Maybe.map Url.percentEncode
-                |> Maybe.withDefault ""
-    in
-    if String.isEmpty p then
+    if String.isEmpty search then
         ( { searchResult = RemoteData.NotAsked, search = "" }
         , Effect.none
         )
 
     else
-        ( { searchResult = RemoteData.NotAsked, search = p }
+        ( { searchResult = RemoteData.NotAsked, search = search }
         , Effect.sendApiRequest
-            { endpoint = "/api/v1/search/" ++ p
+            { endpoint = "/api/v1/search/" ++ Url.percentEncode search
             , decoder = Api.Search.searchResultDecoder
             , onResponse = RemoteData.fromResult >> SearchResultsReceived
             }
