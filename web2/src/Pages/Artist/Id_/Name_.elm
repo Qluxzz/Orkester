@@ -88,8 +88,11 @@ view model =
             , body = [ artistView a ]
             }
 
-        _ ->
+        RemoteData.Loading ->
             { title = "Loading artist...", body = [] }
+
+        _ ->
+            Debug.todo "Error handling"
 
 
 artistView : Api.Artist.Artist -> Html.Html msg
@@ -105,14 +108,13 @@ artistAlbumView album =
     Html.a
         [ Html.Attributes.href (Utilities.AlbumUrl.albumUrl album)
         ]
-        [ Html.div [ Html.Attributes.class "artist-album"] [
-            
-            Html.Extra.picture []
-            [ Html.img [ Html.Attributes.src (Utilities.AlbumUrl.albumImageUrl album) ] []
+        [ Html.div [ Html.Attributes.class "artist-album" ]
+            [ Html.Extra.picture []
+                [ Html.img [ Html.Attributes.src (Utilities.AlbumUrl.albumImageUrl album) ] []
+                ]
+            , Html.p [] [ Html.text album.name ]
+            , Html.p [] [ Html.text (releaseYear album.released) ]
             ]
-        , Html.p [] [ Html.text album.name ]
-        , Html.p [] [ Html.text (releaseYear album.released) ]
-        ]
         ]
 
 

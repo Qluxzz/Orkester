@@ -82,15 +82,17 @@ subscriptions model =
 
 view : Model -> View Msg
 view model =
-    { title = "Pages.Album.Id_.Name_"
-    , body =
-        case model.album of
-            RemoteData.Success album ->
-                [ albumView album ]
+    case model.album of
+        RemoteData.Success a ->
+            { title = a.name
+            , body = [ albumView a ]
+            }
 
-            _ ->
-                [ Html.text "Loading" ]
-    }
+        RemoteData.Loading ->
+            { title = "Loading album", body = [ Html.text "Loading..." ] }
+
+        _ ->
+            Debug.todo "Error handling"
 
 
 albumView : Api.Album.Album -> Html.Html Msg
