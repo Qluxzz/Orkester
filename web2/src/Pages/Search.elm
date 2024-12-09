@@ -39,7 +39,7 @@ type alias Model =
 init : () -> ( Model, Effect Msg )
 init () =
     ( {}
-    , Effect.none
+    , Effect.focusElement "search-field"
     )
 
 
@@ -55,6 +55,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         UpdateSearchPhrase phrase ->
+            -- Go to search result page
             ( model, Effect.pushRoutePath (Route.Path.Search_Query_ { query = phrase }) )
 
 

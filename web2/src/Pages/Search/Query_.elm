@@ -48,16 +48,19 @@ init : String -> ( Model, Effect Msg )
 init search =
     if String.isEmpty search then
         ( { searchResult = RemoteData.NotAsked, search = "" }
-        , Effect.none
+        , Effect.focusElement "search-field"
         )
 
     else
         ( { searchResult = RemoteData.NotAsked, search = search }
-        , Effect.sendApiRequest
-            { endpoint = "/api/v1/search/" ++ Url.percentEncode search
-            , decoder = Api.Search.searchResultDecoder
-            , onResponse = RemoteData.fromResult >> SearchResultsReceived
-            }
+        , Effect.batch
+            [ Effect.sendApiRequest
+                { endpoint = "/api/v1/search/" ++ Url.percentEncode search
+                , decoder = Api.Search.searchResultDecoder
+                , onResponse = RemoteData.fromResult >> SearchResultsReceived
+                }
+            , Effect.focusElement "search-field"
+            ]
         )
 
 
@@ -79,7 +82,8 @@ update msg model =
         UpdateSearchPhrase phrase ->
             if String.isEmpty phrase then
                 ( model
-                , Effect.pushRoutePath Route.Path.Search
+                , -- Go to search overview
+                  Effect.pushRoutePath Route.Path.Search
                 )
 
             else

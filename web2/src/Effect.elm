@@ -7,6 +7,7 @@ module Effect exposing
     , loadExternalUrl, back
     , map, toCmd
     , sendApiRequest
+    , focusElement
     )
 
 {-|
@@ -24,6 +25,7 @@ module Effect exposing
 
 -}
 
+import Browser.Dom
 import Browser.Navigation
 import Dict exposing (Dict)
 import Http
@@ -53,6 +55,7 @@ type Effect msg
         , decoder : Json.Decode.Decoder msg
         , onHttpError : Http.Error -> msg
         }
+    | FocusElement String Shared.Msg.Msg
 
 
 
@@ -174,6 +177,9 @@ sendApiRequest options =
         , onHttpError = onHttpError
         }
 
+focusElement : String -> Effect msg
+focusElement elementId =
+    FocusElement elementId Shared.Msg.NoOp
 
 
 -- INTERNALS
@@ -215,6 +221,9 @@ map fn effect =
                 , decoder = Json.Decode.map fn data.decoder
                 , onHttpError = \err -> fn (data.onHttpError err)
                 }
+
+        FocusElement elementId msg_ ->
+            FocusElement elementId msg_
 
 
 {-| Elm Land depends on this function to perform your effects.
@@ -276,3 +285,6 @@ toCmd options effect =
                 , timeout = Just 15000
                 , tracker = Nothing
                 }
+
+        FocusElement elementId sharedMsg ->
+            Task.attempt (\_ -> options.fromSharedMsg sharedMsg) (Browser.Dom.focus elementId)
