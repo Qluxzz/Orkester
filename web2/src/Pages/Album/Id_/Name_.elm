@@ -12,6 +12,7 @@ import Route exposing (Route)
 import Shared
 import Types.ReleaseDate
 import Types.TrackId
+import Types.TrackInfo
 import Utilities.DurationDisplay
 import View exposing (View)
 
@@ -57,7 +58,7 @@ init albumId =
 
 type Msg
     = GotAlbum (RemoteData.WebData Api.Album.Album)
-    | PlayTrack Types.TrackId.TrackId
+    | PlayTrack Types.TrackInfo.Track
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -68,8 +69,8 @@ update msg model =
             , Effect.none
             )
 
-        PlayTrack trackId ->
-            ( model, Effect.playTrack trackId )
+        PlayTrack track ->
+            ( model, Effect.playTrack track )
 
 
 
@@ -116,9 +117,9 @@ albumView album =
                     ]
                 ]
             ]
-        , Html.div [ Html.Attributes.class "track-list"]
+        , Html.div [ Html.Attributes.class "track-list" ]
             [ Components.Table.table
-                [ Components.Table.clickableColumn "#" (.trackNumber >> String.fromInt >> Html.text) (\t -> PlayTrack t.id)
+                [ Components.Table.clickableColumn "#" (.trackNumber >> String.fromInt >> Html.text) (mapAlbumTrackToTrack album >> PlayTrack)
                 , Components.Table.defaultColumn "Title"
                     (\t ->
                         Html.div []
@@ -191,3 +192,18 @@ formatAlbumLength tracks =
 artistUrl : { r | id : Int, urlName : String } -> String
 artistUrl artist =
     "/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName
+
+
+mapAlbumTrackToTrack : Api.Album.Album -> Api.Album.Track -> Types.TrackInfo.Track
+mapAlbumTrackToTrack album track =
+    { id = track.id
+    , title = track.title
+    , length = track.length
+    , liked = track.liked
+    , album =
+        { id = album.id
+        , name = album.name
+        , urlName = album.urlName
+        }
+    , artists = track.artists
+    }

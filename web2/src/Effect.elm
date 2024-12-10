@@ -36,6 +36,7 @@ import Shared.Model
 import Shared.Msg
 import Task
 import Types.TrackId
+import Types.TrackInfo
 import Url exposing (Url)
 
 
@@ -58,7 +59,7 @@ type Effect msg
         }
     | FocusElement String Shared.Msg.Msg
       -- PLAYER CONTROLS
-    | PlayTrack Types.TrackId.TrackId
+    | StartPlayback Types.TrackId.TrackId
     | RestartTrack
     | Play
     | Pause
@@ -189,9 +190,12 @@ focusElement elementId =
     FocusElement elementId Shared.Msg.NoOp
 
 
-playTrack : Types.TrackId.TrackId -> Effect msg
-playTrack trackId =
-    PlayTrack trackId
+playTrack : Types.TrackInfo.Track -> Effect msg
+playTrack track =
+    Batch
+        [ SendSharedMsg (Shared.Msg.PlayTrack track)
+        , StartPlayback track.id
+        ]
 
 
 restartTrack : Effect msg
@@ -254,8 +258,8 @@ map fn effect =
             FocusElement elementId msg_
 
         -- PLAYER CONTROLS
-        PlayTrack trackId ->
-            PlayTrack trackId
+        StartPlayback trackId ->
+            StartPlayback trackId
 
         RestartTrack ->
             RestartTrack
@@ -331,7 +335,7 @@ toCmd options effect =
             Task.attempt (\_ -> options.fromSharedMsg sharedMsg) (Browser.Dom.focus elementId)
 
         -- PLAYER CONTROLS
-        PlayTrack trackId ->
+        StartPlayback trackId ->
             JSPlayer.playTrack (Types.TrackId.toString trackId)
 
         RestartTrack ->

@@ -15,6 +15,7 @@ import Route exposing (Route)
 import Route.Path exposing (Path(..))
 import Shared
 import Types.TrackId
+import Types.TrackInfo
 import Url exposing (Url)
 import View exposing (View)
 
@@ -72,7 +73,7 @@ init search =
 type Msg
     = SearchResultsReceived (WebData Api.Search.SearchResult)
     | UpdateSearchPhrase String
-    | PlayTrack Types.TrackId.TrackId
+    | PlayTrack Types.TrackInfo.Track
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -100,8 +101,8 @@ update msg model =
                     ]
                 )
 
-        PlayTrack trackId ->
-            ( model, Effect.playTrack trackId )
+        PlayTrack track ->
+            ( model, Effect.playTrack track )
 
 
 
@@ -133,7 +134,7 @@ view model =
                                     [ Html.li [] [ Html.text "No tracks found!" ] ]
 
                                  else
-                                    List.map (\t -> Html.li [ Html.Events.onClick (PlayTrack t.id) ] [ Html.text t.title ]) data.tracks
+                                    List.map (\t -> Html.li [ Html.Events.onClick (PlayTrack t) ] [ Html.text t.title ]) data.tracks
                                 )
                             ]
                         , Html.div []

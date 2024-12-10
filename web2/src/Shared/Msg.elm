@@ -1,6 +1,7 @@
 module Shared.Msg exposing (Msg(..))
 
 import JSPlayer
+import Types.TrackInfo
 
 
 {-| Normally, this value would live in "Shared.elm"
@@ -13,3 +14,4 @@ own file, so they can be imported by `Effect.elm`
 type Msg
     = NoOp
     | JSPlayer JSPlayer.Msg
+    | PlayTrack Types.TrackInfo.Track

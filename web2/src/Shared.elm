@@ -97,13 +97,16 @@ update route msg model =
             , Effect.none
             )
 
+        Shared.Msg.PlayTrack track ->
+            ( { model | queue = TrackQueue.replaceQueue [ track ] model.queue }, Effect.none )
+
         Shared.Msg.JSPlayer msg_ ->
             case msg_ of
                 JSPlayer.PlaybackFailed error ->
                     Debug.todo ("Playback failed " ++ error)
 
-                JSPlayer.ProgressUpdated progress ->
-                    ( model, Effect.none )
+                JSPlayer.ProgressUpdated updatedProgress ->
+                    ( { model | queue = TrackQueue.updateActiveTrackProgress model.queue updatedProgress }, Effect.none )
 
                 JSPlayer.Seek _ ->
                     ( model, Effect.none )
@@ -128,7 +131,7 @@ update route msg model =
 
                                         _ ->
                                             TrackQueue.getActiveTrack updatedQueue
-                                                |> Maybe.map (\{ track } -> Effect.playTrack track.id)
+                                                |> Maybe.map (\{ track } -> Effect.playTrack track)
                                     )
                                         |> Maybe.withDefault Effect.none
                             in
@@ -167,12 +170,12 @@ playNext model =
         updatedQueue =
             TrackQueue.next model.queue model.repeat
 
-        cmd =
+        effect =
             TrackQueue.getActiveTrack updatedQueue
-                |> Maybe.map (\{ track } -> Effect.playTrack track.id)
+                |> Maybe.map (.track >> Effect.playTrack)
                 |> Maybe.withDefault Effect.pause
     in
-    ( { model | queue = updatedQueue }, cmd )
+    ( { model | queue = updatedQueue }, effect )
 
 
 {-|
@@ -194,13 +197,13 @@ playPrevious model =
                 current =
                     TrackQueue.getActiveTrack updatedQueue
 
-                cmd : Effect Msg
-                cmd =
+                effect : Effect Msg
+                effect =
                     current
-                        |> Maybe.map (\{ track } -> Effect.playTrack track.id)
+                        |> Maybe.map (.track >> Effect.playTrack)
                         |> Maybe.withDefault Effect.none
             in
-            ( { model | queue = updatedQueue, onPreviousBehavior = Shared.Model.RestartCurrent }, cmd )
+            ( { model | queue = updatedQueue, onPreviousBehavior = Shared.Model.RestartCurrent }, effect )
     in
     case model.onPreviousBehavior of
         Shared.Model.PlayPreviousTrack ->
