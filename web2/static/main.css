@@ -49,8 +49,23 @@ p {
 
 .sidebar {
     grid-area: sidebar;
-    padding: 10px;
     background-color: #444;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    ul {
+        list-style-position: inside;
+        padding: 10px;
+    }
+
+    a:has(img) {
+        display: flex;
+    }
+
+    img {
+        width: 100%;
+    }
 }
 
 main {
@@ -71,6 +86,47 @@ main {
     grid-area: player-bar;
     padding: 10px;
     background-color: #333;
+    display: flex;
+
+    .track-info {
+        display: flex;
+        flex-basis: 50%;
+        flex-grow: 0;
+        flex-direction: column;
+
+        >div {
+            display: flex;
+            overflow: hidden;
+        }
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-grow: 1;
+        gap: 10px;
+
+        .buttons {
+            display: flex;
+        }
+    }
+
+    .player-button {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background-color: transparent;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+
+        &:hover {
+            background-color: #111;
+        }
+    }
 }
 
 

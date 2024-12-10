@@ -2,6 +2,7 @@ module Shared.Msg exposing (Msg(..))
 
 import JSPlayer
 import Types.TrackInfo
+import Types.TrackQueue
 
 
 {-| Normally, this value would live in "Shared.elm"
@@ -15,3 +16,9 @@ type Msg
     = NoOp
     | JSPlayer JSPlayer.Msg
     | PlayTrack Types.TrackInfo.Track
+    | PlayPrevious
+    | PlayNext
+    | Pause
+    | Play
+    | SetRepeatMode Types.TrackQueue.Repeat
+    | SetVolume Int

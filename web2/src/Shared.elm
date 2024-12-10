@@ -35,23 +35,7 @@ decoder : Json.Decode.Decoder Flags
 decoder =
     Json.Decode.map2 Flags
         (Json.Decode.field "volume" (Json.Decode.maybe Json.Decode.int) |> Json.Decode.map (Maybe.withDefault 100))
-        (Json.Decode.field "repeat" (Json.Decode.maybe Json.Decode.string) |> Json.Decode.map repeatDecoder)
-
-
-repeatDecoder : Maybe String -> TrackQueue.Repeat
-repeatDecoder option =
-    case option of
-        Just "RepeatAll" ->
-            TrackQueue.RepeatAll
-
-        Just "RepeatOff" ->
-            TrackQueue.RepeatOff
-
-        Just "RepeatOne" ->
-            TrackQueue.RepeatOne
-
-        _ ->
-            TrackQueue.RepeatOff
+        (Json.Decode.field "repeat" (Json.Decode.maybe Json.Decode.string) |> Json.Decode.map TrackQueue.repeatDecoder)
 
 
 
@@ -67,6 +51,9 @@ init flagsResult route =
     let
         baseModel =
             { queue = TrackQueue.empty, volume = 100, repeat = TrackQueue.RepeatOff, onPreviousBehavior = Shared.Model.PlayPreviousTrack }
+
+        _ =
+            Debug.log "flags" flagsResult
     in
     ( case flagsResult of
         Ok f ->
@@ -99,6 +86,24 @@ update route msg model =
 
         Shared.Msg.PlayTrack track ->
             ( { model | queue = TrackQueue.replaceQueue [ track ] model.queue }, Effect.none )
+
+        Shared.Msg.PlayPrevious ->
+            playPrevious model
+
+        Shared.Msg.PlayNext ->
+            playNext model
+
+        Shared.Msg.Play ->
+            ( { model | queue = TrackQueue.updateActiveTrackState model.queue TrackQueue.Playing }, Effect.none )
+
+        Shared.Msg.Pause ->
+            ( { model | queue = TrackQueue.updateActiveTrackState model.queue TrackQueue.Paused }, Effect.none )
+
+        Shared.Msg.SetRepeatMode repeat ->
+            ( { model | repeat = repeat }, Effect.none )
+
+        Shared.Msg.SetVolume volume ->
+            ( { model | volume = volume }, Effect.none )
 
         Shared.Msg.JSPlayer msg_ ->
             case msg_ of

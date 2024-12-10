@@ -3,19 +3,19 @@
 // The value returned here will be passed as flags
 // into your `Shared.init` function.
 
+const volume = (() => {
+  const v = localStorage.getItem("volume")
+  if (v === null) return null
+
+  const v1 = parseInt(v)
+
+  if (isNaN(v1)) return null
+
+  return v1
+})()
+
 export const flags = ({ env }: ElmLand.FlagsArgs) => {
-  const volume = (() => {
-    const v = localStorage.getItem("volume")
-    if (v === null) return null
-
-    const v1 = parseInt(v)
-
-    if (isNaN(v1)) return null
-
-    return v1
-  })()
-
-  return { volume }
+  return { volume, repeat: localStorage.getItem("repeat") }
 }
 
 // This is called AFTER your Elm app starts up
@@ -25,6 +25,7 @@ export const flags = ({ env }: ElmLand.FlagsArgs) => {
 // messages from Elm
 export const onReady = ({ app, env }: ElmLand.OnReadyArgs) => {
   const audio = new Audio()
+  if (volume) audio.volume = volume / 100
 
   function play() {
     audio.play().then(() => app.ports?.stateChanged?.send?.("play"))
@@ -47,6 +48,11 @@ export const onReady = ({ app, env }: ElmLand.OnReadyArgs) => {
     let v = volume as number
     audio.volume = v / 100
     localStorage.setItem("volume", v.toString())
+  })
+
+  app.ports?.setRepeatMode?.subscribe?.((mode) => {
+    let m = mode as string
+    localStorage.setItem("repeat", m)
   })
 
   app.ports?.playTrack?.subscribe?.((trackId) => {
@@ -77,9 +83,9 @@ export const onReady = ({ app, env }: ElmLand.OnReadyArgs) => {
     app.ports?.stateChange?.send?.("nexttrack")
   )
 
-  app.ports?.seek?.subscribe?.((data) => {
-    let d = data as { timestamp: number }
-    audio.fastSeek(d.timestamp)
+  app.ports?.seek?.subscribe?.((timestamp) => {
+    let t = timestamp as number
+    audio.fastSeek(t)
   })
 
   app.ports?.play?.subscribe?.(play)

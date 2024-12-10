@@ -6,7 +6,7 @@ module Effect exposing
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
     , map, toCmd
-    , focusElement, pause, play, playTrack, restartTrack, sendApiRequest
+    , focusElement, pause, play, playNextTrack, playPreviousTrack, playTrack, restartTrack, seek, sendApiRequest, setRepeatMode, setVolume
     )
 
 {-|
@@ -37,6 +37,7 @@ import Shared.Msg
 import Task
 import Types.TrackId
 import Types.TrackInfo
+import Types.TrackQueue
 import Url exposing (Url)
 
 
@@ -63,6 +64,9 @@ type Effect msg
     | RestartTrack
     | Play
     | Pause
+    | Seek Int
+    | SetVolume Int
+    | SetRepeatMode Types.TrackQueue.Repeat
 
 
 
@@ -198,6 +202,14 @@ playTrack track =
         ]
 
 
+playNextTrack =
+    SendSharedMsg Shared.Msg.PlayNext
+
+
+playPreviousTrack =
+    SendSharedMsg Shared.Msg.PlayPrevious
+
+
 restartTrack : Effect msg
 restartTrack =
     RestartTrack
@@ -205,12 +217,36 @@ restartTrack =
 
 play : Effect msg
 play =
-    Play
+    Batch [ SendSharedMsg Shared.Msg.Play, Play ]
 
 
 pause : Effect msg
 pause =
-    Pause
+    Batch
+        [ SendSharedMsg Shared.Msg.Pause
+        , Pause
+        ]
+
+
+seek : Int -> Effect msg
+seek ms =
+    Seek ms
+
+
+setRepeatMode : Types.TrackQueue.Repeat -> Effect msg
+setRepeatMode repeat =
+    Batch
+        [ SendSharedMsg (Shared.Msg.SetRepeatMode repeat)
+        , SetRepeatMode repeat
+        ]
+
+
+setVolume : Int -> Effect msg
+setVolume volume =
+    Batch
+        [ SendSharedMsg (Shared.Msg.SetVolume volume)
+        , SetVolume volume
+        ]
 
 
 
@@ -269,6 +305,15 @@ map fn effect =
 
         Pause ->
             Pause
+
+        Seek ms ->
+            Seek ms
+
+        SetVolume volume ->
+            SetVolume volume
+
+        SetRepeatMode mode ->
+            SetRepeatMode mode
 
 
 {-| Elm Land depends on this function to perform your effects.
@@ -339,10 +384,19 @@ toCmd options effect =
             JSPlayer.playTrack (Types.TrackId.toString trackId)
 
         RestartTrack ->
-            JSPlayer.seek { timestamp = 0 }
+            JSPlayer.seek 0
 
         Play ->
             JSPlayer.play ()
 
         Pause ->
             JSPlayer.pause ()
+
+        Seek ms ->
+            JSPlayer.seek ms
+
+        SetVolume volume ->
+            JSPlayer.setVolume volume
+
+        SetRepeatMode mode ->
+            JSPlayer.setRepeatMode (Types.TrackQueue.toString mode)

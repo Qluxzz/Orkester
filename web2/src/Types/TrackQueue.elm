@@ -10,7 +10,9 @@ module Types.TrackQueue exposing
     , previous
     , queueLast
     , queueNext
+    , repeatDecoder
     , replaceQueue
+    , toString
     , updateActiveTrackProgress
     , updateActiveTrackState
     )
@@ -26,6 +28,35 @@ type Repeat
       -- Orkester: ?
     | RepeatOne
     | RepeatAll
+
+
+toString : Repeat -> String
+toString mode =
+    case mode of
+        RepeatOff ->
+            "off"
+
+        RepeatOne ->
+            "one"
+
+        RepeatAll ->
+            "all"
+
+
+repeatDecoder : Maybe String -> Repeat
+repeatDecoder option =
+    case option of
+        Just "all" ->
+            RepeatAll
+
+        Just "off" ->
+            RepeatOff
+
+        Just "one" ->
+            RepeatOne
+
+        _ ->
+            RepeatOff
 
 
 type State
