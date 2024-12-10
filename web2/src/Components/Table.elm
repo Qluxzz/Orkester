@@ -38,39 +38,25 @@ clickableColumn title data onClick =
 
 alignHeader : Align -> Column a msg -> Column a msg
 alignHeader alignment c =
-    { c
-        | headerStyle =
-            (case alignment of
-                Left ->
-                    Html.Attributes.style "text-align" "left"
-
-                Center ->
-                    Html.Attributes.style "text-align" "center"
-
-                Right ->
-                    Html.Attributes.style "text-align" "right"
-            )
-                :: c.headerStyle
-    }
+    { c | headerStyle = alignmentToStyle alignment :: c.headerStyle }
 
 
 alignData : Align -> Column a msg -> Column a msg
 alignData alignment c =
-    { c
-        | dataStyle =
-            (case alignment of
-                Left ->
-                    Html.Attributes.style "text-align" "left"
+    { c | dataStyle = alignmentToStyle alignment :: c.dataStyle }
 
-                Center ->
-                    Html.Attributes.style "text-align" "center"
+alignmentToStyle : Align -> Html.Attribute msg
+alignmentToStyle alignment = 
+    case alignment of
+        Left ->
+            Html.Attributes.style "text-align" "left"
 
-                Right ->
-                    Html.Attributes.style "text-align" "right"
-            )
-                :: c.dataStyle
-    }
+        Center ->
+            Html.Attributes.style "text-align" "center"
 
+        Right ->
+            Html.Attributes.style "text-align" "right"
+            
 
 grow : Column a msg -> Column a msg
 grow c =
