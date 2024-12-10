@@ -14,6 +14,7 @@ import Shared
 import Types.ReleaseDate
 import Types.TrackId
 import Types.TrackInfo
+import Utilities.ArtistUrl
 import Utilities.DurationDisplay
 import Utilities.Icon as Icon
 import View exposing (View)
@@ -118,7 +119,8 @@ albumView album =
             , Html.div []
                 [ Html.h1 [] [ Html.text album.name ]
                 , Html.div [ Html.Attributes.class "info" ]
-                    [ Html.div [] [ Html.text (Types.ReleaseDate.formatReleaseDate album.released) ]
+                    [ Html.a [ Html.Attributes.href (Utilities.ArtistUrl.artistUrl album.artist) ] [ Html.text album.artist.name ]
+                    , Html.div [] [ Html.text (Types.ReleaseDate.formatReleaseDate album.released) ]
                     , Html.div [] [ Html.text (formatTracksDisplay album.tracks) ]
                     , Html.div [] [ Html.text (formatAlbumLength album.tracks) ]
                     ]
