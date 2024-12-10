@@ -5,6 +5,7 @@ import Components.Table
 import Effect exposing (Effect)
 import Html
 import Html.Attributes
+import Html.Events
 import Layouts
 import Page exposing (Page)
 import RemoteData exposing (WebData)
@@ -14,6 +15,7 @@ import Types.ReleaseDate
 import Types.TrackId
 import Types.TrackInfo
 import Utilities.DurationDisplay
+import Utilities.Icon as Icon
 import View exposing (View)
 
 
@@ -59,6 +61,7 @@ init albumId =
 type Msg
     = GotAlbum (RemoteData.WebData Api.Album.Album)
     | PlayTrack Types.TrackInfo.Track
+    | PlayTracks (List Types.TrackInfo.Track)
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -71,6 +74,9 @@ update msg model =
 
         PlayTrack track ->
             ( model, Effect.playTrack track )
+
+        PlayTracks tracks ->
+            ( model, Effect.playTracks tracks )
 
 
 
@@ -107,6 +113,7 @@ albumView album =
         [ Html.div [ Html.Attributes.class "album-info" ]
             [ picture []
                 [ Html.img [ Html.Attributes.src (albumImageUrl album.id) ] []
+                , playButton (PlayTracks (List.map (mapAlbumTrackToTrack album) album.tracks))
                 ]
             , Html.div []
                 [ Html.h1 [] [ Html.text album.name ]
@@ -145,6 +152,13 @@ albumView album =
                 ]
                 album.tracks
             ]
+        ]
+
+
+playButton : Msg -> Html.Html Msg
+playButton msg =
+    Html.button [ Html.Events.onClick msg, Html.Attributes.class "play-button" ]
+        [ Html.img [ Html.Attributes.src (Icon.url Icon.Play) ] []
         ]
 
 

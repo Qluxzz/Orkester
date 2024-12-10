@@ -16,6 +16,7 @@ type Msg
     = NoOp
     | JSPlayer JSPlayer.Msg
     | PlayTrack Types.TrackInfo.Track
+    | PlayTracks (List Types.TrackInfo.Track)
     | PlayPrevious
     | PlayNext
     | Pause

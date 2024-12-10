@@ -6,7 +6,7 @@ module Effect exposing
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
     , map, toCmd
-    , focusElement, pause, play, playNextTrack, playPreviousTrack, playTrack, restartTrack, seek, sendApiRequest, setRepeatMode, setVolume
+    , focusElement, pause, play, playNextTrack, playPreviousTrack, playTrack, playTracks, restartTrack, seek, sendApiRequest, setRepeatMode, setVolume, startPlayback
     )
 
 {-|
@@ -194,12 +194,27 @@ focusElement elementId =
     FocusElement elementId Shared.Msg.NoOp
 
 
+startPlayback : Types.TrackId.TrackId -> Effect msg
+startPlayback id =
+    StartPlayback id
+
+
 playTrack : Types.TrackInfo.Track -> Effect msg
 playTrack track =
-    Batch
-        [ SendSharedMsg (Shared.Msg.PlayTrack track)
-        , StartPlayback track.id
-        ]
+    playTracks (List.singleton track)
+
+
+playTracks : List Types.TrackInfo.Track -> Effect msg
+playTracks tracks =
+    case List.head tracks of
+        Just t ->
+            Batch
+                [ SendSharedMsg (Shared.Msg.PlayTracks tracks)
+                , StartPlayback t.id
+                ]
+
+        Nothing ->
+            None
 
 
 playNextTrack =
@@ -222,10 +237,7 @@ play =
 
 pause : Effect msg
 pause =
-    Batch
-        [ SendSharedMsg Shared.Msg.Pause
-        , Pause
-        ]
+    Batch [ SendSharedMsg Shared.Msg.Pause, Pause ]
 
 
 seek : Int -> Effect msg

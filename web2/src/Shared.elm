@@ -87,6 +87,9 @@ update route msg model =
         Shared.Msg.PlayTrack track ->
             ( { model | queue = TrackQueue.replaceQueue [ track ] model.queue }, Effect.none )
 
+        Shared.Msg.PlayTracks tracks ->
+            ( { model | queue = TrackQueue.replaceQueue tracks model.queue }, Effect.none )
+
         Shared.Msg.PlayPrevious ->
             playPrevious model
 
@@ -136,7 +139,7 @@ update route msg model =
 
                                         _ ->
                                             TrackQueue.getActiveTrack updatedQueue
-                                                |> Maybe.map (\{ track } -> Effect.playTrack track)
+                                                |> Maybe.map (\{ track } -> Effect.startPlayback track.id)
                                     )
                                         |> Maybe.withDefault Effect.none
                             in
@@ -177,7 +180,7 @@ playNext model =
 
         effect =
             TrackQueue.getActiveTrack updatedQueue
-                |> Maybe.map (.track >> Effect.playTrack)
+                |> Maybe.map (.track >> .id >> Effect.startPlayback)
                 |> Maybe.withDefault Effect.pause
     in
     ( { model | queue = updatedQueue }, effect )
@@ -205,7 +208,7 @@ playPrevious model =
                 effect : Effect Msg
                 effect =
                     current
-                        |> Maybe.map (.track >> Effect.playTrack)
+                        |> Maybe.map (.track >> .id >> Effect.startPlayback)
                         |> Maybe.withDefault Effect.none
             in
             ( { model | queue = updatedQueue, onPreviousBehavior = Shared.Model.RestartCurrent }, effect )

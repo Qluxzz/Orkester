@@ -45,8 +45,9 @@ alignData : Align -> Column a msg -> Column a msg
 alignData alignment c =
     { c | dataStyle = alignmentToStyle alignment :: c.dataStyle }
 
+
 alignmentToStyle : Align -> Html.Attribute msg
-alignmentToStyle alignment = 
+alignmentToStyle alignment =
     case alignment of
         Left ->
             Html.Attributes.style "text-align" "left"
@@ -56,7 +57,7 @@ alignmentToStyle alignment =
 
         Right ->
             Html.Attributes.style "text-align" "right"
-            
+
 
 grow : Column a msg -> Column a msg
 grow c =
