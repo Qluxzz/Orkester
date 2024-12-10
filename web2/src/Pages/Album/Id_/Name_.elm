@@ -116,7 +116,7 @@ albumView album =
                     ]
                 ]
             ]
-        , Html.div []
+        , Html.div [ Html.Attributes.class "track-list"]
             [ Components.Table.table
                 [ Components.Table.clickableColumn "#" (.trackNumber >> String.fromInt >> Html.text) (\t -> PlayTrack t.id)
                 , Components.Table.defaultColumn "Title"

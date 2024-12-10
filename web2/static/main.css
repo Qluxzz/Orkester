@@ -58,6 +58,7 @@ main {
     padding: 10px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .queue {
@@ -97,6 +98,10 @@ main {
         }
     }
 
+    .track-list {
+        overflow: auto;
+    }
+
     picture {
         display: flex;
         align-items: center;
@@ -105,6 +110,7 @@ main {
 
     img {
         aspect-ratio: "1 / 1";
+        height: 192px;
         width: 192px;
     }
 }
@@ -171,8 +177,14 @@ table {
     width: 100%;
 }
 
-th {
-    padding: 10px;
+thead {
+    position: sticky;
+    top: 0;
+}
+
+th,
+td {
+    padding: 4px;
 }
 
 tr {
@@ -183,10 +195,6 @@ tr {
     &:nth-child(odd) {
         background-color: #222;
     }
-}
-
-td {
-    padding: 10px;
 }
 
 .title {
