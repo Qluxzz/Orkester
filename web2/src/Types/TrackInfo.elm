@@ -2,7 +2,7 @@ module Types.TrackInfo exposing (Track, trackInfoDecoder)
 
 import Json.Decode exposing (Decoder, bool, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (required)
-import Types.TrackId exposing (TrackId)
+import Types.TrackId exposing (TrackId, trackIdDecoder)
 
 
 type alias Track =
@@ -30,7 +30,7 @@ type alias Album =
 trackInfoDecoder : Decoder Track
 trackInfoDecoder =
     succeed Track
-        |> required "id" int
+        |> required "id" trackIdDecoder
         |> required "title" string
         |> required "length" int
         |> required "liked" bool

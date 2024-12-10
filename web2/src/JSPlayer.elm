@@ -15,7 +15,7 @@ type Msg
 -- OUT
 
 
-port playTrack : Int -> Cmd msg
+port playTrack : String -> Cmd msg
 
 
 port seek : { timestamp : Int } -> Cmd msg

@@ -1,12 +1,15 @@
 package models
 
 import (
+	"fmt"
 	"orkester/ent"
+	"strconv"
+	"strings"
 	"time"
 )
 
 type Track struct {
-	Id          int       `json:"id"`
+	Id          string    `json:"id"`
 	Title       string    `json:"title"`
 	TrackNumber int       `json:"trackNumber"`
 	Length      int       `json:"length"`
@@ -44,9 +47,14 @@ func FromEntTracks(dbTracks []*ent.Track) []Track {
 	return tracks
 }
 
+func FromTrackId(str string) (int, error) {
+	split := strings.Split(str, "-")
+	return strconv.Atoi(split[1])
+}
+
 func FromEntTrack(dbTrack *ent.Track) Track {
 	track := Track{
-		Id:          dbTrack.ID,
+		Id:          fmt.Sprintf("track-%d", dbTrack.ID),
 		TrackNumber: dbTrack.TrackNumber,
 		Title:       dbTrack.Title,
 		Length:      dbTrack.Length,

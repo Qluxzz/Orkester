@@ -3,6 +3,7 @@ module Api.Album exposing (..)
 import Json.Decode
 import Json.Decode.Pipeline exposing (required)
 import Types.ReleaseDate exposing (ReleaseDate, releaseDateDecoder)
+import Types.TrackId
 
 
 albumDecoder : Json.Decode.Decoder Album
@@ -19,7 +20,7 @@ albumDecoder =
 trackDecoder : Json.Decode.Decoder Track
 trackDecoder =
     Json.Decode.succeed Track
-        |> required "id" Json.Decode.int
+        |> required "id" Types.TrackId.trackIdDecoder
         |> required "trackNumber" Json.Decode.int
         |> required "title" Json.Decode.string
         |> required "length" Json.Decode.int
@@ -52,16 +53,12 @@ type alias Artist =
     }
 
 
-type alias TrackId =
-    Int
-
-
 type alias Seconds =
     Int
 
 
 type alias Track =
-    { id : TrackId
+    { id : Types.TrackId.TrackId
     , trackNumber : Int
     , title : String
     , length : Seconds

@@ -332,7 +332,7 @@ toCmd options effect =
 
         -- PLAYER CONTROLS
         PlayTrack trackId ->
-            JSPlayer.playTrack trackId
+            JSPlayer.playTrack (Types.TrackId.toString trackId)
 
         RestartTrack ->
             JSPlayer.seek { timestamp = 0 }
