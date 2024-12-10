@@ -276,8 +276,6 @@ var trackTitles []string = []string{
 }
 
 func AddFakeTracks(client *ent.Client, context context.Context) fiber.Handler {
-	rand.Seed(time.Now().UnixNano())
-
 	return func(c *fiber.Ctx) error {
 		amountString := c.Query("amount")
 
@@ -317,7 +315,10 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 	}
 
 	startYear := 1950
-	timeSpan := 2021 - startYear
+
+	currentYear, _, _ := time.Now().Date()
+
+	timeSpan := currentYear - startYear
 
 	precision := []indexFiles.ReleaseDatePrecision{
 		indexFiles.PRECISION_DATE,
