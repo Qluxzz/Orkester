@@ -11,6 +11,7 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Types.ReleaseDate
+import Types.TrackId
 import Utilities.DurationDisplay
 import View exposing (View)
 
@@ -56,6 +57,7 @@ init albumId =
 
 type Msg
     = GotAlbum (RemoteData.WebData Api.Album.Album)
+    | PlayTrack Types.TrackId.TrackId
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -65,6 +67,9 @@ update msg model =
             ( { model | album = album }
             , Effect.none
             )
+
+        PlayTrack trackId ->
+            ( model, Effect.playTrack trackId )
 
 
 
@@ -113,7 +118,7 @@ albumView album =
             ]
         , Html.div []
             [ Components.Table.table
-                [ Components.Table.textColumn "#" (.trackNumber >> String.fromInt)
+                [ Components.Table.clickableColumn "#" (.trackNumber >> String.fromInt >> Html.text) (\t -> PlayTrack t.id)
                 , Components.Table.defaultColumn "Title"
                     (\t ->
                         Html.div []

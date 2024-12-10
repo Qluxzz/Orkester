@@ -6,8 +6,7 @@ module Effect exposing
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
     , map, toCmd
-    , sendApiRequest
-    , focusElement
+    , focusElement, pause, play, playTrack, restartTrack, sendApiRequest
     )
 
 {-|
@@ -29,12 +28,14 @@ import Browser.Dom
 import Browser.Navigation
 import Dict exposing (Dict)
 import Http
+import JSPlayer
 import Json.Decode
 import Route exposing (Route)
 import Route.Path
 import Shared.Model
 import Shared.Msg
 import Task
+import Types.TrackId
 import Url exposing (Url)
 
 
@@ -56,6 +57,11 @@ type Effect msg
         , onHttpError : Http.Error -> msg
         }
     | FocusElement String Shared.Msg.Msg
+      -- PLAYER CONTROLS
+    | PlayTrack Types.TrackId.TrackId
+    | RestartTrack
+    | Play
+    | Pause
 
 
 
@@ -177,9 +183,31 @@ sendApiRequest options =
         , onHttpError = onHttpError
         }
 
+
 focusElement : String -> Effect msg
 focusElement elementId =
     FocusElement elementId Shared.Msg.NoOp
+
+
+playTrack : Types.TrackId.TrackId -> Effect msg
+playTrack trackId =
+    PlayTrack trackId
+
+
+restartTrack : Effect msg
+restartTrack =
+    RestartTrack
+
+
+play : Effect msg
+play =
+    Play
+
+
+pause : Effect msg
+pause =
+    Pause
+
 
 
 -- INTERNALS
@@ -224,6 +252,19 @@ map fn effect =
 
         FocusElement elementId msg_ ->
             FocusElement elementId msg_
+
+        -- PLAYER CONTROLS
+        PlayTrack trackId ->
+            PlayTrack trackId
+
+        RestartTrack ->
+            RestartTrack
+
+        Play ->
+            Play
+
+        Pause ->
+            Pause
 
 
 {-| Elm Land depends on this function to perform your effects.
@@ -288,3 +329,16 @@ toCmd options effect =
 
         FocusElement elementId sharedMsg ->
             Task.attempt (\_ -> options.fromSharedMsg sharedMsg) (Browser.Dom.focus elementId)
+
+        -- PLAYER CONTROLS
+        PlayTrack trackId ->
+            JSPlayer.playTrack trackId
+
+        RestartTrack ->
+            JSPlayer.seek { timestamp = 0 }
+
+        Play ->
+            JSPlayer.play ()
+
+        Pause ->
+            JSPlayer.pause ()
