@@ -28,12 +28,12 @@ export const onReady = ({ app, env }: ElmLand.OnReadyArgs) => {
   if (volume) audio.volume = volume / 100
 
   function play() {
-    audio.play().then(() => app.ports?.stateChanged?.send?.("play"))
+    audio.play().then(() => app.ports?.stateChange?.send?.("play"))
   }
 
   function pause() {
     audio.pause()
-    app.ports?.stateChanged?.send?.("pause")
+    app.ports?.stateChange?.send?.("pause")
   }
 
   audio.addEventListener("ended", (_) => {
