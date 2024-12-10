@@ -55,7 +55,6 @@ p {
     justify-content: space-between;
 
     ul {
-        list-style-position: inside;
         padding: 10px;
     }
 
@@ -80,11 +79,6 @@ main {
     grid-area: queue;
     padding: 10px;
     background-color: #444;
-
-    ul {
-        list-style: none;
-        padding: 0;
-    }
 
     p {
         font-weight: bold;
@@ -293,4 +287,10 @@ tr {
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
