@@ -64,6 +64,8 @@ type Msg
     = GotAlbum (RemoteData.WebData Api.Album.Album)
     | PlayTrack Types.TrackInfo.Track
     | PlayTracks (List Types.TrackInfo.Track)
+    | UnlikeTrack Types.TrackId.TrackId
+    | LikeTrack Types.TrackId.TrackId
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -79,6 +81,52 @@ update msg model =
 
         PlayTracks tracks ->
             ( model, Effect.playTracks tracks )
+
+        LikeTrack trackId ->
+            ( { model
+                | album =
+                    RemoteData.map
+                        (\x ->
+                            { x
+                                | tracks =
+                                    List.map
+                                        (\t ->
+                                            if t.id == trackId then
+                                                { t | liked = True }
+
+                                            else
+                                                t
+                                        )
+                                        x.tracks
+                            }
+                        )
+                        model.album
+              }
+            , Effect.likeTrack trackId
+            )
+
+        UnlikeTrack trackId ->
+            ( { model
+                | album =
+                    RemoteData.map
+                        (\x ->
+                            { x
+                                | tracks =
+                                    List.map
+                                        (\t ->
+                                            if t.id == trackId then
+                                                { t | liked = False }
+
+                                            else
+                                                t
+                                        )
+                                        x.tracks
+                            }
+                        )
+                        model.album
+              }
+            , Effect.unlikeTrack trackId
+            )
 
 
 
@@ -138,13 +186,24 @@ albumView album =
                             ]
                     )
                     |> Components.Table.grow
-                , Components.Table.textColumn ""
+                , Components.Table.clickableColumn ""
                     (\t ->
-                        if t.liked then
-                            "Liked"
+                        Html.text
+                            (if t.liked then
+                                "Liked"
 
-                        else
-                            "Like"
+                             else
+                                "Like"
+                            )
+                    )
+                    (\t ->
+                        (if t.liked then
+                            UnlikeTrack
+
+                         else
+                            LikeTrack
+                        )
+                            t.id
                     )
                     |> Components.Table.alignHeader Components.Table.Center
                     |> Components.Table.alignData Components.Table.Center

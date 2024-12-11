@@ -6,7 +6,7 @@ module Effect exposing
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
     , map, toCmd
-    , focusElement, pause, play, playNextTrack, playPreviousTrack, playTrack, playTracks, restartTrack, seek, sendApiRequest, setRepeatMode, setVolume, startPlayback
+    , focusElement, likeTrack, pause, play, playNextTrack, playPreviousTrack, playTrack, playTracks, restartTrack, seek, sendApiRequest, setRepeatMode, setVolume, startPlayback, unlikeTrack
     )
 
 {-|
@@ -67,6 +67,8 @@ type Effect msg
     | Seek Int
     | SetVolume Int
     | SetRepeatMode Types.TrackQueue.Repeat
+    | LikeTrack Types.TrackId.TrackId
+    | UnlikeTrack Types.TrackId.TrackId
 
 
 
@@ -261,6 +263,16 @@ setVolume volume =
         ]
 
 
+likeTrack : Types.TrackId.TrackId -> Effect msg
+likeTrack =
+    LikeTrack
+
+
+unlikeTrack : Types.TrackId.TrackId -> Effect msg
+unlikeTrack =
+    UnlikeTrack
+
+
 
 -- INTERNALS
 
@@ -326,6 +338,12 @@ map fn effect =
 
         SetRepeatMode mode ->
             SetRepeatMode mode
+
+        LikeTrack trackId ->
+            LikeTrack trackId
+
+        UnlikeTrack trackId ->
+            UnlikeTrack trackId
 
 
 {-| Elm Land depends on this function to perform your effects.
@@ -412,3 +430,25 @@ toCmd options effect =
 
         SetRepeatMode mode ->
             JSPlayer.setRepeatMode (Types.TrackQueue.toString mode)
+
+        LikeTrack trackId ->
+            Http.request
+                { method = "PUT"
+                , headers = []
+                , url = "/api/v1/track/" ++ Types.TrackId.toString trackId ++ "/like"
+                , body = Http.emptyBody
+                , expect = Http.expectWhatever (\_ -> options.fromSharedMsg Shared.Msg.NoOp)
+                , timeout = Nothing
+                , tracker = Nothing
+                }
+
+        UnlikeTrack trackId ->
+            Http.request
+                { method = "DELETE"
+                , headers = []
+                , url = "/api/v1/track/" ++ Types.TrackId.toString trackId ++ "/like"
+                , body = Http.emptyBody
+                , expect = Http.expectWhatever (\_ -> options.fromSharedMsg Shared.Msg.NoOp)
+                , timeout = Nothing
+                , tracker = Nothing
+                }
