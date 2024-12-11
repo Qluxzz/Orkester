@@ -111,9 +111,9 @@ view model =
 
 likedTracksTable tracks =
     Components.Table.table
-        [ Components.Table.clickableColumn "#" (.trackNumber >> String.fromInt >> Html.text) PlayTrack
+        [ Components.Table.clickableColumn "#" (Tuple.first >> (+) 1 >> String.fromInt >> Html.text) (\( _, t ) -> PlayTrack t)
         , Components.Table.defaultColumn "Title"
-            (\t ->
+            (\( _, t ) ->
                 Html.div [ Html.Attributes.class "track-title" ]
                     [ Html.Extra.picture [ Html.Attributes.class "album-cover" ]
                         [ Html.img [ Html.Attributes.src (Utilities.AlbumUrl.albumImageUrl t.album) ] []
@@ -126,11 +126,11 @@ likedTracksTable tracks =
                         ]
                     ]
             )
-        , Components.Table.linkColumn "Album" (\t -> { url = "/album" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName, title = t.album.name })
-        , Components.Table.textColumn "Date added" (.dateAdded >> formatDate)
-        , Components.Table.textColumn "Duration" (\t -> Utilities.DurationDisplay.durationDisplay t.length)
+        , Components.Table.linkColumn "Album" (\( _, t ) -> { url = "/album" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName, title = t.album.name })
+        , Components.Table.textColumn "Date added" (Tuple.second >> .dateAdded >> formatDate)
+        , Components.Table.textColumn "Duration" (\( _, t ) -> Utilities.DurationDisplay.durationDisplay t.length)
         ]
-        tracks
+        (List.indexedMap Tuple.pair tracks)
 
 
 formatTrackArtists : List Api.LikedTracks.Artist -> List (Html.Html msg)
