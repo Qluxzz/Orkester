@@ -12,6 +12,7 @@ import Route exposing (Route)
 import Shared
 import Types.ReleaseDate exposing (ReleaseDate(..))
 import Utilities.AlbumUrl
+import Utilities.ErrorMessage
 import View exposing (View)
 
 
@@ -89,10 +90,13 @@ view model =
             }
 
         RemoteData.Loading ->
-            { title = "Loading artist...", body = [] }
+            { title = "Loading artist", body = [] }
 
-        _ ->
-            Debug.todo "Error handling"
+        RemoteData.Failure err ->
+            { title = "Failed to load artist", body = [ Utilities.ErrorMessage.errorMessage "Failed to load album" err ] }
+
+        RemoteData.NotAsked ->
+            { title = "Loading artist", body = [] }
 
 
 artistView : Api.Artist.Artist -> Html.Html msg

@@ -310,6 +310,15 @@ tr {
 }
 
 
+.error-message {
+    padding: 10px;
+    border: 2px solid #eee;
+
+    p {
+        margin-top: 20px;
+    }
+}
+
 .album-cover {
     display: block;
     width: 40px;

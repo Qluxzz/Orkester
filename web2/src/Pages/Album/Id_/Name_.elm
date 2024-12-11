@@ -17,6 +17,7 @@ import Types.TrackId
 import Types.TrackInfo
 import Utilities.ArtistUrl
 import Utilities.DurationDisplay
+import Utilities.ErrorMessage
 import Utilities.Icon as Icon
 import View exposing (View)
 
@@ -153,8 +154,11 @@ view model =
         RemoteData.Loading ->
             { title = "Loading album", body = [ Html.text "Loading..." ] }
 
-        _ ->
-            Debug.todo "Error handling"
+        RemoteData.Failure err ->
+            { title = "Failed to load album", body = [ Utilities.ErrorMessage.errorMessage "Failed to load album" err ] }
+
+        RemoteData.NotAsked ->
+            { title = "Loading album", body = [ Html.text "Loading..." ] }
 
 
 albumView : Api.Album.Album -> Html.Html Msg

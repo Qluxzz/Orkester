@@ -17,6 +17,7 @@ import Shared
 import Types.TrackId
 import Types.TrackInfo
 import Url exposing (Url)
+import Utilities.ErrorMessage
 import View exposing (View)
 
 
@@ -126,38 +127,49 @@ view model =
             [ Html.input [ Html.Attributes.type_ "text", Html.Attributes.value model.search, Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field" ] []
             , case model.searchResult of
                 RemoteData.Success data ->
-                    Html.div [ Html.Attributes.class "search-results" ]
-                        [ Html.ul []
-                            (Html.h1 [] [ Html.text "Tracks" ]
-                                :: (if List.isEmpty data.tracks then
-                                        [ Html.li [] [ Html.text "No tracks found!" ] ]
+                    searchResultsView data
 
-                                    else
-                                        List.map (\t -> Html.li [ Html.Events.onClick (PlayTrack t), Html.Attributes.class "track-title" ] [ Html.text t.title ]) data.tracks
-                                   )
-                            )
-                        , Html.ul []
-                            (Html.h1 [] [ Html.text "Albums" ]
-                                :: (if List.isEmpty data.albums then
-                                        [ Html.li [] [ Html.text "No albums found!" ] ]
+                RemoteData.Loading ->
+                    Html.text ""
 
-                                    else
-                                        List.map (\album -> Html.li [] [ Html.a [ Html.Attributes.href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ] [ Html.text album.name ] ]) data.albums
-                                   )
-                            )
-                        , Html.ul []
-                            (Html.h1 [] [ Html.text "Artists" ]
-                                :: (if List.isEmpty data.artists then
-                                        [ Html.li [] [ Html.text "No artists found!" ] ]
+                RemoteData.Failure err ->
+                    Utilities.ErrorMessage.errorMessage "Failed to load album" err
 
-                                    else
-                                        List.map (\artist -> Html.li [] [ Html.a [ Html.Attributes.href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName) ] [ Html.text artist.name ] ]) data.artists
-                                   )
-                            )
-                        ]
-
-                _ ->
+                RemoteData.NotAsked ->
                     Html.text ""
             ]
         ]
     }
+
+
+searchResultsView : Api.Search.SearchResult -> Html.Html Msg
+searchResultsView { tracks, artists, albums } =
+    Html.div [ Html.Attributes.class "search-results" ]
+        [ Html.ul []
+            (Html.h1 [] [ Html.text "Tracks" ]
+                :: (if List.isEmpty tracks then
+                        [ Html.li [] [ Html.text "No tracks found!" ] ]
+
+                    else
+                        List.map (\t -> Html.li [ Html.Events.onClick (PlayTrack t), Html.Attributes.class "track-title" ] [ Html.text t.title ]) tracks
+                   )
+            )
+        , Html.ul []
+            (Html.h1 [] [ Html.text "Albums" ]
+                :: (if List.isEmpty albums then
+                        [ Html.li [] [ Html.text "No albums found!" ] ]
+
+                    else
+                        List.map (\album -> Html.li [] [ Html.a [ Html.Attributes.href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ] [ Html.text album.name ] ]) albums
+                   )
+            )
+        , Html.ul []
+            (Html.h1 [] [ Html.text "Artists" ]
+                :: (if List.isEmpty artists then
+                        [ Html.li [] [ Html.text "No artists found!" ] ]
+
+                    else
+                        List.map (\artist -> Html.li [] [ Html.a [ Html.Attributes.href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName) ] [ Html.text artist.name ] ]) artists
+                   )
+            )
+        ]
