@@ -7,13 +7,13 @@ import Html.Attributes exposing (class)
 import Html.Events
 import Layout exposing (Layout)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Shared.Msg
 import Types.Queue
 import Types.TrackInfo
 import Types.TrackQueue
 import Utilities.AlbumUrl
-import Utilities.ArtistUrl
 import Utilities.DurationDisplay
 import Utilities.Icon as Icon
 import View exposing (View)
@@ -145,13 +145,13 @@ sidebarView : Maybe Types.TrackQueue.ActiveTrack -> Html msg
 sidebarView activeTrack =
     Html.aside [ Html.Attributes.class "sidebar" ]
         [ Html.ul []
-            [ Html.li [] [ Html.a [ Html.Attributes.href "/search" ] [ Html.text "Search" ] ]
-            , Html.li [] [ Html.a [ Html.Attributes.href "/liked-tracks" ] [ Html.text "Liked tracks" ] ]
+            [ Html.li [] [ Html.a [ Route.Path.href Route.Path.Search ] [ Html.text "Search" ] ]
+            , Html.li [] [ Html.a [ Route.Path.href Route.Path.LikedTracks ] [ Html.text "Liked tracks" ] ]
             ]
         , case activeTrack of
             Just { track } ->
                 Html.a
-                    [ Html.Attributes.href (Utilities.AlbumUrl.albumUrl track.album)
+                    [ Route.Path.href (Route.Path.Album_Id__Name_ { id = String.fromInt track.album.id, name = track.album.urlName })
                     ]
                     [ Html.img
                         [ Html.Attributes.src (Utilities.AlbumUrl.albumImageUrl track.album)
@@ -187,7 +187,7 @@ currentlyPlayingView { title, album, artists } =
         , Html.h2 []
             (formatTrackArtists artists
                 ++ [ Html.span [] [ Html.text " - " ]
-                   , Html.a [ Html.Attributes.href (Utilities.AlbumUrl.albumUrl album) ] [ Html.text album.name ]
+                   , Html.a [ Route.Path.href (Route.Path.Album_Id__Name_ { id = String.fromInt album.id, name = album.urlName }) ] [ Html.text album.name ]
                    ]
             )
         ]
@@ -196,7 +196,7 @@ currentlyPlayingView { title, album, artists } =
 formatTrackArtists : List { r | id : Int, name : String, urlName : String } -> List (Html.Html msg)
 formatTrackArtists artists =
     artists
-        |> List.map (\artist -> Html.a [ Html.Attributes.href (Utilities.ArtistUrl.artistUrl artist) ] [ Html.text artist.name ])
+        |> List.map (\artist -> Html.a [ Route.Path.href (Route.Path.Artist_Id__Name_ { id = String.fromInt artist.id, name = artist.urlName }) ] [ Html.text artist.name ])
         |> List.intersperse (Html.span [] [ Html.text ", " ])
 
 

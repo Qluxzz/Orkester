@@ -9,6 +9,7 @@ import Layouts
 import Page exposing (Page)
 import RemoteData
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Types.ReleaseDate exposing (ReleaseDate(..))
 import Utilities.AlbumUrl
@@ -110,7 +111,7 @@ artistView artist =
 artistAlbumView : Api.Artist.Album -> Html.Html msg
 artistAlbumView album =
     Html.a
-        [ Html.Attributes.href (Utilities.AlbumUrl.albumUrl album)
+        [ Route.Path.href (Route.Path.Album_Id__Name_ { id = String.fromInt album.id, name = album.urlName })
         ]
         [ Html.div [ Html.Attributes.class "artist-album" ]
             [ Html.Extra.picture []

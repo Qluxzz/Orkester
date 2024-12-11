@@ -10,10 +10,10 @@ import Layouts
 import Page exposing (Page)
 import RemoteData
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Types.TrackInfo
 import Utilities.AlbumUrl
-import Utilities.ArtistUrl
 import Utilities.Date
 import Utilities.DurationDisplay
 import View exposing (View)
@@ -130,7 +130,7 @@ likedTracksTable tracks =
                         ]
                     ]
             )
-        , Components.Table.linkColumn "Album" (\( _, t ) -> { url = "/album" ++ String.fromInt t.album.id ++ "/" ++ t.album.urlName, title = t.album.name })
+        , Components.Table.linkColumn "Album" (\( _, t ) -> { path = Route.Path.Album_Id__Name_ { id = String.fromInt t.album.id, name = t.album.urlName }, title = t.album.name })
         , Components.Table.textColumn "Date added" (Tuple.second >> .dateAdded >> formatDate)
         , Components.Table.textColumn "Duration" (\( _, t ) -> Utilities.DurationDisplay.durationDisplay t.length)
         ]
@@ -140,7 +140,7 @@ likedTracksTable tracks =
 formatTrackArtists : List Api.LikedTracks.Artist -> List (Html.Html msg)
 formatTrackArtists artists =
     artists
-        |> List.map (\artist -> Html.a [ Html.Attributes.href (Utilities.ArtistUrl.artistUrl artist) ] [ Html.text artist.name ])
+        |> List.map (\artist -> Html.a [ Route.Path.href (Route.Path.Artist_Id__Name_ { id = String.fromInt artist.id, name = artist.urlName }) ] [ Html.text artist.name ])
         |> List.intersperse (Html.span [] [ Html.text ", " ])
 
 

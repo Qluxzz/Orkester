@@ -1,17 +1,16 @@
 module Utilities.ErrorMessage exposing (..)
 
-import Css exposing (border3, hex, marginTop, padding, px, solid)
-import Html.Styled exposing (Html, div, h1, p, text)
-import Html.Styled.Attributes exposing (css)
+import Html
+import Html.Attributes
 import Http
 
 
-errorMessage : String -> Http.Error -> Html msg
+errorMessage : String -> Http.Error -> Html.Html msg
 errorMessage userFriendlyMessage error =
-    div [ css [ padding (px 10), border3 (px 2) solid (hex "#eee") ] ]
-        [ h1 [] [ text userFriendlyMessage ]
-        , p [ css [ marginTop (px 20) ] ]
-            [ text
+    Html.div [ Html.Attributes.class "error-message" ]
+        [ Html.h1 [] [ Html.text userFriendlyMessage ]
+        , Html.p []
+            [ Html.text
                 (case error of
                     Http.BadStatus status ->
                         "HTTP Error Code: " ++ String.fromInt status

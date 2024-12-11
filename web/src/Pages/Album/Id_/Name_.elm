@@ -11,11 +11,11 @@ import Layouts
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Types.ReleaseDate
 import Types.TrackId
 import Types.TrackInfo
-import Utilities.ArtistUrl
 import Utilities.DurationDisplay
 import Utilities.ErrorMessage
 import Utilities.Icon as Icon
@@ -172,7 +172,7 @@ albumView album =
             , Html.div []
                 [ Html.h1 [] [ Html.text album.name ]
                 , Html.div [ Html.Attributes.class "info" ]
-                    [ Html.a [ Html.Attributes.href (Utilities.ArtistUrl.artistUrl album.artist) ] [ Html.text album.artist.name ]
+                    [ Html.a [ Route.Path.href (Route.Path.Artist_Id__Name_ { id = String.fromInt album.artist.id, name = album.artist.urlName }) ] [ Html.text album.artist.name ]
                     , Html.div [] [ Html.text (Types.ReleaseDate.formatReleaseDate album.released) ]
                     , Html.div [] [ Html.text (formatTracksDisplay album.tracks) ]
                     , Html.div [] [ Html.text (formatAlbumLength album.tracks) ]
@@ -235,7 +235,7 @@ albumImageUrl id =
 formatTrackArtists : List Api.Album.Artist -> List (Html.Html msg)
 formatTrackArtists artists =
     artists
-        |> List.map (\artist -> Html.a [ Html.Attributes.href (artistUrl artist) ] [ Html.text artist.name ])
+        |> List.map (\artist -> Html.a [ Route.Path.href (Route.Path.Artist_Id__Name_ { id = String.fromInt artist.id, name = artist.urlName }) ] [ Html.text artist.name ])
         |> List.intersperse (Html.span [] [ Html.text ", " ])
 
 

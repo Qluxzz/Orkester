@@ -160,7 +160,7 @@ searchResultsView { tracks, artists, albums } =
                         [ Html.li [] [ Html.text "No albums found!" ] ]
 
                     else
-                        List.map (\album -> Html.li [] [ Html.a [ Html.Attributes.href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ] [ Html.text album.name ] ]) albums
+                        List.map (\album -> Html.li [] [ Html.a [ Route.Path.href (Route.Path.Album_Id__Name_ { id = String.fromInt album.id, name = album.urlName }) ] [ Html.text album.name ] ]) albums
                    )
             )
         , Html.ul []
@@ -169,7 +169,7 @@ searchResultsView { tracks, artists, albums } =
                         [ Html.li [] [ Html.text "No artists found!" ] ]
 
                     else
-                        List.map (\artist -> Html.li [] [ Html.a [ Html.Attributes.href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName) ] [ Html.text artist.name ] ]) artists
+                        List.map (\artist -> Html.li [] [ Html.a [ Route.Path.href (Route.Path.Artist_Id__Name_ { id = String.fromInt artist.id, name = artist.urlName }) ] [ Html.text artist.name ] ]) artists
                    )
             )
         ]

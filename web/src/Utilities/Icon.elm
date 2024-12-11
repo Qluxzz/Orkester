@@ -13,7 +13,7 @@ type IconType
 
 iconBaseUrl : String
 iconBaseUrl =
-    "/assets/icons/"
+    "/icons/"
 
 
 iconExtension : String
