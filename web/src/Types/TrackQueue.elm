@@ -1,15 +1,18 @@
-module Components.TrackQueue exposing
+module Types.TrackQueue exposing
     ( ActiveTrack
     , Repeat(..)
     , State(..)
     , TrackQueue
+    , empty
     , getActiveTrack
     , init
     , next
     , previous
     , queueLast
     , queueNext
+    , repeatDecoder
     , replaceQueue
+    , toString
     , updateActiveTrackProgress
     , updateActiveTrackState
     )
@@ -27,6 +30,35 @@ type Repeat
     | RepeatAll
 
 
+toString : Repeat -> String
+toString mode =
+    case mode of
+        RepeatOff ->
+            "off"
+
+        RepeatOne ->
+            "one"
+
+        RepeatAll ->
+            "all"
+
+
+repeatDecoder : Maybe String -> Repeat
+repeatDecoder option =
+    case option of
+        Just "all" ->
+            RepeatAll
+
+        Just "off" ->
+            RepeatOff
+
+        Just "one" ->
+            RepeatOne
+
+        _ ->
+            RepeatOff
+
+
 type State
     = Playing
     | Paused
@@ -41,6 +73,11 @@ type alias ActiveTrack =
 
 type alias TrackQueue =
     Queue Track ActiveTrack
+
+
+empty : TrackQueue
+empty =
+    Types.Queue.empty
 
 
 init : { current : Maybe Track, future : Maybe (List Track) } -> TrackQueue
@@ -133,10 +170,10 @@ next ({ history, current, future } as queue) repeat =
                     queue
 
                 RepeatAll ->
-                    case history of
+                    case updatedHistory of
                         first :: rest ->
                             { queue
-                                | history = updatedHistory
+                                | history = []
                                 , current = Just (toActiveTrack first)
                                 , future = rest
                             }

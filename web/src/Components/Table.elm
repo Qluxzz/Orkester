@@ -1,9 +1,9 @@
-module Components.Table exposing (Align(..), Column, alignData, alignHeader, clickableColumn, defaultColumn, grow, table, textColumn)
+module Components.Table exposing (Align(..), Column, alignData, alignHeader, clickableColumn, defaultColumn, grow, linkColumn, table, textColumn)
 
-import Css exposing (collapse)
-import Html.Styled as Html
-import Html.Styled.Attributes
-import Html.Styled.Events
+import Html
+import Html.Attributes
+import Html.Events
+import Route.Path
 
 
 type Align
@@ -17,8 +17,8 @@ type alias Column a msg =
     , data : a -> Html.Html msg
     , hidden : Bool
     , onClick : Maybe (a -> msg)
-    , headerStyle : List Css.Style
-    , dataStyle : List Css.Style
+    , headerStyle : List (Html.Attribute msg)
+    , dataStyle : List (Html.Attribute msg)
     }
 
 
@@ -32,6 +32,16 @@ textColumn title data =
     Column title (data >> Html.text) False Nothing [] []
 
 
+linkColumn : String -> (a -> { path : Route.Path.Path, title : String }) -> Column a msg
+linkColumn title data =
+    defaultColumn title (data >> toLink)
+
+
+toLink : { path : Route.Path.Path, title : String } -> Html.Html msg
+toLink { path, title } =
+    Html.a [ Route.Path.href path ] [ Html.text title ]
+
+
 clickableColumn : String -> (a -> Html.Html msg) -> (a -> msg) -> Column a msg
 clickableColumn title data onClick =
     Column title data False (Just onClick) [] []
@@ -39,43 +49,30 @@ clickableColumn title data onClick =
 
 alignHeader : Align -> Column a msg -> Column a msg
 alignHeader alignment c =
-    { c
-        | headerStyle =
-            (case alignment of
-                Left ->
-                    Css.textAlign Css.left
-
-                Center ->
-                    Css.textAlign Css.center
-
-                Right ->
-                    Css.textAlign Css.right
-            )
-                :: c.headerStyle
-    }
+    { c | headerStyle = alignmentToStyle alignment :: c.headerStyle }
 
 
 alignData : Align -> Column a msg -> Column a msg
 alignData alignment c =
-    { c
-        | dataStyle =
-            (case alignment of
-                Left ->
-                    Css.textAlign Css.left
+    { c | dataStyle = alignmentToStyle alignment :: c.dataStyle }
 
-                Center ->
-                    Css.textAlign Css.center
 
-                Right ->
-                    Css.textAlign Css.right
-            )
-                :: c.dataStyle
-    }
+alignmentToStyle : Align -> Html.Attribute msg
+alignmentToStyle alignment =
+    case alignment of
+        Left ->
+            Html.Attributes.style "text-align" "left"
+
+        Center ->
+            Html.Attributes.style "text-align" "center"
+
+        Right ->
+            Html.Attributes.style "text-align" "right"
 
 
 grow : Column a msg -> Column a msg
 grow c =
-    { c | headerStyle = Css.width (Css.pct 100) :: c.headerStyle, dataStyle = Css.width (Css.pct 100) :: c.dataStyle }
+    { c | headerStyle = Html.Attributes.style "width" "100%" :: c.headerStyle, dataStyle = Html.Attributes.style "width" "100%" :: c.dataStyle }
 
 
 table : List (Column a msg) -> List a -> Html.Html msg
@@ -85,7 +82,7 @@ table columns data =
         visibleColumns =
             columns |> List.filter (not << .hidden)
     in
-    Html.table [ Html.Styled.Attributes.css [ Css.borderCollapse collapse ] ]
+    Html.table [ Html.Attributes.style "border-collapse" "collapse" ]
         [ Html.thead []
             [ Html.tr []
                 (List.map column visibleColumns)
@@ -95,13 +92,7 @@ table columns data =
             (List.map
                 (\r ->
                     Html.tr
-                        [ Html.Styled.Attributes.css
-                            [ Css.nthChild "even"
-                                [ Css.backgroundColor (Css.hex "#333") ]
-                            , Css.nthChild "odd"
-                                [ Css.backgroundColor (Css.hex "#222") ]
-                            ]
-                        ]
+                        []
                         (List.map
                             (\c ->
                                 let
@@ -109,13 +100,13 @@ table columns data =
                                     attributes =
                                         case c.onClick of
                                             Just onClick ->
-                                                [ Html.Styled.Events.onClick (onClick r), Html.Styled.Attributes.css [ Css.cursor Css.pointer ] ]
+                                                [ Html.Events.onClick (onClick r), Html.Attributes.style "cursor" "pointer" ]
 
                                             Nothing ->
                                                 []
                                 in
                                 Html.td
-                                    (attributes ++ [ Html.Styled.Attributes.css (Css.padding (Css.px 10) :: c.dataStyle) ])
+                                    (attributes ++ c.dataStyle)
                                     [ c.data r ]
                             )
                             visibleColumns
@@ -129,6 +120,5 @@ table columns data =
 column : Column a msg -> Html.Html msg
 column { title, headerStyle } =
     Html.th
-        [ Html.Styled.Attributes.css (Css.padding (Css.px 10) :: headerStyle)
-        ]
+        headerStyle
         [ Html.text title ]

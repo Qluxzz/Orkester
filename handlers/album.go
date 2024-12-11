@@ -36,7 +36,7 @@ func GetAlbum(client *ent.Client, ctx context.Context) fiber.Handler {
 		tracks := []models.Track{}
 		for _, track := range album.Edges.Tracks {
 			t := models.Track{
-				Id:          track.ID,
+				Id:          fmt.Sprintf("track-%d", track.ID),
 				TrackNumber: track.TrackNumber,
 				Title:       track.Title,
 				Length:      track.Length,

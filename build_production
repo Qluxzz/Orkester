@@ -1,14 +1,15 @@
 # Delete existing build folder
 rm -rf build/
 # Go to web folder and create production build
-cd web && elm make src/Main.elm --output elm.js
+cd web && npx elm-land build
 cd ..
 # Make build and client folder
 mkdir build build/client
 # Copy contents of client production build to build folder
-cp web/elm.js web/index.html build/client
+cp -r web/dist/* build/client
 
 # Build backend in production mode and with sqlite_icu enabled
+echo "Building backend"
 go build -tags sqlite_icu -ldflags "-X main.mode=production"
 # Move built go backend to build folder
 mv orkester build

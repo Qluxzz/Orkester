@@ -8,7 +8,6 @@ import (
 	"orkester/ent/track"
 	"orkester/models"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,7 +15,7 @@ import (
 
 func TrackInfo(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		id, err := strconv.Atoi(c.Params("id"))
+		id, err := models.FromTrackId(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
@@ -48,7 +47,7 @@ func TracksInfo(client *ent.Client, context context.Context) fiber.Handler {
 		var trackIds []int
 
 		for _, id := range strings.Split(ids, ",") {
-			trackId, err := strconv.Atoi(id)
+			trackId, err := models.FromTrackId(id)
 			if err == nil {
 				trackIds = append(trackIds, trackId)
 			}
@@ -74,7 +73,7 @@ func TracksInfo(client *ent.Client, context context.Context) fiber.Handler {
 
 func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		id, err := strconv.Atoi(c.Params("id"))
+		id, err := models.FromTrackId(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
@@ -108,7 +107,7 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 
 func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		id, err := strconv.Atoi(c.Params("id"))
+		id, err := models.FromTrackId(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
@@ -129,7 +128,7 @@ func LikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 
 func UnLikeTrack(client *ent.Client, context context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		id, err := strconv.Atoi(c.Params("id"))
+		id, err := models.FromTrackId(c.Params("id"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}

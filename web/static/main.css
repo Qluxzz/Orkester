@@ -1,0 +1,348 @@
+:root {
+    --text-color: #fff;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: sans-serif;
+    overflow: hidden;
+
+    display: grid;
+
+    grid-template-areas:
+        "sidebar main queue"
+        "player-bar player-bar player-bar";
+
+    grid-template-columns: 250px 1fr 200px;
+    grid-template-rows: 1fr auto;
+
+    background-color: #222;
+    color: var(--text-color);
+}
+
+h1 {
+    margin: 0;
+    font-size: 26px;
+}
+
+h2 {
+    margin: 0;
+}
+
+a {
+    color: var(--text-color);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+p {
+    margin: 0;
+}
+
+.sidebar {
+    grid-area: sidebar;
+    background-color: #444;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    ul {
+        padding: 10px;
+    }
+
+    a:has(img) {
+        display: flex;
+    }
+
+    img {
+        width: 100%;
+    }
+}
+
+main {
+    grid-area: main;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.queue {
+    grid-area: queue;
+    padding: 10px;
+    background-color: #444;
+
+    p {
+        font-weight: bold;
+    }
+}
+
+.player-bar {
+    grid-area: player-bar;
+    padding: 10px;
+    background-color: #333;
+    display: flex;
+    justify-content: space-between;
+
+    .track-info {
+        display: flex;
+        flex-grow: 0;
+        flex-direction: column;
+
+        >div {
+            display: flex;
+            overflow: hidden;
+        }
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+
+        .buttons {
+            display: flex;
+        }
+    }
+
+    .player-button {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background-color: transparent;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+
+        &:hover {
+            background-color: #111;
+        }
+    }
+}
+
+.play-button {
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.8);
+    cursor: pointer;
+    position: absolute;
+
+    &:hover {
+        background-color: #333;
+    }
+}
+
+
+.album-page {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .album-info {
+        display: flex;
+        gap: 10px;
+        align-items: end;
+
+
+        h1 {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .info {
+            display: flex;
+            gap: 10px;
+        }
+    }
+
+    .track-list {
+        overflow: auto;
+    }
+
+    picture {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        >img {
+            aspect-ratio: "1 / 1";
+            height: 192px;
+            width: 192px;
+        }
+    }
+}
+
+.search-start-page {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.search-results-page {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    gap: 10px;
+
+    .search-results {
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        align-items: flex-start;
+        overflow: auto;
+
+        h1 {
+            position: sticky;
+            top: 0px;
+            background-color: #222;
+        }
+
+        ul {
+            flex-basis: calc(100%/3);
+
+            li {
+                padding: 5px 0;
+            }
+        }
+    }
+
+    .track-title:hover {
+        cursor: pointer;
+        text-decoration: underline;
+    }
+}
+
+.artist-page {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .artist-albums {
+        display: grid;
+        gap: 19px;
+        grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));
+        grid-template-rows: 1fr;
+        overflow: auto;
+        margin-top: 10px;
+        padding-right: 10px;
+    }
+
+    .artist-album {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 0;
+        background-color: #333;
+        padding: 10px;
+        overflow: hidden;
+
+        picture {
+            position: relative;
+            overflow: hidden;
+            padding-top: 100%;
+            height: 0px;
+        }
+
+        img {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        p {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}
+
+
+table {
+    width: 100%;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+}
+
+th,
+td {
+    padding: 4px;
+    text-align: left;
+}
+
+th:last-child,
+td:last-child {
+    text-align: right;
+}
+
+tr {
+    &:nth-child(even) {
+        background-color: #333;
+    }
+
+    &:nth-child(odd) {
+        background-color: #222;
+    }
+}
+
+
+.error-message {
+    padding: 10px;
+    border: 2px solid #eee;
+
+    p {
+        margin-top: 20px;
+    }
+}
+
+.album-cover {
+    display: block;
+    width: 40px;
+    height: 40px;
+
+    img {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.track-title {
+    display: flex;
+    gap: 10px;
+
+    .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
