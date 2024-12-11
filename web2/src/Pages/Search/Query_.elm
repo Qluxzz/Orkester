@@ -134,7 +134,7 @@ view model =
                                     [ Html.li [] [ Html.text "No tracks found!" ] ]
 
                                  else
-                                    List.map (\t -> Html.li [ Html.Events.onClick (PlayTrack t) ] [ Html.text t.title ]) data.tracks
+                                    List.map (\t -> Html.li [ Html.Events.onClick (PlayTrack t), Html.Attributes.class "track-title" ] [ Html.text t.title ]) data.tracks
                                 )
                             ]
                         , Html.div []

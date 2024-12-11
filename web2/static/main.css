@@ -27,7 +27,7 @@ body {
 
 h1 {
     margin: 0;
-    font-size: 32px;
+    font-size: 26px;
 }
 
 h2 {
@@ -150,7 +150,7 @@ main {
 }
 
 
-.album {
+.album-page {
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -189,8 +189,6 @@ main {
             width: 192px;
         }
     }
-
-
 }
 
 .search-start-page {
@@ -207,6 +205,11 @@ main {
         display: flex;
         gap: 10px;
         justify-content: space-between;
+    }
+
+    .track-title:hover {
+        cursor: pointer;
+        text-decoration: underline;
     }
 }
 
@@ -281,18 +284,6 @@ tr {
     }
 }
 
-.title {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    .name {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-}
 
 .album-cover {
     display: block;
@@ -308,6 +299,12 @@ tr {
 .track-title {
     display: flex;
     gap: 10px;
+
+    .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
 
 ul {

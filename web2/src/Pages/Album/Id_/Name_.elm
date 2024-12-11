@@ -159,7 +159,7 @@ view model =
 
 albumView : Api.Album.Album -> Html.Html Msg
 albumView album =
-    Html.section [ Html.Attributes.class "album" ]
+    Html.section [ Html.Attributes.class "album-page" ]
         [ Html.div [ Html.Attributes.class "album-info" ]
             [ Html.Extra.picture []
                 [ Html.img [ Html.Attributes.src (albumImageUrl album.id) ] []
