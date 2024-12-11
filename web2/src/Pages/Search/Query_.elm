@@ -128,33 +128,36 @@ view model =
                 RemoteData.Success data ->
                     Html.div [ Html.Attributes.class "search-results" ]
                         [ Html.div []
-                            [ Html.h1 [] [ Html.text "Tracks" ]
-                            , Html.ul []
-                                (if List.isEmpty data.tracks then
-                                    [ Html.li [] [ Html.text "No tracks found!" ] ]
+                            [ Html.ul []
+                                (Html.h1 [] [ Html.text "Tracks" ]
+                                    :: (if List.isEmpty data.tracks then
+                                            [ Html.li [] [ Html.text "No tracks found!" ] ]
 
-                                 else
-                                    List.map (\t -> Html.li [ Html.Events.onClick (PlayTrack t), Html.Attributes.class "track-title" ] [ Html.text t.title ]) data.tracks
+                                        else
+                                            List.map (\t -> Html.li [ Html.Events.onClick (PlayTrack t), Html.Attributes.class "track-title" ] [ Html.text t.title ]) data.tracks
+                                       )
                                 )
                             ]
                         , Html.div []
-                            [ Html.h1 [] [ Html.text "Albums" ]
-                            , Html.ul []
-                                (if List.isEmpty data.albums then
-                                    [ Html.li [] [ Html.text "No albums found!" ] ]
+                            [ Html.ul []
+                                (Html.h1 [] [ Html.text "Albums" ]
+                                    :: (if List.isEmpty data.albums then
+                                            [ Html.li [] [ Html.text "No albums found!" ] ]
 
-                                 else
-                                    List.map (\album -> Html.li [] [ Html.a [ Html.Attributes.href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ] [ Html.text album.name ] ]) data.albums
+                                        else
+                                            List.map (\album -> Html.li [] [ Html.a [ Html.Attributes.href ("/album/" ++ String.fromInt album.id ++ "/" ++ album.urlName) ] [ Html.text album.name ] ]) data.albums
+                                       )
                                 )
                             ]
                         , Html.div []
-                            [ Html.h1 [] [ Html.text "Artists" ]
-                            , Html.ul []
-                                (if List.isEmpty data.artists then
-                                    [ Html.li [] [ Html.text "No artists found!" ] ]
+                            [ Html.ul []
+                                (Html.h1 [] [ Html.text "Artists" ]
+                                    :: (if List.isEmpty data.artists then
+                                            [ Html.li [] [ Html.text "No artists found!" ] ]
 
-                                 else
-                                    List.map (\artist -> Html.li [] [ Html.a [ Html.Attributes.href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName) ] [ Html.text artist.name ] ]) data.artists
+                                        else
+                                            List.map (\artist -> Html.li [] [ Html.a [ Html.Attributes.href ("/artist/" ++ String.fromInt artist.id ++ "/" ++ artist.urlName) ] [ Html.text artist.name ] ]) data.artists
+                                       )
                                 )
                             ]
                         ]
