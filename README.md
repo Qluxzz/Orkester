@@ -18,12 +18,7 @@ sudo dnf install mediainfo icu
 | icu          | used to enable unicode handling of strings for SQLite database |
 | libicu-devel | used to build the production version of Orkester               |
 
-## Screenshots
 
-### Search results
+## Screenshot(s)
 
 ![Screenshot](screenshot.png)
-
-### Artist view
-
-![Artist view](artist_view.png)
