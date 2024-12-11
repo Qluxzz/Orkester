@@ -170,10 +170,10 @@ next ({ history, current, future } as queue) repeat =
                     queue
 
                 RepeatAll ->
-                    case history of
+                    case updatedHistory of
                         first :: rest ->
                             { queue
-                                | history = updatedHistory
+                                | history = []
                                 , current = Just (toActiveTrack first)
                                 , future = rest
                             }
