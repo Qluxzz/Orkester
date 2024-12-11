@@ -95,7 +95,11 @@ view model =
         [ Html.h1 [] [ Html.text "Liked tracks" ]
         , case model.likedTracks of
             RemoteData.Success tracks ->
-                likedTracksTable tracks
+                if List.isEmpty tracks then
+                    Html.text "You haven't liked any tracks yet"
+
+                else
+                    likedTracksTable tracks
 
             RemoteData.Loading ->
                 Html.text "Loading..."
