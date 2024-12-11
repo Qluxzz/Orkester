@@ -16,6 +16,7 @@ import Types.TrackInfo
 import Utilities.AlbumUrl
 import Utilities.Date
 import Utilities.DurationDisplay
+import Utilities.ErrorMessage
 import View exposing (View)
 
 
@@ -105,7 +106,7 @@ view model =
                 Html.text "Loading..."
 
             RemoteData.Failure err ->
-                Html.text (Debug.toString err)
+                Utilities.ErrorMessage.errorMessage "Failed to load liked tracks" err
 
             RemoteData.NotAsked ->
                 Html.text ""

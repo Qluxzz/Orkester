@@ -53,5 +53,5 @@ dateDecoder =
                         Decode.succeed d
 
                     Err err ->
-                        Decode.fail ("Failed to decode " ++ dateString ++ " to a date! Error: " ++ Debug.toString err)
+                        Decode.fail ("Failed to decode " ++ dateString ++ " to a date!")
             )

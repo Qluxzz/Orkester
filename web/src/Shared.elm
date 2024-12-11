@@ -112,7 +112,7 @@ update route msg model =
         Shared.Msg.JSPlayer msg_ ->
             case msg_ of
                 JSPlayer.PlaybackFailed error ->
-                    Debug.todo ("Playback failed " ++ error)
+                    ( model, Effect.none )
 
                 JSPlayer.ProgressUpdated updatedProgress ->
                     ( { model | queue = TrackQueue.updateActiveTrackProgress model.queue updatedProgress }, Effect.none )
@@ -153,7 +153,7 @@ update route msg model =
                             playPrevious model
 
                         _ ->
-                            Debug.todo ("unknown state change " ++ state)
+                            ( model, Effect.none )
 
 
 
