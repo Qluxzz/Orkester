@@ -50,10 +50,11 @@ init : Result Json.Decode.Error Flags -> Route () -> ( Model, Effect Msg )
 init flagsResult route =
     let
         baseModel =
-            { queue = TrackQueue.empty, volume = 100, repeat = TrackQueue.RepeatOff, onPreviousBehavior = Shared.Model.PlayPreviousTrack }
-
-        _ =
-            Debug.log "flags" flagsResult
+            { queue = TrackQueue.empty
+            , volume = 100
+            , repeat = TrackQueue.RepeatOff
+            , onPreviousBehavior = Shared.Model.PlayPreviousTrack
+            }
     in
     ( case flagsResult of
         Ok f ->

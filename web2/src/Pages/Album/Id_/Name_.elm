@@ -6,6 +6,7 @@ import Effect exposing (Effect)
 import Html
 import Html.Attributes
 import Html.Events
+import Html.Extra
 import Layouts
 import Page exposing (Page)
 import RemoteData exposing (WebData)
@@ -112,7 +113,7 @@ albumView : Api.Album.Album -> Html.Html Msg
 albumView album =
     Html.section [ Html.Attributes.class "album" ]
         [ Html.div [ Html.Attributes.class "album-info" ]
-            [ picture []
+            [ Html.Extra.picture []
                 [ Html.img [ Html.Attributes.src (albumImageUrl album.id) ] []
                 , playButton (PlayTracks (List.map (mapAlbumTrackToTrack album) album.tracks))
                 ]
@@ -137,7 +138,6 @@ albumView album =
                             ]
                     )
                     |> Components.Table.grow
-                    |> Components.Table.alignHeader Components.Table.Left
                 , Components.Table.textColumn ""
                     (\t ->
                         if t.liked then
@@ -162,11 +162,6 @@ playButton msg =
     Html.button [ Html.Events.onClick msg, Html.Attributes.class "play-button" ]
         [ Html.img [ Html.Attributes.src (Icon.url Icon.Play) ] []
         ]
-
-
-picture : List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
-picture =
-    Html.node "picture"
 
 
 albumImageUrl : Int -> String

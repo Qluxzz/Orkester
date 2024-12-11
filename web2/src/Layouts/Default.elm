@@ -144,7 +144,10 @@ getCurrentlyPlayingTrackInfo track =
 sidebarView : Maybe Types.TrackQueue.ActiveTrack -> Html msg
 sidebarView activeTrack =
     Html.aside [ Html.Attributes.class "sidebar" ]
-        [ Html.ul [] [ Html.li [] [ Html.a [ Html.Attributes.href "/search" ] [ Html.text "Search" ] ] ]
+        [ Html.ul []
+            [ Html.li [] [ Html.a [ Html.Attributes.href "/search" ] [ Html.text "Search" ] ]
+            , Html.li [] [ Html.a [ Html.Attributes.href "/liked-tracks" ] [ Html.text "Liked tracks" ] ]
+            ]
         , case activeTrack of
             Just { track } ->
                 Html.a

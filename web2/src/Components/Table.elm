@@ -1,4 +1,4 @@
-module Components.Table exposing (Align(..), Column, alignData, alignHeader, clickableColumn, defaultColumn, grow, table, textColumn)
+module Components.Table exposing (Align(..), Column, alignData, alignHeader, clickableColumn, defaultColumn, grow, linkColumn, table, textColumn)
 
 import Html
 import Html.Attributes
@@ -29,6 +29,16 @@ defaultColumn title data =
 textColumn : String -> (a -> String) -> Column a msg
 textColumn title data =
     Column title (data >> Html.text) False Nothing [] []
+
+
+linkColumn : String -> (a -> { url : String, title : String }) -> Column a msg
+linkColumn title data =
+    defaultColumn title (data >> toLink)
+
+
+toLink : { url : String, title : String } -> Html.Html msg
+toLink { url, title } =
+    Html.a [ Html.Attributes.href url ] [ Html.text title ]
 
 
 clickableColumn : String -> (a -> Html.Html msg) -> (a -> msg) -> Column a msg

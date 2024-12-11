@@ -10,11 +10,7 @@ type alias Track =
     , title : String
     , length : Int
     , liked : Bool
-    , album :
-        { id : Int
-        , name : String
-        , urlName : String
-        }
+    , album : Album
     , artists : List Artist
     }
 
