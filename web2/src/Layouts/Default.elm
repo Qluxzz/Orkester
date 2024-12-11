@@ -226,7 +226,7 @@ controls volume progressSlider { progress, state, track } repeat =
             , repeatButton repeat
             ]
         , Html.div [ Html.Attributes.style "display" "flex", Html.Attributes.style "gap" "10px" ]
-            [ Html.text (Utilities.DurationDisplay.durationDisplay progress)
+            [ Html.text (Utilities.DurationDisplay.durationDisplay sliderValue)
             , Html.input
                 [ Html.Attributes.type_ "range"
                 , Html.Attributes.min "0"
