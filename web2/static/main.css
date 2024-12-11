@@ -207,6 +207,7 @@ main {
         display: flex;
         gap: 10px;
         justify-content: space-between;
+        align-items: flex-start;
         overflow: auto;
 
         h1 {
@@ -216,8 +217,11 @@ main {
         }
 
         ul {
-            position: sticky;
-            bottom: 0;
+            flex-basis: calc(100%/3);
+
+            li {
+                padding: 5px 0;
+            }
         }
     }
 
