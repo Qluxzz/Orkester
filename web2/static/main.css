@@ -221,7 +221,7 @@ main {
     .artist-albums {
         display: grid;
         gap: 24px;
-        grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));
         grid-template-rows: 1fr;
         overflow: auto;
         margin-top: 10px;
