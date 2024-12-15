@@ -49,6 +49,10 @@ func FromEntTracks(dbTracks []*ent.Track) []Track {
 
 func FromTrackId(str string) (int, error) {
 	split := strings.Split(str, "-")
+	if len(split) != 2 {
+		return 0, fmt.Errorf("%s is not a track id", str)
+	}
+
 	return strconv.Atoi(split[1])
 }
 
