@@ -108,9 +108,9 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 	switch filepath.Ext(path) {
 	case ".flac":
 	case ".mp3":
+	case ".ogg":
 		break
 	case ".m4a":
-	case ".ogg":
 	case ".wav":
 	case ".wave":
 	case ".aiff":
@@ -133,7 +133,8 @@ func parseAudioFile(path string) (*IndexedTrack, error) {
 		track.Image = FlacTryGetEmbeddedImage(path)
 	case ".mp3":
 		track.Image = Mp3TryGetEmbeddedImage(path)
-		break
+	case ".ogg":
+		break // Use image in folder fallback
 	default:
 		return nil, fmt.Errorf("unsupported file extension: %s", filepath.Ext(path))
 	}
