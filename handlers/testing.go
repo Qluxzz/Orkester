@@ -330,11 +330,32 @@ func generateFakeTrack() *indexFiles.IndexedTrack {
 	month := rand.Intn(11) + 1
 	day := rand.Intn(31) + 1
 
-	date := &indexFiles.ReleaseDate{
-		Year:      year,
-		Month:     month,
-		Date:      day,
-		Precision: precision[rand.Intn(len(precision))],
+	selected_precision := precision[rand.Intn(len(precision))]
+
+	var date *indexFiles.ReleaseDate
+
+	switch selected_precision {
+	case indexFiles.PRECISION_DATE:
+		date = &indexFiles.ReleaseDate{
+			Year:      year,
+			Month:     month,
+			Date:      day,
+			Precision: selected_precision,
+		}
+	case indexFiles.PRECISION_YEAR:
+		date = &indexFiles.ReleaseDate{
+			Year:      year,
+			Month:     0,
+			Date:      0,
+			Precision: selected_precision,
+		}
+	case indexFiles.PRECISION_MONTH:
+		date = &indexFiles.ReleaseDate{
+			Year:      year,
+			Month:     month,
+			Date:      0,
+			Precision: selected_precision,
+		}
 	}
 
 	return &indexFiles.IndexedTrack{
