@@ -55,12 +55,26 @@ export const onReady = ({ app, env }: ElmLand.OnReadyArgs) => {
     localStorage.setItem("repeat", m)
   })
 
-  app.ports?.playTrack?.subscribe?.((trackId) => {
-    audio.src = `/api/v1/track/${trackId}/stream`
+  app.ports?.playTrack?.subscribe?.((track) => {
+    const t = track as Track
+
+    audio.src = `/api/v1/track/${t.id}/stream`
     audio
       .play()
       .then(() => {
         app.ports?.stateChange?.send?.("play")
+
+        if ("mediaSession" in window.navigator)
+          window.navigator.mediaSession.metadata = new MediaMetadata({
+            title: t.name,
+            artist: t.artist,
+            album: t.album,
+            artwork: [
+              {
+                src: `/api/v1/track/${t.id}/image`,
+              },
+            ],
+          })
       })
       .catch((error) => {
         if (error.name === "AbortError") return
@@ -105,4 +119,11 @@ namespace ElmLand {
     send?: (data: unknown) => void
     subscribe?: (callback: (data: unknown) => unknown) => void
   }
+}
+
+interface Track {
+  name: string
+  id: string
+  album: string
+  artist: string
 }

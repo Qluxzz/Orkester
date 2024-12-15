@@ -60,7 +60,7 @@ type Effect msg
         }
     | FocusElement String Shared.Msg.Msg
       -- PLAYER CONTROLS
-    | StartPlayback Types.TrackId.TrackId
+    | StartPlayback Types.TrackInfo.Track
     | RestartTrack
     | Play
     | Pause
@@ -196,9 +196,9 @@ focusElement elementId =
     FocusElement elementId Shared.Msg.NoOp
 
 
-startPlayback : Types.TrackId.TrackId -> Effect msg
-startPlayback id =
-    StartPlayback id
+startPlayback : Types.TrackInfo.Track -> Effect msg
+startPlayback track =
+    StartPlayback track
 
 
 playTrack : Types.TrackInfo.Track -> Effect msg
@@ -212,7 +212,7 @@ playTracks tracks =
         Just t ->
             Batch
                 [ SendSharedMsg (Shared.Msg.PlayTracks tracks)
-                , StartPlayback t.id
+                , StartPlayback t
                 ]
 
         Nothing ->
@@ -410,8 +410,13 @@ toCmd options effect =
             Task.attempt (\_ -> options.fromSharedMsg sharedMsg) (Browser.Dom.focus elementId)
 
         -- PLAYER CONTROLS
-        StartPlayback trackId ->
-            JSPlayer.playTrack (Types.TrackId.toString trackId)
+        StartPlayback track ->
+            JSPlayer.playTrack
+                { id = Types.TrackId.toString track.id
+                , name = track.title
+                , album = track.album.name
+                , artist = List.map .name track.artists |> String.join ", "
+                }
 
         RestartTrack ->
             JSPlayer.seek 0

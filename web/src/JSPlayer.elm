@@ -15,7 +15,15 @@ type Msg
 -- OUT
 
 
-port playTrack : String -> Cmd msg
+type alias Track =
+    { id : String
+    , name : String
+    , album : String
+    , artist : String
+    }
+
+
+port playTrack : Track -> Cmd msg
 
 
 port seek : Int -> Cmd msg
