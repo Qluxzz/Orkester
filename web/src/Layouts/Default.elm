@@ -120,7 +120,7 @@ view shared { toContentMsg, model, content } =
         currentlyPlayingTrack =
             Types.TrackQueue.getActiveTrack shared.queue
     in
-    { title = currentlyPlayingTrack |> Maybe.map (.track >> getCurrentlyPlayingTrackInfo) |> Maybe.withDefault content.title
+    { title = Maybe.andThen title_ currentlyPlayingTrack |> Maybe.withDefault content.title
     , body =
         [ sidebarView currentlyPlayingTrack
         , Html.main_ [] content.body
@@ -129,6 +129,15 @@ view shared { toContentMsg, model, content } =
             |> Html.map toContentMsg
         ]
     }
+
+
+title_ : Types.TrackQueue.ActiveTrack -> Maybe String
+title_ { track, state } =
+    if state == Types.TrackQueue.Paused then
+        Nothing
+
+    else
+        Just (getCurrentlyPlayingTrackInfo track)
 
 
 getCurrentlyPlayingTrackInfo : { r | title : String, artists : List { y | name : String } } -> String
