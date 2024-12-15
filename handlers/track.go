@@ -3,6 +3,7 @@ package handlers
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"orkester/ent"
 	"orkester/ent/likedtrack"
 	"orkester/ent/track"
@@ -102,6 +103,32 @@ func TrackStream(client *ent.Client, context context.Context) fiber.Handler {
 		})
 
 		return nil
+	}
+}
+
+func TrackImage(client *ent.Client, context context.Context) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := models.FromTrackId(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		trackCover, err := client.
+			Track.
+			Query().
+			Where(track.ID(id)).
+			QueryImage().
+			Only(context)
+
+		if err != nil {
+			return err
+		}
+
+		const secondsInAYear int = 3600 * 24 * 365
+
+		c.Response().Header.Add("Content-Type", trackCover.ImageMimeType)
+		c.Response().Header.Add("Cache-Control", fmt.Sprintf("max-age=%d", secondsInAYear))
+		return c.Send(trackCover.Image)
 	}
 }
 

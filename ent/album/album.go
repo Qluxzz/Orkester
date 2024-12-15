@@ -42,9 +42,9 @@ const (
 	TracksColumn = "album_tracks"
 	// CoverTable is the table that holds the cover relation/edge.
 	CoverTable = "albums"
-	// CoverInverseTable is the table name for the AlbumImage entity.
-	// It exists in this package in order to avoid circular dependency with the "albumimage" package.
-	CoverInverseTable = "album_images"
+	// CoverInverseTable is the table name for the Image entity.
+	// It exists in this package in order to avoid circular dependency with the "image" package.
+	CoverInverseTable = "images"
 	// CoverColumn is the table column denoting the cover relation/edge.
 	CoverColumn = "album_cover"
 )

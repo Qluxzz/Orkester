@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"orkester/ent/album"
-	"orkester/ent/albumimage"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/likedtrack"
 	"orkester/ent/predicate"
 	"orkester/ent/searchpath"
@@ -31,8 +31,8 @@ const (
 
 	// Node types.
 	TypeAlbum      = "Album"
-	TypeAlbumImage = "AlbumImage"
 	TypeArtist     = "Artist"
+	TypeImage      = "Image"
 	TypeLikedTrack = "LikedTrack"
 	TypeSearchPath = "SearchPath"
 	TypeTrack      = "Track"
@@ -359,17 +359,17 @@ func (m *AlbumMutation) ResetTracks() {
 	m.removedtracks = nil
 }
 
-// SetCoverID sets the "cover" edge to the AlbumImage entity by id.
+// SetCoverID sets the "cover" edge to the Image entity by id.
 func (m *AlbumMutation) SetCoverID(id int) {
 	m.cover = &id
 }
 
-// ClearCover clears the "cover" edge to the AlbumImage entity.
+// ClearCover clears the "cover" edge to the Image entity.
 func (m *AlbumMutation) ClearCover() {
 	m.clearedcover = true
 }
 
-// CoverCleared reports if the "cover" edge to the AlbumImage entity was cleared.
+// CoverCleared reports if the "cover" edge to the Image entity was cleared.
 func (m *AlbumMutation) CoverCleared() bool {
 	return m.clearedcover
 }
@@ -681,386 +681,6 @@ func (m *AlbumMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Album edge %s", name)
-}
-
-// AlbumImageMutation represents an operation that mutates the AlbumImage nodes in the graph.
-type AlbumImageMutation struct {
-	config
-	op              Op
-	typ             string
-	id              *int
-	image           *[]byte
-	image_mime_type *string
-	clearedFields   map[string]struct{}
-	done            bool
-	oldValue        func(context.Context) (*AlbumImage, error)
-	predicates      []predicate.AlbumImage
-}
-
-var _ ent.Mutation = (*AlbumImageMutation)(nil)
-
-// albumimageOption allows management of the mutation configuration using functional options.
-type albumimageOption func(*AlbumImageMutation)
-
-// newAlbumImageMutation creates new mutation for the AlbumImage entity.
-func newAlbumImageMutation(c config, op Op, opts ...albumimageOption) *AlbumImageMutation {
-	m := &AlbumImageMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeAlbumImage,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withAlbumImageID sets the ID field of the mutation.
-func withAlbumImageID(id int) albumimageOption {
-	return func(m *AlbumImageMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *AlbumImage
-		)
-		m.oldValue = func(ctx context.Context) (*AlbumImage, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().AlbumImage.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withAlbumImage sets the old AlbumImage of the mutation.
-func withAlbumImage(node *AlbumImage) albumimageOption {
-	return func(m *AlbumImageMutation) {
-		m.oldValue = func(context.Context) (*AlbumImage, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m AlbumImageMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m AlbumImageMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *AlbumImageMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *AlbumImageMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().AlbumImage.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetImage sets the "image" field.
-func (m *AlbumImageMutation) SetImage(b []byte) {
-	m.image = &b
-}
-
-// Image returns the value of the "image" field in the mutation.
-func (m *AlbumImageMutation) Image() (r []byte, exists bool) {
-	v := m.image
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldImage returns the old "image" field's value of the AlbumImage entity.
-// If the AlbumImage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlbumImageMutation) OldImage(ctx context.Context) (v []byte, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldImage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldImage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldImage: %w", err)
-	}
-	return oldValue.Image, nil
-}
-
-// ResetImage resets all changes to the "image" field.
-func (m *AlbumImageMutation) ResetImage() {
-	m.image = nil
-}
-
-// SetImageMimeType sets the "image_mime_type" field.
-func (m *AlbumImageMutation) SetImageMimeType(s string) {
-	m.image_mime_type = &s
-}
-
-// ImageMimeType returns the value of the "image_mime_type" field in the mutation.
-func (m *AlbumImageMutation) ImageMimeType() (r string, exists bool) {
-	v := m.image_mime_type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldImageMimeType returns the old "image_mime_type" field's value of the AlbumImage entity.
-// If the AlbumImage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlbumImageMutation) OldImageMimeType(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldImageMimeType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldImageMimeType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldImageMimeType: %w", err)
-	}
-	return oldValue.ImageMimeType, nil
-}
-
-// ResetImageMimeType resets all changes to the "image_mime_type" field.
-func (m *AlbumImageMutation) ResetImageMimeType() {
-	m.image_mime_type = nil
-}
-
-// Where appends a list predicates to the AlbumImageMutation builder.
-func (m *AlbumImageMutation) Where(ps ...predicate.AlbumImage) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the AlbumImageMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *AlbumImageMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.AlbumImage, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *AlbumImageMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *AlbumImageMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (AlbumImage).
-func (m *AlbumImageMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *AlbumImageMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.image != nil {
-		fields = append(fields, albumimage.FieldImage)
-	}
-	if m.image_mime_type != nil {
-		fields = append(fields, albumimage.FieldImageMimeType)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *AlbumImageMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case albumimage.FieldImage:
-		return m.Image()
-	case albumimage.FieldImageMimeType:
-		return m.ImageMimeType()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *AlbumImageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case albumimage.FieldImage:
-		return m.OldImage(ctx)
-	case albumimage.FieldImageMimeType:
-		return m.OldImageMimeType(ctx)
-	}
-	return nil, fmt.Errorf("unknown AlbumImage field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *AlbumImageMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case albumimage.FieldImage:
-		v, ok := value.([]byte)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetImage(v)
-		return nil
-	case albumimage.FieldImageMimeType:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetImageMimeType(v)
-		return nil
-	}
-	return fmt.Errorf("unknown AlbumImage field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *AlbumImageMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *AlbumImageMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *AlbumImageMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown AlbumImage numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *AlbumImageMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *AlbumImageMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *AlbumImageMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown AlbumImage nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *AlbumImageMutation) ResetField(name string) error {
-	switch name {
-	case albumimage.FieldImage:
-		m.ResetImage()
-		return nil
-	case albumimage.FieldImageMimeType:
-		m.ResetImageMimeType()
-		return nil
-	}
-	return fmt.Errorf("unknown AlbumImage field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *AlbumImageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *AlbumImageMutation) AddedIDs(name string) []ent.Value {
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *AlbumImageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *AlbumImageMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *AlbumImageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *AlbumImageMutation) EdgeCleared(name string) bool {
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *AlbumImageMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown AlbumImage unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *AlbumImageMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown AlbumImage edge %s", name)
 }
 
 // ArtistMutation represents an operation that mutates the Artist nodes in the graph.
@@ -1617,6 +1237,440 @@ func (m *ArtistMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Artist edge %s", name)
+}
+
+// ImageMutation represents an operation that mutates the Image nodes in the graph.
+type ImageMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	image           *[]byte
+	image_mime_type *string
+	hash            *string
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*Image, error)
+	predicates      []predicate.Image
+}
+
+var _ ent.Mutation = (*ImageMutation)(nil)
+
+// imageOption allows management of the mutation configuration using functional options.
+type imageOption func(*ImageMutation)
+
+// newImageMutation creates new mutation for the Image entity.
+func newImageMutation(c config, op Op, opts ...imageOption) *ImageMutation {
+	m := &ImageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeImage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withImageID sets the ID field of the mutation.
+func withImageID(id int) imageOption {
+	return func(m *ImageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Image
+		)
+		m.oldValue = func(ctx context.Context) (*Image, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Image.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withImage sets the old Image of the mutation.
+func withImage(node *Image) imageOption {
+	return func(m *ImageMutation) {
+		m.oldValue = func(context.Context) (*Image, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ImageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ImageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ImageMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ImageMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Image.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetImage sets the "image" field.
+func (m *ImageMutation) SetImage(b []byte) {
+	m.image = &b
+}
+
+// Image returns the value of the "image" field in the mutation.
+func (m *ImageMutation) Image() (r []byte, exists bool) {
+	v := m.image
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImage returns the old "image" field's value of the Image entity.
+// If the Image object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageMutation) OldImage(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImage: %w", err)
+	}
+	return oldValue.Image, nil
+}
+
+// ResetImage resets all changes to the "image" field.
+func (m *ImageMutation) ResetImage() {
+	m.image = nil
+}
+
+// SetImageMimeType sets the "image_mime_type" field.
+func (m *ImageMutation) SetImageMimeType(s string) {
+	m.image_mime_type = &s
+}
+
+// ImageMimeType returns the value of the "image_mime_type" field in the mutation.
+func (m *ImageMutation) ImageMimeType() (r string, exists bool) {
+	v := m.image_mime_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImageMimeType returns the old "image_mime_type" field's value of the Image entity.
+// If the Image object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageMutation) OldImageMimeType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImageMimeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImageMimeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImageMimeType: %w", err)
+	}
+	return oldValue.ImageMimeType, nil
+}
+
+// ResetImageMimeType resets all changes to the "image_mime_type" field.
+func (m *ImageMutation) ResetImageMimeType() {
+	m.image_mime_type = nil
+}
+
+// SetHash sets the "hash" field.
+func (m *ImageMutation) SetHash(s string) {
+	m.hash = &s
+}
+
+// Hash returns the value of the "hash" field in the mutation.
+func (m *ImageMutation) Hash() (r string, exists bool) {
+	v := m.hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHash returns the old "hash" field's value of the Image entity.
+// If the Image object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageMutation) OldHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHash: %w", err)
+	}
+	return oldValue.Hash, nil
+}
+
+// ResetHash resets all changes to the "hash" field.
+func (m *ImageMutation) ResetHash() {
+	m.hash = nil
+}
+
+// Where appends a list predicates to the ImageMutation builder.
+func (m *ImageMutation) Where(ps ...predicate.Image) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ImageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ImageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Image, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ImageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ImageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Image).
+func (m *ImageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ImageMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.image != nil {
+		fields = append(fields, image.FieldImage)
+	}
+	if m.image_mime_type != nil {
+		fields = append(fields, image.FieldImageMimeType)
+	}
+	if m.hash != nil {
+		fields = append(fields, image.FieldHash)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ImageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case image.FieldImage:
+		return m.Image()
+	case image.FieldImageMimeType:
+		return m.ImageMimeType()
+	case image.FieldHash:
+		return m.Hash()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ImageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case image.FieldImage:
+		return m.OldImage(ctx)
+	case image.FieldImageMimeType:
+		return m.OldImageMimeType(ctx)
+	case image.FieldHash:
+		return m.OldHash(ctx)
+	}
+	return nil, fmt.Errorf("unknown Image field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ImageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case image.FieldImage:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImage(v)
+		return nil
+	case image.FieldImageMimeType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImageMimeType(v)
+		return nil
+	case image.FieldHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHash(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Image field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ImageMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ImageMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ImageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Image numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ImageMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ImageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ImageMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Image nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ImageMutation) ResetField(name string) error {
+	switch name {
+	case image.FieldImage:
+		m.ResetImage()
+		return nil
+	case image.FieldImageMimeType:
+		m.ResetImageMimeType()
+		return nil
+	case image.FieldHash:
+		m.ResetHash()
+		return nil
+	}
+	return fmt.Errorf("unknown Image field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ImageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ImageMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ImageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ImageMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ImageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ImageMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ImageMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Image unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ImageMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Image edge %s", name)
 }
 
 // LikedTrackMutation represents an operation that mutates the LikedTrack nodes in the graph.
@@ -2359,6 +2413,8 @@ type TrackMutation struct {
 	clearedalbum    bool
 	liked           *int
 	clearedliked    bool
+	image           *int
+	clearedimage    bool
 	done            bool
 	oldValue        func(context.Context) (*Track, error)
 	predicates      []predicate.Track
@@ -2814,6 +2870,45 @@ func (m *TrackMutation) ResetLiked() {
 	m.clearedliked = false
 }
 
+// SetImageID sets the "image" edge to the Image entity by id.
+func (m *TrackMutation) SetImageID(id int) {
+	m.image = &id
+}
+
+// ClearImage clears the "image" edge to the Image entity.
+func (m *TrackMutation) ClearImage() {
+	m.clearedimage = true
+}
+
+// ImageCleared reports if the "image" edge to the Image entity was cleared.
+func (m *TrackMutation) ImageCleared() bool {
+	return m.clearedimage
+}
+
+// ImageID returns the "image" edge ID in the mutation.
+func (m *TrackMutation) ImageID() (id int, exists bool) {
+	if m.image != nil {
+		return *m.image, true
+	}
+	return
+}
+
+// ImageIDs returns the "image" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ImageID instead. It exists only for internal usage by the builders.
+func (m *TrackMutation) ImageIDs() (ids []int) {
+	if id := m.image; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetImage resets all changes to the "image" edge.
+func (m *TrackMutation) ResetImage() {
+	m.image = nil
+	m.clearedimage = false
+}
+
 // Where appends a list predicates to the TrackMutation builder.
 func (m *TrackMutation) Where(ps ...predicate.Track) {
 	m.predicates = append(m.predicates, ps...)
@@ -3042,7 +3137,7 @@ func (m *TrackMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TrackMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.artists != nil {
 		edges = append(edges, track.EdgeArtists)
 	}
@@ -3051,6 +3146,9 @@ func (m *TrackMutation) AddedEdges() []string {
 	}
 	if m.liked != nil {
 		edges = append(edges, track.EdgeLiked)
+	}
+	if m.image != nil {
+		edges = append(edges, track.EdgeImage)
 	}
 	return edges
 }
@@ -3073,13 +3171,17 @@ func (m *TrackMutation) AddedIDs(name string) []ent.Value {
 		if id := m.liked; id != nil {
 			return []ent.Value{*id}
 		}
+	case track.EdgeImage:
+		if id := m.image; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TrackMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedartists != nil {
 		edges = append(edges, track.EdgeArtists)
 	}
@@ -3102,7 +3204,7 @@ func (m *TrackMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TrackMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedartists {
 		edges = append(edges, track.EdgeArtists)
 	}
@@ -3111,6 +3213,9 @@ func (m *TrackMutation) ClearedEdges() []string {
 	}
 	if m.clearedliked {
 		edges = append(edges, track.EdgeLiked)
+	}
+	if m.clearedimage {
+		edges = append(edges, track.EdgeImage)
 	}
 	return edges
 }
@@ -3125,6 +3230,8 @@ func (m *TrackMutation) EdgeCleared(name string) bool {
 		return m.clearedalbum
 	case track.EdgeLiked:
 		return m.clearedliked
+	case track.EdgeImage:
+		return m.clearedimage
 	}
 	return false
 }
@@ -3138,6 +3245,9 @@ func (m *TrackMutation) ClearEdge(name string) error {
 		return nil
 	case track.EdgeLiked:
 		m.ClearLiked()
+		return nil
+	case track.EdgeImage:
+		m.ClearImage()
 		return nil
 	}
 	return fmt.Errorf("unknown Track unique edge %s", name)
@@ -3155,6 +3265,9 @@ func (m *TrackMutation) ResetEdge(name string) error {
 		return nil
 	case track.EdgeLiked:
 		m.ResetLiked()
+		return nil
+	case track.EdgeImage:
+		m.ResetImage()
 		return nil
 	}
 	return fmt.Errorf("unknown Track edge %s", name)

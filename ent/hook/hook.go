@@ -20,18 +20,6 @@ func (f AlbumFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlbumMutation", m)
 }
 
-// The AlbumImageFunc type is an adapter to allow the use of ordinary
-// function as AlbumImage mutator.
-type AlbumImageFunc func(context.Context, *ent.AlbumImageMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f AlbumImageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.AlbumImageMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlbumImageMutation", m)
-}
-
 // The ArtistFunc type is an adapter to allow the use of ordinary
 // function as Artist mutator.
 type ArtistFunc func(context.Context, *ent.ArtistMutation) (ent.Value, error)
@@ -42,6 +30,18 @@ func (f ArtistFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ArtistMutation", m)
+}
+
+// The ImageFunc type is an adapter to allow the use of ordinary
+// function as Image mutator.
+type ImageFunc func(context.Context, *ent.ImageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ImageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ImageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ImageMutation", m)
 }
 
 // The LikedTrackFunc type is an adapter to allow the use of ordinary

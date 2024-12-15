@@ -14,10 +14,10 @@ type Tx struct {
 	config
 	// Album is the client for interacting with the Album builders.
 	Album *AlbumClient
-	// AlbumImage is the client for interacting with the AlbumImage builders.
-	AlbumImage *AlbumImageClient
 	// Artist is the client for interacting with the Artist builders.
 	Artist *ArtistClient
+	// Image is the client for interacting with the Image builders.
+	Image *ImageClient
 	// LikedTrack is the client for interacting with the LikedTrack builders.
 	LikedTrack *LikedTrackClient
 	// SearchPath is the client for interacting with the SearchPath builders.
@@ -156,8 +156,8 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Album = NewAlbumClient(tx.config)
-	tx.AlbumImage = NewAlbumImageClient(tx.config)
 	tx.Artist = NewArtistClient(tx.config)
+	tx.Image = NewImageClient(tx.config)
 	tx.LikedTrack = NewLikedTrackClient(tx.config)
 	tx.SearchPath = NewSearchPathClient(tx.config)
 	tx.Track = NewTrackClient(tx.config)

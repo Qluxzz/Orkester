@@ -11,6 +11,7 @@ import Route.Path
 import Shared
 import Shared.Msg
 import Types.Queue
+import Types.TrackId
 import Types.TrackInfo
 import Types.TrackQueue
 import Utilities.AlbumUrl
@@ -154,7 +155,7 @@ sidebarView activeTrack =
                     [ Route.Path.href (Route.Path.Album_Id__Name_ { id = String.fromInt track.album.id, name = track.album.urlName })
                     ]
                     [ Html.img
-                        [ Html.Attributes.src (Utilities.AlbumUrl.albumImageUrl track.album)
+                        [ Html.Attributes.src ("/api/v1/track/" ++ Types.TrackId.toString track.id ++ "/image")
                         ]
                         []
                     ]

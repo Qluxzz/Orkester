@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"math"
 	"orkester/ent/album"
-	"orkester/ent/albumimage"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/predicate"
 	"orkester/ent/track"
 
@@ -27,7 +27,7 @@ type AlbumQuery struct {
 	predicates []predicate.Album
 	withArtist *ArtistQuery
 	withTracks *TrackQuery
-	withCover  *AlbumImageQuery
+	withCover  *ImageQuery
 	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -110,8 +110,8 @@ func (aq *AlbumQuery) QueryTracks() *TrackQuery {
 }
 
 // QueryCover chains the current query on the "cover" edge.
-func (aq *AlbumQuery) QueryCover() *AlbumImageQuery {
-	query := (&AlbumImageClient{config: aq.config}).Query()
+func (aq *AlbumQuery) QueryCover() *ImageQuery {
+	query := (&ImageClient{config: aq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -122,7 +122,7 @@ func (aq *AlbumQuery) QueryCover() *AlbumImageQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(album.Table, album.FieldID, selector),
-			sqlgraph.To(albumimage.Table, albumimage.FieldID),
+			sqlgraph.To(image.Table, image.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, album.CoverTable, album.CoverColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
@@ -356,8 +356,8 @@ func (aq *AlbumQuery) WithTracks(opts ...func(*TrackQuery)) *AlbumQuery {
 
 // WithCover tells the query-builder to eager-load the nodes that are connected to
 // the "cover" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *AlbumQuery) WithCover(opts ...func(*AlbumImageQuery)) *AlbumQuery {
-	query := (&AlbumImageClient{config: aq.config}).Query()
+func (aq *AlbumQuery) WithCover(opts ...func(*ImageQuery)) *AlbumQuery {
+	query := (&ImageClient{config: aq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -489,7 +489,7 @@ func (aq *AlbumQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Album,
 	}
 	if query := aq.withCover; query != nil {
 		if err := aq.loadCover(ctx, query, nodes, nil,
-			func(n *Album, e *AlbumImage) { n.Edges.Cover = e }); err != nil {
+			func(n *Album, e *Image) { n.Edges.Cover = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -559,7 +559,7 @@ func (aq *AlbumQuery) loadTracks(ctx context.Context, query *TrackQuery, nodes [
 	}
 	return nil
 }
-func (aq *AlbumQuery) loadCover(ctx context.Context, query *AlbumImageQuery, nodes []*Album, init func(*Album), assign func(*Album, *AlbumImage)) error {
+func (aq *AlbumQuery) loadCover(ctx context.Context, query *ImageQuery, nodes []*Album, init func(*Album), assign func(*Album, *Image)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Album)
 	for i := range nodes {
@@ -575,7 +575,7 @@ func (aq *AlbumQuery) loadCover(ctx context.Context, query *AlbumImageQuery, nod
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(albumimage.IDIn(ids...))
+	query.Where(image.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err

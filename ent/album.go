@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"orkester/ent/album"
-	"orkester/ent/albumimage"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/indexFiles"
 	"strings"
 
@@ -41,7 +41,7 @@ type AlbumEdges struct {
 	// Tracks holds the value of the tracks edge.
 	Tracks []*Track `json:"tracks,omitempty"`
 	// Cover holds the value of the cover edge.
-	Cover *AlbumImage `json:"cover,omitempty"`
+	Cover *Image `json:"cover,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
@@ -69,11 +69,11 @@ func (e AlbumEdges) TracksOrErr() ([]*Track, error) {
 
 // CoverOrErr returns the Cover value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AlbumEdges) CoverOrErr() (*AlbumImage, error) {
+func (e AlbumEdges) CoverOrErr() (*Image, error) {
 	if e.Cover != nil {
 		return e.Cover, nil
 	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: albumimage.Label}
+		return nil, &NotFoundError{label: image.Label}
 	}
 	return nil, &NotLoadedError{edge: "cover"}
 }
@@ -172,7 +172,7 @@ func (a *Album) QueryTracks() *TrackQuery {
 }
 
 // QueryCover queries the "cover" edge of the Album entity.
-func (a *Album) QueryCover() *AlbumImageQuery {
+func (a *Album) QueryCover() *ImageQuery {
 	return NewAlbumClient(a.config).QueryCover(a)
 }
 

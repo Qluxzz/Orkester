@@ -12,8 +12,8 @@ import (
 	"orkester/ent/migrate"
 
 	"orkester/ent/album"
-	"orkester/ent/albumimage"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/likedtrack"
 	"orkester/ent/searchpath"
 	"orkester/ent/track"
@@ -31,10 +31,10 @@ type Client struct {
 	Schema *migrate.Schema
 	// Album is the client for interacting with the Album builders.
 	Album *AlbumClient
-	// AlbumImage is the client for interacting with the AlbumImage builders.
-	AlbumImage *AlbumImageClient
 	// Artist is the client for interacting with the Artist builders.
 	Artist *ArtistClient
+	// Image is the client for interacting with the Image builders.
+	Image *ImageClient
 	// LikedTrack is the client for interacting with the LikedTrack builders.
 	LikedTrack *LikedTrackClient
 	// SearchPath is the client for interacting with the SearchPath builders.
@@ -53,8 +53,8 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Album = NewAlbumClient(c.config)
-	c.AlbumImage = NewAlbumImageClient(c.config)
 	c.Artist = NewArtistClient(c.config)
+	c.Image = NewImageClient(c.config)
 	c.LikedTrack = NewLikedTrackClient(c.config)
 	c.SearchPath = NewSearchPathClient(c.config)
 	c.Track = NewTrackClient(c.config)
@@ -151,8 +151,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:        ctx,
 		config:     cfg,
 		Album:      NewAlbumClient(cfg),
-		AlbumImage: NewAlbumImageClient(cfg),
 		Artist:     NewArtistClient(cfg),
+		Image:      NewImageClient(cfg),
 		LikedTrack: NewLikedTrackClient(cfg),
 		SearchPath: NewSearchPathClient(cfg),
 		Track:      NewTrackClient(cfg),
@@ -176,8 +176,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:        ctx,
 		config:     cfg,
 		Album:      NewAlbumClient(cfg),
-		AlbumImage: NewAlbumImageClient(cfg),
 		Artist:     NewArtistClient(cfg),
+		Image:      NewImageClient(cfg),
 		LikedTrack: NewLikedTrackClient(cfg),
 		SearchPath: NewSearchPathClient(cfg),
 		Track:      NewTrackClient(cfg),
@@ -210,7 +210,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Album, c.AlbumImage, c.Artist, c.LikedTrack, c.SearchPath, c.Track,
+		c.Album, c.Artist, c.Image, c.LikedTrack, c.SearchPath, c.Track,
 	} {
 		n.Use(hooks...)
 	}
@@ -220,7 +220,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Album, c.AlbumImage, c.Artist, c.LikedTrack, c.SearchPath, c.Track,
+		c.Album, c.Artist, c.Image, c.LikedTrack, c.SearchPath, c.Track,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -231,10 +231,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AlbumMutation:
 		return c.Album.mutate(ctx, m)
-	case *AlbumImageMutation:
-		return c.AlbumImage.mutate(ctx, m)
 	case *ArtistMutation:
 		return c.Artist.mutate(ctx, m)
+	case *ImageMutation:
+		return c.Image.mutate(ctx, m)
 	case *LikedTrackMutation:
 		return c.LikedTrack.mutate(ctx, m)
 	case *SearchPathMutation:
@@ -387,13 +387,13 @@ func (c *AlbumClient) QueryTracks(a *Album) *TrackQuery {
 }
 
 // QueryCover queries the cover edge of a Album.
-func (c *AlbumClient) QueryCover(a *Album) *AlbumImageQuery {
-	query := (&AlbumImageClient{config: c.config}).Query()
+func (c *AlbumClient) QueryCover(a *Album) *ImageQuery {
+	query := (&ImageClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(album.Table, album.FieldID, id),
-			sqlgraph.To(albumimage.Table, albumimage.FieldID),
+			sqlgraph.To(image.Table, image.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, album.CoverTable, album.CoverColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
@@ -424,139 +424,6 @@ func (c *AlbumClient) mutate(ctx context.Context, m *AlbumMutation) (Value, erro
 		return (&AlbumDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Album mutation op: %q", m.Op())
-	}
-}
-
-// AlbumImageClient is a client for the AlbumImage schema.
-type AlbumImageClient struct {
-	config
-}
-
-// NewAlbumImageClient returns a client for the AlbumImage from the given config.
-func NewAlbumImageClient(c config) *AlbumImageClient {
-	return &AlbumImageClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `albumimage.Hooks(f(g(h())))`.
-func (c *AlbumImageClient) Use(hooks ...Hook) {
-	c.hooks.AlbumImage = append(c.hooks.AlbumImage, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `albumimage.Intercept(f(g(h())))`.
-func (c *AlbumImageClient) Intercept(interceptors ...Interceptor) {
-	c.inters.AlbumImage = append(c.inters.AlbumImage, interceptors...)
-}
-
-// Create returns a builder for creating a AlbumImage entity.
-func (c *AlbumImageClient) Create() *AlbumImageCreate {
-	mutation := newAlbumImageMutation(c.config, OpCreate)
-	return &AlbumImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of AlbumImage entities.
-func (c *AlbumImageClient) CreateBulk(builders ...*AlbumImageCreate) *AlbumImageCreateBulk {
-	return &AlbumImageCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *AlbumImageClient) MapCreateBulk(slice any, setFunc func(*AlbumImageCreate, int)) *AlbumImageCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &AlbumImageCreateBulk{err: fmt.Errorf("calling to AlbumImageClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*AlbumImageCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &AlbumImageCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for AlbumImage.
-func (c *AlbumImageClient) Update() *AlbumImageUpdate {
-	mutation := newAlbumImageMutation(c.config, OpUpdate)
-	return &AlbumImageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *AlbumImageClient) UpdateOne(ai *AlbumImage) *AlbumImageUpdateOne {
-	mutation := newAlbumImageMutation(c.config, OpUpdateOne, withAlbumImage(ai))
-	return &AlbumImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *AlbumImageClient) UpdateOneID(id int) *AlbumImageUpdateOne {
-	mutation := newAlbumImageMutation(c.config, OpUpdateOne, withAlbumImageID(id))
-	return &AlbumImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for AlbumImage.
-func (c *AlbumImageClient) Delete() *AlbumImageDelete {
-	mutation := newAlbumImageMutation(c.config, OpDelete)
-	return &AlbumImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *AlbumImageClient) DeleteOne(ai *AlbumImage) *AlbumImageDeleteOne {
-	return c.DeleteOneID(ai.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AlbumImageClient) DeleteOneID(id int) *AlbumImageDeleteOne {
-	builder := c.Delete().Where(albumimage.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &AlbumImageDeleteOne{builder}
-}
-
-// Query returns a query builder for AlbumImage.
-func (c *AlbumImageClient) Query() *AlbumImageQuery {
-	return &AlbumImageQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeAlbumImage},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a AlbumImage entity by its id.
-func (c *AlbumImageClient) Get(ctx context.Context, id int) (*AlbumImage, error) {
-	return c.Query().Where(albumimage.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *AlbumImageClient) GetX(ctx context.Context, id int) *AlbumImage {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *AlbumImageClient) Hooks() []Hook {
-	return c.hooks.AlbumImage
-}
-
-// Interceptors returns the client interceptors.
-func (c *AlbumImageClient) Interceptors() []Interceptor {
-	return c.inters.AlbumImage
-}
-
-func (c *AlbumImageClient) mutate(ctx context.Context, m *AlbumImageMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&AlbumImageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&AlbumImageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&AlbumImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&AlbumImageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown AlbumImage mutation op: %q", m.Op())
 	}
 }
 
@@ -722,6 +589,139 @@ func (c *ArtistClient) mutate(ctx context.Context, m *ArtistMutation) (Value, er
 		return (&ArtistDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Artist mutation op: %q", m.Op())
+	}
+}
+
+// ImageClient is a client for the Image schema.
+type ImageClient struct {
+	config
+}
+
+// NewImageClient returns a client for the Image from the given config.
+func NewImageClient(c config) *ImageClient {
+	return &ImageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `image.Hooks(f(g(h())))`.
+func (c *ImageClient) Use(hooks ...Hook) {
+	c.hooks.Image = append(c.hooks.Image, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `image.Intercept(f(g(h())))`.
+func (c *ImageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Image = append(c.inters.Image, interceptors...)
+}
+
+// Create returns a builder for creating a Image entity.
+func (c *ImageClient) Create() *ImageCreate {
+	mutation := newImageMutation(c.config, OpCreate)
+	return &ImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Image entities.
+func (c *ImageClient) CreateBulk(builders ...*ImageCreate) *ImageCreateBulk {
+	return &ImageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ImageClient) MapCreateBulk(slice any, setFunc func(*ImageCreate, int)) *ImageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ImageCreateBulk{err: fmt.Errorf("calling to ImageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ImageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ImageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Image.
+func (c *ImageClient) Update() *ImageUpdate {
+	mutation := newImageMutation(c.config, OpUpdate)
+	return &ImageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ImageClient) UpdateOne(i *Image) *ImageUpdateOne {
+	mutation := newImageMutation(c.config, OpUpdateOne, withImage(i))
+	return &ImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ImageClient) UpdateOneID(id int) *ImageUpdateOne {
+	mutation := newImageMutation(c.config, OpUpdateOne, withImageID(id))
+	return &ImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Image.
+func (c *ImageClient) Delete() *ImageDelete {
+	mutation := newImageMutation(c.config, OpDelete)
+	return &ImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ImageClient) DeleteOne(i *Image) *ImageDeleteOne {
+	return c.DeleteOneID(i.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ImageClient) DeleteOneID(id int) *ImageDeleteOne {
+	builder := c.Delete().Where(image.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ImageDeleteOne{builder}
+}
+
+// Query returns a query builder for Image.
+func (c *ImageClient) Query() *ImageQuery {
+	return &ImageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeImage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Image entity by its id.
+func (c *ImageClient) Get(ctx context.Context, id int) (*Image, error) {
+	return c.Query().Where(image.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ImageClient) GetX(ctx context.Context, id int) *Image {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ImageClient) Hooks() []Hook {
+	return c.hooks.Image
+}
+
+// Interceptors returns the client interceptors.
+func (c *ImageClient) Interceptors() []Interceptor {
+	return c.inters.Image
+}
+
+func (c *ImageClient) mutate(ctx context.Context, m *ImageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ImageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ImageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ImageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Image mutation op: %q", m.Op())
 	}
 }
 
@@ -1163,6 +1163,22 @@ func (c *TrackClient) QueryLiked(t *Track) *LikedTrackQuery {
 	return query
 }
 
+// QueryImage queries the image edge of a Track.
+func (c *TrackClient) QueryImage(t *Track) *ImageQuery {
+	query := (&ImageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(track.Table, track.FieldID, id),
+			sqlgraph.To(image.Table, image.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, track.ImageTable, track.ImageColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TrackClient) Hooks() []Hook {
 	return c.hooks.Track
@@ -1191,9 +1207,9 @@ func (c *TrackClient) mutate(ctx context.Context, m *TrackMutation) (Value, erro
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Album, AlbumImage, Artist, LikedTrack, SearchPath, Track []ent.Hook
+		Album, Artist, Image, LikedTrack, SearchPath, Track []ent.Hook
 	}
 	inters struct {
-		Album, AlbumImage, Artist, LikedTrack, SearchPath, Track []ent.Interceptor
+		Album, Artist, Image, LikedTrack, SearchPath, Track []ent.Interceptor
 	}
 )

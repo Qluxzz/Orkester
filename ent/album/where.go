@@ -252,7 +252,7 @@ func HasCover() predicate.Album {
 }
 
 // HasCoverWith applies the HasEdge predicate on the "cover" edge with a given conditions (other predicates).
-func HasCoverWith(preds ...predicate.AlbumImage) predicate.Album {
+func HasCoverWith(preds ...predicate.Image) predicate.Album {
 	return predicate.Album(func(s *sql.Selector) {
 		step := newCoverStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

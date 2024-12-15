@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"orkester/ent/album"
-	"orkester/ent/albumimage"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/track"
 	"orkester/indexFiles"
 
@@ -67,13 +67,13 @@ func (ac *AlbumCreate) AddTracks(t ...*Track) *AlbumCreate {
 	return ac.AddTrackIDs(ids...)
 }
 
-// SetCoverID sets the "cover" edge to the AlbumImage entity by ID.
+// SetCoverID sets the "cover" edge to the Image entity by ID.
 func (ac *AlbumCreate) SetCoverID(id int) *AlbumCreate {
 	ac.mutation.SetCoverID(id)
 	return ac
 }
 
-// SetNillableCoverID sets the "cover" edge to the AlbumImage entity by ID if the given value is not nil.
+// SetNillableCoverID sets the "cover" edge to the Image entity by ID if the given value is not nil.
 func (ac *AlbumCreate) SetNillableCoverID(id *int) *AlbumCreate {
 	if id != nil {
 		ac = ac.SetCoverID(*id)
@@ -81,9 +81,9 @@ func (ac *AlbumCreate) SetNillableCoverID(id *int) *AlbumCreate {
 	return ac
 }
 
-// SetCover sets the "cover" edge to the AlbumImage entity.
-func (ac *AlbumCreate) SetCover(a *AlbumImage) *AlbumCreate {
-	return ac.SetCoverID(a.ID)
+// SetCover sets the "cover" edge to the Image entity.
+func (ac *AlbumCreate) SetCover(i *Image) *AlbumCreate {
+	return ac.SetCoverID(i.ID)
 }
 
 // Mutation returns the AlbumMutation object of the builder.
@@ -211,7 +211,7 @@ func (ac *AlbumCreate) createSpec() (*Album, *sqlgraph.CreateSpec) {
 			Columns: []string{album.CoverColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

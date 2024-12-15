@@ -28,6 +28,8 @@ const (
 	EdgeAlbum = "album"
 	// EdgeLiked holds the string denoting the liked edge name in mutations.
 	EdgeLiked = "liked"
+	// EdgeImage holds the string denoting the image edge name in mutations.
+	EdgeImage = "image"
 	// Table holds the table name of the track in the database.
 	Table = "tracks"
 	// ArtistsTable is the table that holds the artists relation/edge. The primary key declared below.
@@ -49,6 +51,13 @@ const (
 	LikedInverseTable = "liked_tracks"
 	// LikedColumn is the table column denoting the liked relation/edge.
 	LikedColumn = "track_liked"
+	// ImageTable is the table that holds the image relation/edge.
+	ImageTable = "tracks"
+	// ImageInverseTable is the table name for the Image entity.
+	// It exists in this package in order to avoid circular dependency with the "image" package.
+	ImageInverseTable = "images"
+	// ImageColumn is the table column denoting the image relation/edge.
+	ImageColumn = "track_image"
 )
 
 // Columns holds all SQL columns for track fields.
@@ -65,6 +74,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"album_tracks",
+	"track_image",
 }
 
 var (
@@ -148,6 +158,13 @@ func ByLikedField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLikedStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByImageField orders the results by image field.
+func ByImageField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newImageStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newArtistsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -167,5 +184,12 @@ func newLikedStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LikedInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, LikedTable, LikedColumn),
+	)
+}
+func newImageStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ImageInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, ImageTable, ImageColumn),
 	)
 }

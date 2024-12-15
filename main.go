@@ -22,6 +22,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed opening connection to sqlite: %v", err)
 	}
+	defer client.Close()
 
 	ctx := context.Background()
 
@@ -45,6 +46,7 @@ func main() {
 	track.Get("", handlers.TracksInfo(client, ctx))
 	track.Get("/:id/stream", handlers.TrackStream(client, ctx))
 	track.Get("/:id", handlers.TrackInfo(client, ctx))
+	track.Get("/:id/image", handlers.TrackImage(client, ctx))
 	track.Put("/:id/like", handlers.LikeTrack(client, ctx))
 	track.Delete("/:id/like", handlers.UnLikeTrack(client, ctx))
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"orkester/ent/album"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/likedtrack"
 	"orkester/ent/predicate"
 	"orkester/ent/track"
@@ -75,6 +76,25 @@ func (tu *TrackUpdate) SetLiked(l *LikedTrack) *TrackUpdate {
 	return tu.SetLikedID(l.ID)
 }
 
+// SetImageID sets the "image" edge to the Image entity by ID.
+func (tu *TrackUpdate) SetImageID(id int) *TrackUpdate {
+	tu.mutation.SetImageID(id)
+	return tu
+}
+
+// SetNillableImageID sets the "image" edge to the Image entity by ID if the given value is not nil.
+func (tu *TrackUpdate) SetNillableImageID(id *int) *TrackUpdate {
+	if id != nil {
+		tu = tu.SetImageID(*id)
+	}
+	return tu
+}
+
+// SetImage sets the "image" edge to the Image entity.
+func (tu *TrackUpdate) SetImage(i *Image) *TrackUpdate {
+	return tu.SetImageID(i.ID)
+}
+
 // Mutation returns the TrackMutation object of the builder.
 func (tu *TrackUpdate) Mutation() *TrackMutation {
 	return tu.mutation
@@ -110,6 +130,12 @@ func (tu *TrackUpdate) ClearAlbum() *TrackUpdate {
 // ClearLiked clears the "liked" edge to the LikedTrack entity.
 func (tu *TrackUpdate) ClearLiked() *TrackUpdate {
 	tu.mutation.ClearLiked()
+	return tu
+}
+
+// ClearImage clears the "image" edge to the Image entity.
+func (tu *TrackUpdate) ClearImage() *TrackUpdate {
+	tu.mutation.ClearImage()
 	return tu
 }
 
@@ -263,6 +289,35 @@ func (tu *TrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.ImageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.ImageTable,
+			Columns: []string{track.ImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.ImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.ImageTable,
+			Columns: []string{track.ImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{track.Label}
@@ -328,6 +383,25 @@ func (tuo *TrackUpdateOne) SetLiked(l *LikedTrack) *TrackUpdateOne {
 	return tuo.SetLikedID(l.ID)
 }
 
+// SetImageID sets the "image" edge to the Image entity by ID.
+func (tuo *TrackUpdateOne) SetImageID(id int) *TrackUpdateOne {
+	tuo.mutation.SetImageID(id)
+	return tuo
+}
+
+// SetNillableImageID sets the "image" edge to the Image entity by ID if the given value is not nil.
+func (tuo *TrackUpdateOne) SetNillableImageID(id *int) *TrackUpdateOne {
+	if id != nil {
+		tuo = tuo.SetImageID(*id)
+	}
+	return tuo
+}
+
+// SetImage sets the "image" edge to the Image entity.
+func (tuo *TrackUpdateOne) SetImage(i *Image) *TrackUpdateOne {
+	return tuo.SetImageID(i.ID)
+}
+
 // Mutation returns the TrackMutation object of the builder.
 func (tuo *TrackUpdateOne) Mutation() *TrackMutation {
 	return tuo.mutation
@@ -363,6 +437,12 @@ func (tuo *TrackUpdateOne) ClearAlbum() *TrackUpdateOne {
 // ClearLiked clears the "liked" edge to the LikedTrack entity.
 func (tuo *TrackUpdateOne) ClearLiked() *TrackUpdateOne {
 	tuo.mutation.ClearLiked()
+	return tuo
+}
+
+// ClearImage clears the "image" edge to the Image entity.
+func (tuo *TrackUpdateOne) ClearImage() *TrackUpdateOne {
+	tuo.mutation.ClearImage()
 	return tuo
 }
 
@@ -539,6 +619,35 @@ func (tuo *TrackUpdateOne) sqlSave(ctx context.Context) (_node *Track, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(likedtrack.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.ImageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.ImageTable,
+			Columns: []string{track.ImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.ImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.ImageTable,
+			Columns: []string{track.ImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

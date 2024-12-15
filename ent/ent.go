@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"orkester/ent/album"
-	"orkester/ent/albumimage"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/likedtrack"
 	"orkester/ent/searchpath"
 	"orkester/ent/track"
@@ -79,8 +79,8 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			album.Table:      album.ValidColumn,
-			albumimage.Table: albumimage.ValidColumn,
 			artist.Table:     artist.ValidColumn,
+			image.Table:      image.ValidColumn,
 			likedtrack.Table: likedtrack.ValidColumn,
 			searchpath.Table: searchpath.ValidColumn,
 			track.Table:      track.ValidColumn,

@@ -423,6 +423,29 @@ func HasLikedWith(preds ...predicate.LikedTrack) predicate.Track {
 	})
 }
 
+// HasImage applies the HasEdge predicate on the "image" edge.
+func HasImage() predicate.Track {
+	return predicate.Track(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ImageTable, ImageColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasImageWith applies the HasEdge predicate on the "image" edge with a given conditions (other predicates).
+func HasImageWith(preds ...predicate.Image) predicate.Track {
+	return predicate.Track(func(s *sql.Selector) {
+		step := newImageStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Track) predicate.Track {
 	return predicate.Track(sql.AndPredicates(predicates...))

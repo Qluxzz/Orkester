@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"orkester/ent/album"
-	"orkester/ent/albumimage"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/predicate"
 	"orkester/ent/track"
 
@@ -56,13 +56,13 @@ func (au *AlbumUpdate) AddTracks(t ...*Track) *AlbumUpdate {
 	return au.AddTrackIDs(ids...)
 }
 
-// SetCoverID sets the "cover" edge to the AlbumImage entity by ID.
+// SetCoverID sets the "cover" edge to the Image entity by ID.
 func (au *AlbumUpdate) SetCoverID(id int) *AlbumUpdate {
 	au.mutation.SetCoverID(id)
 	return au
 }
 
-// SetNillableCoverID sets the "cover" edge to the AlbumImage entity by ID if the given value is not nil.
+// SetNillableCoverID sets the "cover" edge to the Image entity by ID if the given value is not nil.
 func (au *AlbumUpdate) SetNillableCoverID(id *int) *AlbumUpdate {
 	if id != nil {
 		au = au.SetCoverID(*id)
@@ -70,9 +70,9 @@ func (au *AlbumUpdate) SetNillableCoverID(id *int) *AlbumUpdate {
 	return au
 }
 
-// SetCover sets the "cover" edge to the AlbumImage entity.
-func (au *AlbumUpdate) SetCover(a *AlbumImage) *AlbumUpdate {
-	return au.SetCoverID(a.ID)
+// SetCover sets the "cover" edge to the Image entity.
+func (au *AlbumUpdate) SetCover(i *Image) *AlbumUpdate {
+	return au.SetCoverID(i.ID)
 }
 
 // Mutation returns the AlbumMutation object of the builder.
@@ -107,7 +107,7 @@ func (au *AlbumUpdate) RemoveTracks(t ...*Track) *AlbumUpdate {
 	return au.RemoveTrackIDs(ids...)
 }
 
-// ClearCover clears the "cover" edge to the AlbumImage entity.
+// ClearCover clears the "cover" edge to the Image entity.
 func (au *AlbumUpdate) ClearCover() *AlbumUpdate {
 	au.mutation.ClearCover()
 	return au
@@ -242,7 +242,7 @@ func (au *AlbumUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{album.CoverColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -255,7 +255,7 @@ func (au *AlbumUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{album.CoverColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -309,13 +309,13 @@ func (auo *AlbumUpdateOne) AddTracks(t ...*Track) *AlbumUpdateOne {
 	return auo.AddTrackIDs(ids...)
 }
 
-// SetCoverID sets the "cover" edge to the AlbumImage entity by ID.
+// SetCoverID sets the "cover" edge to the Image entity by ID.
 func (auo *AlbumUpdateOne) SetCoverID(id int) *AlbumUpdateOne {
 	auo.mutation.SetCoverID(id)
 	return auo
 }
 
-// SetNillableCoverID sets the "cover" edge to the AlbumImage entity by ID if the given value is not nil.
+// SetNillableCoverID sets the "cover" edge to the Image entity by ID if the given value is not nil.
 func (auo *AlbumUpdateOne) SetNillableCoverID(id *int) *AlbumUpdateOne {
 	if id != nil {
 		auo = auo.SetCoverID(*id)
@@ -323,9 +323,9 @@ func (auo *AlbumUpdateOne) SetNillableCoverID(id *int) *AlbumUpdateOne {
 	return auo
 }
 
-// SetCover sets the "cover" edge to the AlbumImage entity.
-func (auo *AlbumUpdateOne) SetCover(a *AlbumImage) *AlbumUpdateOne {
-	return auo.SetCoverID(a.ID)
+// SetCover sets the "cover" edge to the Image entity.
+func (auo *AlbumUpdateOne) SetCover(i *Image) *AlbumUpdateOne {
+	return auo.SetCoverID(i.ID)
 }
 
 // Mutation returns the AlbumMutation object of the builder.
@@ -360,7 +360,7 @@ func (auo *AlbumUpdateOne) RemoveTracks(t ...*Track) *AlbumUpdateOne {
 	return auo.RemoveTrackIDs(ids...)
 }
 
-// ClearCover clears the "cover" edge to the AlbumImage entity.
+// ClearCover clears the "cover" edge to the Image entity.
 func (auo *AlbumUpdateOne) ClearCover() *AlbumUpdateOne {
 	auo.mutation.ClearCover()
 	return auo
@@ -525,7 +525,7 @@ func (auo *AlbumUpdateOne) sqlSave(ctx context.Context) (_node *Album, err error
 			Columns: []string{album.CoverColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -538,7 +538,7 @@ func (auo *AlbumUpdateOne) sqlSave(ctx context.Context) (_node *Album, err error
 			Columns: []string{album.CoverColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

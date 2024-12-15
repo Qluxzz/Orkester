@@ -28,7 +28,7 @@ func (Album) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("artist", Artist.Type).Ref("albums").Unique().Required(),
 		edge.To("tracks", Track.Type),
-		edge.To("cover", AlbumImage.Type).Unique(),
+		edge.To("cover", Image.Type).Unique(),
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"orkester/ent/album"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/likedtrack"
 	"orkester/ent/track"
 
@@ -95,6 +96,25 @@ func (tc *TrackCreate) SetNillableLikedID(id *int) *TrackCreate {
 // SetLiked sets the "liked" edge to the LikedTrack entity.
 func (tc *TrackCreate) SetLiked(l *LikedTrack) *TrackCreate {
 	return tc.SetLikedID(l.ID)
+}
+
+// SetImageID sets the "image" edge to the Image entity by ID.
+func (tc *TrackCreate) SetImageID(id int) *TrackCreate {
+	tc.mutation.SetImageID(id)
+	return tc
+}
+
+// SetNillableImageID sets the "image" edge to the Image entity by ID if the given value is not nil.
+func (tc *TrackCreate) SetNillableImageID(id *int) *TrackCreate {
+	if id != nil {
+		tc = tc.SetImageID(*id)
+	}
+	return tc
+}
+
+// SetImage sets the "image" edge to the Image entity.
+func (tc *TrackCreate) SetImage(i *Image) *TrackCreate {
+	return tc.SetImageID(i.ID)
 }
 
 // Mutation returns the TrackMutation object of the builder.
@@ -245,6 +265,23 @@ func (tc *TrackCreate) createSpec() (*Track, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.ImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   track.ImageTable,
+			Columns: []string{track.ImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.track_image = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

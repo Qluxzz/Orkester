@@ -32,6 +32,7 @@ func (Track) Edges() []ent.Edge {
 		edge.To("liked", LikedTrack.Type).Unique().Annotations(entsql.Annotation{
 			OnDelete: entsql.Cascade,
 		}),
+		edge.To("image", Image.Type).Unique(),
 	}
 }
 

@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"orkester/ent/album"
+	"orkester/ent/image"
 	"orkester/ent/likedtrack"
 	"orkester/ent/track"
 	"strings"
@@ -32,6 +33,7 @@ type Track struct {
 	// The values are being populated by the TrackQuery when eager-loading is set.
 	Edges        TrackEdges `json:"edges"`
 	album_tracks *int
+	track_image  *int
 	selectValues sql.SelectValues
 }
 
@@ -43,9 +45,11 @@ type TrackEdges struct {
 	Album *Album `json:"album,omitempty"`
 	// Liked holds the value of the liked edge.
 	Liked *LikedTrack `json:"liked,omitempty"`
+	// Image holds the value of the image edge.
+	Image *Image `json:"image,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // ArtistsOrErr returns the Artists value or an error if the edge
@@ -79,6 +83,17 @@ func (e TrackEdges) LikedOrErr() (*LikedTrack, error) {
 	return nil, &NotLoadedError{edge: "liked"}
 }
 
+// ImageOrErr returns the Image value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TrackEdges) ImageOrErr() (*Image, error) {
+	if e.Image != nil {
+		return e.Image, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: image.Label}
+	}
+	return nil, &NotLoadedError{edge: "image"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Track) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -89,6 +104,8 @@ func (*Track) scanValues(columns []string) ([]any, error) {
 		case track.FieldTitle, track.FieldPath, track.FieldMimetype:
 			values[i] = new(sql.NullString)
 		case track.ForeignKeys[0]: // album_tracks
+			values[i] = new(sql.NullInt64)
+		case track.ForeignKeys[1]: // track_image
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -148,6 +165,13 @@ func (t *Track) assignValues(columns []string, values []any) error {
 				t.album_tracks = new(int)
 				*t.album_tracks = int(value.Int64)
 			}
+		case track.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field track_image", value)
+			} else if value.Valid {
+				t.track_image = new(int)
+				*t.track_image = int(value.Int64)
+			}
 		default:
 			t.selectValues.Set(columns[i], values[i])
 		}
@@ -174,6 +198,11 @@ func (t *Track) QueryAlbum() *AlbumQuery {
 // QueryLiked queries the "liked" edge of the Track entity.
 func (t *Track) QueryLiked() *LikedTrackQuery {
 	return NewTrackClient(t.config).QueryLiked(t)
+}
+
+// QueryImage queries the "image" edge of the Track entity.
+func (t *Track) QueryImage() *ImageQuery {
+	return NewTrackClient(t.config).QueryImage(t)
 }
 
 // Update returns a builder for updating this Track.

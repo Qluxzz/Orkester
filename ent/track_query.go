@@ -9,6 +9,7 @@ import (
 	"math"
 	"orkester/ent/album"
 	"orkester/ent/artist"
+	"orkester/ent/image"
 	"orkester/ent/likedtrack"
 	"orkester/ent/predicate"
 	"orkester/ent/track"
@@ -28,6 +29,7 @@ type TrackQuery struct {
 	withArtists *ArtistQuery
 	withAlbum   *AlbumQuery
 	withLiked   *LikedTrackQuery
+	withImage   *ImageQuery
 	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -124,6 +126,28 @@ func (tq *TrackQuery) QueryLiked() *LikedTrackQuery {
 			sqlgraph.From(track.Table, track.FieldID, selector),
 			sqlgraph.To(likedtrack.Table, likedtrack.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, track.LikedTable, track.LikedColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryImage chains the current query on the "image" edge.
+func (tq *TrackQuery) QueryImage() *ImageQuery {
+	query := (&ImageClient{config: tq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(track.Table, track.FieldID, selector),
+			sqlgraph.To(image.Table, image.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, track.ImageTable, track.ImageColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -326,6 +350,7 @@ func (tq *TrackQuery) Clone() *TrackQuery {
 		withArtists: tq.withArtists.Clone(),
 		withAlbum:   tq.withAlbum.Clone(),
 		withLiked:   tq.withLiked.Clone(),
+		withImage:   tq.withImage.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -362,6 +387,17 @@ func (tq *TrackQuery) WithLiked(opts ...func(*LikedTrackQuery)) *TrackQuery {
 		opt(query)
 	}
 	tq.withLiked = query
+	return tq
+}
+
+// WithImage tells the query-builder to eager-load the nodes that are connected to
+// the "image" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TrackQuery) WithImage(opts ...func(*ImageQuery)) *TrackQuery {
+	query := (&ImageClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withImage = query
 	return tq
 }
 
@@ -444,13 +480,14 @@ func (tq *TrackQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Track,
 		nodes       = []*Track{}
 		withFKs     = tq.withFKs
 		_spec       = tq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			tq.withArtists != nil,
 			tq.withAlbum != nil,
 			tq.withLiked != nil,
+			tq.withImage != nil,
 		}
 	)
-	if tq.withAlbum != nil {
+	if tq.withAlbum != nil || tq.withImage != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -490,6 +527,12 @@ func (tq *TrackQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Track,
 	if query := tq.withLiked; query != nil {
 		if err := tq.loadLiked(ctx, query, nodes, nil,
 			func(n *Track, e *LikedTrack) { n.Edges.Liked = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tq.withImage; query != nil {
+		if err := tq.loadImage(ctx, query, nodes, nil,
+			func(n *Track, e *Image) { n.Edges.Image = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -614,6 +657,38 @@ func (tq *TrackQuery) loadLiked(ctx context.Context, query *LikedTrackQuery, nod
 			return fmt.Errorf(`unexpected referenced foreign-key "track_liked" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (tq *TrackQuery) loadImage(ctx context.Context, query *ImageQuery, nodes []*Track, init func(*Track), assign func(*Track, *Image)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Track)
+	for i := range nodes {
+		if nodes[i].track_image == nil {
+			continue
+		}
+		fk := *nodes[i].track_image
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(image.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "track_image" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

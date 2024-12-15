@@ -6,6 +6,7 @@ toolchain go1.22.9
 
 require (
 	entgo.io/ent v0.13.1
+	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/gabriel-vasile/mimetype v1.2.0
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gosimple/slug v1.9.0
