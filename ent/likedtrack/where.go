@@ -12,144 +12,92 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.LikedTrack(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.LikedTrack(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.LikedTrack(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.LikedTrack(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.LikedTrack(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.LikedTrack(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.LikedTrack(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.LikedTrack(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.LikedTrack(sql.FieldLTE(FieldID, id))
 }
 
 // DateAdded applies equality check predicate on the "date_added" field. It's identical to DateAddedEQ.
 func DateAdded(v time.Time) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDateAdded), v))
-	})
+	return predicate.LikedTrack(sql.FieldEQ(FieldDateAdded, v))
 }
 
 // DateAddedEQ applies the EQ predicate on the "date_added" field.
 func DateAddedEQ(v time.Time) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDateAdded), v))
-	})
+	return predicate.LikedTrack(sql.FieldEQ(FieldDateAdded, v))
 }
 
 // DateAddedNEQ applies the NEQ predicate on the "date_added" field.
 func DateAddedNEQ(v time.Time) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldDateAdded), v))
-	})
+	return predicate.LikedTrack(sql.FieldNEQ(FieldDateAdded, v))
 }
 
 // DateAddedIn applies the In predicate on the "date_added" field.
 func DateAddedIn(vs ...time.Time) predicate.LikedTrack {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldDateAdded), v...))
-	})
+	return predicate.LikedTrack(sql.FieldIn(FieldDateAdded, vs...))
 }
 
 // DateAddedNotIn applies the NotIn predicate on the "date_added" field.
 func DateAddedNotIn(vs ...time.Time) predicate.LikedTrack {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldDateAdded), v...))
-	})
+	return predicate.LikedTrack(sql.FieldNotIn(FieldDateAdded, vs...))
 }
 
 // DateAddedGT applies the GT predicate on the "date_added" field.
 func DateAddedGT(v time.Time) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldDateAdded), v))
-	})
+	return predicate.LikedTrack(sql.FieldGT(FieldDateAdded, v))
 }
 
 // DateAddedGTE applies the GTE predicate on the "date_added" field.
 func DateAddedGTE(v time.Time) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldDateAdded), v))
-	})
+	return predicate.LikedTrack(sql.FieldGTE(FieldDateAdded, v))
 }
 
 // DateAddedLT applies the LT predicate on the "date_added" field.
 func DateAddedLT(v time.Time) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldDateAdded), v))
-	})
+	return predicate.LikedTrack(sql.FieldLT(FieldDateAdded, v))
 }
 
 // DateAddedLTE applies the LTE predicate on the "date_added" field.
 func DateAddedLTE(v time.Time) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldDateAdded), v))
-	})
+	return predicate.LikedTrack(sql.FieldLTE(FieldDateAdded, v))
 }
 
 // HasTrack applies the HasEdge predicate on the "track" edge.
@@ -157,7 +105,6 @@ func HasTrack() predicate.LikedTrack {
 	return predicate.LikedTrack(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TrackTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, true, TrackTable, TrackColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -167,11 +114,7 @@ func HasTrack() predicate.LikedTrack {
 // HasTrackWith applies the HasEdge predicate on the "track" edge with a given conditions (other predicates).
 func HasTrackWith(preds ...predicate.Track) predicate.LikedTrack {
 	return predicate.LikedTrack(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TrackInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, TrackTable, TrackColumn),
-		)
+		step := newTrackStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -182,32 +125,15 @@ func HasTrackWith(preds ...predicate.Track) predicate.LikedTrack {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.LikedTrack) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.LikedTrack(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.LikedTrack) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.LikedTrack(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.LikedTrack) predicate.LikedTrack {
-	return predicate.LikedTrack(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.LikedTrack(sql.NotPredicates(p))
 }

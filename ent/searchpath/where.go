@@ -10,209 +10,130 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.SearchPath(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.SearchPath(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.SearchPath(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.SearchPath(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.SearchPath(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.SearchPath(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.SearchPath(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.SearchPath(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.SearchPath(sql.FieldLTE(FieldID, id))
 }
 
 // Path applies equality check predicate on the "path" field. It's identical to PathEQ.
 func Path(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldEQ(FieldPath, v))
 }
 
 // PathEQ applies the EQ predicate on the "path" field.
 func PathEQ(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldEQ(FieldPath, v))
 }
 
 // PathNEQ applies the NEQ predicate on the "path" field.
 func PathNEQ(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldNEQ(FieldPath, v))
 }
 
 // PathIn applies the In predicate on the "path" field.
 func PathIn(vs ...string) predicate.SearchPath {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldPath), v...))
-	})
+	return predicate.SearchPath(sql.FieldIn(FieldPath, vs...))
 }
 
 // PathNotIn applies the NotIn predicate on the "path" field.
 func PathNotIn(vs ...string) predicate.SearchPath {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldPath), v...))
-	})
+	return predicate.SearchPath(sql.FieldNotIn(FieldPath, vs...))
 }
 
 // PathGT applies the GT predicate on the "path" field.
 func PathGT(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldGT(FieldPath, v))
 }
 
 // PathGTE applies the GTE predicate on the "path" field.
 func PathGTE(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldGTE(FieldPath, v))
 }
 
 // PathLT applies the LT predicate on the "path" field.
 func PathLT(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldLT(FieldPath, v))
 }
 
 // PathLTE applies the LTE predicate on the "path" field.
 func PathLTE(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldLTE(FieldPath, v))
 }
 
 // PathContains applies the Contains predicate on the "path" field.
 func PathContains(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldContains(FieldPath, v))
 }
 
 // PathHasPrefix applies the HasPrefix predicate on the "path" field.
 func PathHasPrefix(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldHasPrefix(FieldPath, v))
 }
 
 // PathHasSuffix applies the HasSuffix predicate on the "path" field.
 func PathHasSuffix(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldHasSuffix(FieldPath, v))
 }
 
 // PathEqualFold applies the EqualFold predicate on the "path" field.
 func PathEqualFold(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldEqualFold(FieldPath, v))
 }
 
 // PathContainsFold applies the ContainsFold predicate on the "path" field.
 func PathContainsFold(v string) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldPath), v))
-	})
+	return predicate.SearchPath(sql.FieldContainsFold(FieldPath, v))
 }
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.SearchPath) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.SearchPath(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.SearchPath) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.SearchPath(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.SearchPath) predicate.SearchPath {
-	return predicate.SearchPath(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.SearchPath(sql.NotPredicates(p))
 }

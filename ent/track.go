@@ -9,6 +9,7 @@ import (
 	"orkester/ent/track"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -31,6 +32,7 @@ type Track struct {
 	// The values are being populated by the TrackQuery when eager-loading is set.
 	Edges        TrackEdges `json:"edges"`
 	album_tracks *int
+	selectValues sql.SelectValues
 }
 
 // TrackEdges holds the relations/edges for other nodes in the graph.
@@ -58,12 +60,10 @@ func (e TrackEdges) ArtistsOrErr() ([]*Artist, error) {
 // AlbumOrErr returns the Album value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TrackEdges) AlbumOrErr() (*Album, error) {
-	if e.loadedTypes[1] {
-		if e.Album == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: album.Label}
-		}
+	if e.Album != nil {
 		return e.Album, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: album.Label}
 	}
 	return nil, &NotLoadedError{edge: "album"}
 }
@@ -71,19 +71,17 @@ func (e TrackEdges) AlbumOrErr() (*Album, error) {
 // LikedOrErr returns the Liked value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TrackEdges) LikedOrErr() (*LikedTrack, error) {
-	if e.loadedTypes[2] {
-		if e.Liked == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: likedtrack.Label}
-		}
+	if e.Liked != nil {
 		return e.Liked, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: likedtrack.Label}
 	}
 	return nil, &NotLoadedError{edge: "liked"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Track) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*Track) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case track.FieldID, track.FieldTrackNumber, track.FieldLength:
@@ -93,7 +91,7 @@ func (*Track) scanValues(columns []string) ([]interface{}, error) {
 		case track.ForeignKeys[0]: // album_tracks
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Track", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -101,7 +99,7 @@ func (*Track) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Track fields.
-func (t *Track) assignValues(columns []string, values []interface{}) error {
+func (t *Track) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -150,31 +148,39 @@ func (t *Track) assignValues(columns []string, values []interface{}) error {
 				t.album_tracks = new(int)
 				*t.album_tracks = int(value.Int64)
 			}
+		default:
+			t.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Track.
+// This includes values selected through modifiers, order, etc.
+func (t *Track) Value(name string) (ent.Value, error) {
+	return t.selectValues.Get(name)
+}
+
 // QueryArtists queries the "artists" edge of the Track entity.
 func (t *Track) QueryArtists() *ArtistQuery {
-	return (&TrackClient{config: t.config}).QueryArtists(t)
+	return NewTrackClient(t.config).QueryArtists(t)
 }
 
 // QueryAlbum queries the "album" edge of the Track entity.
 func (t *Track) QueryAlbum() *AlbumQuery {
-	return (&TrackClient{config: t.config}).QueryAlbum(t)
+	return NewTrackClient(t.config).QueryAlbum(t)
 }
 
 // QueryLiked queries the "liked" edge of the Track entity.
 func (t *Track) QueryLiked() *LikedTrackQuery {
-	return (&TrackClient{config: t.config}).QueryLiked(t)
+	return NewTrackClient(t.config).QueryLiked(t)
 }
 
 // Update returns a builder for updating this Track.
 // Note that you need to call Track.Unwrap() before calling this method if this Track
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Track) Update() *TrackUpdateOne {
-	return (&TrackClient{config: t.config}).UpdateOne(t)
+	return NewTrackClient(t.config).UpdateOne(t)
 }
 
 // Unwrap unwraps the Track entity that was returned from a transaction after it was closed,
@@ -213,9 +219,3 @@ func (t *Track) String() string {
 
 // Tracks is a parsable slice of Track.
 type Tracks []*Track
-
-func (t Tracks) config(cfg config) {
-	for _i := range t {
-		t[_i].config = cfg
-	}
-}

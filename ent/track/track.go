@@ -2,6 +2,11 @@
 
 package track
 
+import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+)
+
 const (
 	// Label holds the string label denoting the track type in the database.
 	Label = "track"
@@ -81,4 +86,86 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the Track queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByTitle orders the results by the title field.
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTitle, opts...).ToFunc()
+}
+
+// ByTrackNumber orders the results by the track_number field.
+func ByTrackNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTrackNumber, opts...).ToFunc()
+}
+
+// ByPath orders the results by the path field.
+func ByPath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPath, opts...).ToFunc()
+}
+
+// ByLength orders the results by the length field.
+func ByLength(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLength, opts...).ToFunc()
+}
+
+// ByMimetype orders the results by the mimetype field.
+func ByMimetype(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMimetype, opts...).ToFunc()
+}
+
+// ByArtistsCount orders the results by artists count.
+func ByArtistsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newArtistsStep(), opts...)
+	}
+}
+
+// ByArtists orders the results by artists terms.
+func ByArtists(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newArtistsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAlbumField orders the results by album field.
+func ByAlbumField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAlbumStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByLikedField orders the results by liked field.
+func ByLikedField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLikedStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newArtistsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ArtistsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, ArtistsTable, ArtistsPrimaryKey...),
+	)
+}
+func newAlbumStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AlbumInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, AlbumTable, AlbumColumn),
+	)
+}
+func newLikedStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LikedInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, LikedTable, LikedColumn),
+	)
 }

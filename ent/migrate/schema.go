@@ -84,7 +84,7 @@ var (
 				Symbol:     "liked_tracks_tracks_liked",
 				Columns:    []*schema.Column{LikedTracksColumns[2]},
 				RefColumns: []*schema.Column{TracksColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}

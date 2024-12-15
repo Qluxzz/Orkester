@@ -2,6 +2,10 @@
 
 package albumimage
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the albumimage type in the database.
 	Label = "album_image"
@@ -30,4 +34,17 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the AlbumImage queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByImageMimeType orders the results by the image_mime_type field.
+func ByImageMimeType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldImageMimeType, opts...).ToFunc()
 }

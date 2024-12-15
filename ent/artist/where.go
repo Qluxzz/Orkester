@@ -11,285 +11,187 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.Artist(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.Artist(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.Artist(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.Artist(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.Artist(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.Artist(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.Artist(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.Artist(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.Artist(sql.FieldLTE(FieldID, id))
 }
 
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldEQ(FieldName, v))
 }
 
 // URLName applies equality check predicate on the "url_name" field. It's identical to URLNameEQ.
 func URLName(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldEQ(FieldURLName, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldEQ(FieldName, v))
 }
 
 // NameNEQ applies the NEQ predicate on the "name" field.
 func NameNEQ(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldNEQ(FieldName, v))
 }
 
 // NameIn applies the In predicate on the "name" field.
 func NameIn(vs ...string) predicate.Artist {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldName), v...))
-	})
+	return predicate.Artist(sql.FieldIn(FieldName, vs...))
 }
 
 // NameNotIn applies the NotIn predicate on the "name" field.
 func NameNotIn(vs ...string) predicate.Artist {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldName), v...))
-	})
+	return predicate.Artist(sql.FieldNotIn(FieldName, vs...))
 }
 
 // NameGT applies the GT predicate on the "name" field.
 func NameGT(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldGT(FieldName, v))
 }
 
 // NameGTE applies the GTE predicate on the "name" field.
 func NameGTE(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldGTE(FieldName, v))
 }
 
 // NameLT applies the LT predicate on the "name" field.
 func NameLT(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldLT(FieldName, v))
 }
 
 // NameLTE applies the LTE predicate on the "name" field.
 func NameLTE(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldLTE(FieldName, v))
 }
 
 // NameContains applies the Contains predicate on the "name" field.
 func NameContains(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldContains(FieldName, v))
 }
 
 // NameHasPrefix applies the HasPrefix predicate on the "name" field.
 func NameHasPrefix(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldHasPrefix(FieldName, v))
 }
 
 // NameHasSuffix applies the HasSuffix predicate on the "name" field.
 func NameHasSuffix(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldHasSuffix(FieldName, v))
 }
 
 // NameEqualFold applies the EqualFold predicate on the "name" field.
 func NameEqualFold(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldEqualFold(FieldName, v))
 }
 
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldName), v))
-	})
+	return predicate.Artist(sql.FieldContainsFold(FieldName, v))
 }
 
 // URLNameEQ applies the EQ predicate on the "url_name" field.
 func URLNameEQ(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldEQ(FieldURLName, v))
 }
 
 // URLNameNEQ applies the NEQ predicate on the "url_name" field.
 func URLNameNEQ(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldNEQ(FieldURLName, v))
 }
 
 // URLNameIn applies the In predicate on the "url_name" field.
 func URLNameIn(vs ...string) predicate.Artist {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldURLName), v...))
-	})
+	return predicate.Artist(sql.FieldIn(FieldURLName, vs...))
 }
 
 // URLNameNotIn applies the NotIn predicate on the "url_name" field.
 func URLNameNotIn(vs ...string) predicate.Artist {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldURLName), v...))
-	})
+	return predicate.Artist(sql.FieldNotIn(FieldURLName, vs...))
 }
 
 // URLNameGT applies the GT predicate on the "url_name" field.
 func URLNameGT(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldGT(FieldURLName, v))
 }
 
 // URLNameGTE applies the GTE predicate on the "url_name" field.
 func URLNameGTE(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldGTE(FieldURLName, v))
 }
 
 // URLNameLT applies the LT predicate on the "url_name" field.
 func URLNameLT(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldLT(FieldURLName, v))
 }
 
 // URLNameLTE applies the LTE predicate on the "url_name" field.
 func URLNameLTE(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldLTE(FieldURLName, v))
 }
 
 // URLNameContains applies the Contains predicate on the "url_name" field.
 func URLNameContains(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldContains(FieldURLName, v))
 }
 
 // URLNameHasPrefix applies the HasPrefix predicate on the "url_name" field.
 func URLNameHasPrefix(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldHasPrefix(FieldURLName, v))
 }
 
 // URLNameHasSuffix applies the HasSuffix predicate on the "url_name" field.
 func URLNameHasSuffix(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldHasSuffix(FieldURLName, v))
 }
 
 // URLNameEqualFold applies the EqualFold predicate on the "url_name" field.
 func URLNameEqualFold(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldEqualFold(FieldURLName, v))
 }
 
 // URLNameContainsFold applies the ContainsFold predicate on the "url_name" field.
 func URLNameContainsFold(v string) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldURLName), v))
-	})
+	return predicate.Artist(sql.FieldContainsFold(FieldURLName, v))
 }
 
 // HasAlbums applies the HasEdge predicate on the "albums" edge.
@@ -297,7 +199,6 @@ func HasAlbums() predicate.Artist {
 	return predicate.Artist(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AlbumsTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, AlbumsTable, AlbumsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -307,11 +208,7 @@ func HasAlbums() predicate.Artist {
 // HasAlbumsWith applies the HasEdge predicate on the "albums" edge with a given conditions (other predicates).
 func HasAlbumsWith(preds ...predicate.Album) predicate.Artist {
 	return predicate.Artist(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AlbumsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AlbumsTable, AlbumsColumn),
-		)
+		step := newAlbumsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -325,7 +222,6 @@ func HasTracks() predicate.Artist {
 	return predicate.Artist(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TracksTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, TracksTable, TracksPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -335,11 +231,7 @@ func HasTracks() predicate.Artist {
 // HasTracksWith applies the HasEdge predicate on the "tracks" edge with a given conditions (other predicates).
 func HasTracksWith(preds ...predicate.Track) predicate.Artist {
 	return predicate.Artist(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TracksInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, TracksTable, TracksPrimaryKey...),
-		)
+		step := newTracksStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -350,32 +242,15 @@ func HasTracksWith(preds ...predicate.Track) predicate.Artist {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Artist) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Artist(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.Artist) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Artist(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Artist) predicate.Artist {
-	return predicate.Artist(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.Artist(sql.NotPredicates(p))
 }

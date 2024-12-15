@@ -70,49 +70,7 @@ func (ac *ArtistCreate) Mutation() *ArtistMutation {
 
 // Save creates the Artist in the database.
 func (ac *ArtistCreate) Save(ctx context.Context) (*Artist, error) {
-	var (
-		err  error
-		node *Artist
-	)
-	if len(ac.hooks) == 0 {
-		if err = ac.check(); err != nil {
-			return nil, err
-		}
-		node, err = ac.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ArtistMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ac.check(); err != nil {
-				return nil, err
-			}
-			ac.mutation = mutation
-			if node, err = ac.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ac.hooks) - 1; i >= 0; i-- {
-			if ac.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ac.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ac.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Artist)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ArtistMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks(ctx, ac.sqlSave, ac.mutation, ac.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -149,6 +107,9 @@ func (ac *ArtistCreate) check() error {
 }
 
 func (ac *ArtistCreate) sqlSave(ctx context.Context) (*Artist, error) {
+	if err := ac.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ac.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ac.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -158,34 +119,22 @@ func (ac *ArtistCreate) sqlSave(ctx context.Context) (*Artist, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ac.mutation.id = &_node.ID
+	ac.mutation.done = true
 	return _node, nil
 }
 
 func (ac *ArtistCreate) createSpec() (*Artist, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Artist{config: ac.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: artist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: artist.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(artist.Table, sqlgraph.NewFieldSpec(artist.FieldID, field.TypeInt))
 	)
 	if value, ok := ac.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: artist.FieldName,
-		})
+		_spec.SetField(artist.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := ac.mutation.URLName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: artist.FieldURLName,
-		})
+		_spec.SetField(artist.FieldURLName, field.TypeString, value)
 		_node.URLName = value
 	}
 	if nodes := ac.mutation.AlbumsIDs(); len(nodes) > 0 {
@@ -196,10 +145,7 @@ func (ac *ArtistCreate) createSpec() (*Artist, *sqlgraph.CreateSpec) {
 			Columns: []string{artist.AlbumsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: album.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(album.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -215,10 +161,7 @@ func (ac *ArtistCreate) createSpec() (*Artist, *sqlgraph.CreateSpec) {
 			Columns: artist.TracksPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: track.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(track.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -232,11 +175,15 @@ func (ac *ArtistCreate) createSpec() (*Artist, *sqlgraph.CreateSpec) {
 // ArtistCreateBulk is the builder for creating many Artist entities in bulk.
 type ArtistCreateBulk struct {
 	config
+	err      error
 	builders []*ArtistCreate
 }
 
 // Save creates the Artist entities in the database.
 func (acb *ArtistCreateBulk) Save(ctx context.Context) ([]*Artist, error) {
+	if acb.err != nil {
+		return nil, acb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(acb.builders))
 	nodes := make([]*Artist, len(acb.builders))
 	mutators := make([]Mutator, len(acb.builders))
@@ -252,8 +199,8 @@ func (acb *ArtistCreateBulk) Save(ctx context.Context) ([]*Artist, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
 				} else {

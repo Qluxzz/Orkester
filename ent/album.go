@@ -11,6 +11,7 @@ import (
 	"orkester/indexFiles"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -30,6 +31,7 @@ type Album struct {
 	Edges         AlbumEdges `json:"edges"`
 	album_cover   *int
 	artist_albums *int
+	selectValues  sql.SelectValues
 }
 
 // AlbumEdges holds the relations/edges for other nodes in the graph.
@@ -48,12 +50,10 @@ type AlbumEdges struct {
 // ArtistOrErr returns the Artist value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e AlbumEdges) ArtistOrErr() (*Artist, error) {
-	if e.loadedTypes[0] {
-		if e.Artist == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: artist.Label}
-		}
+	if e.Artist != nil {
 		return e.Artist, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: artist.Label}
 	}
 	return nil, &NotLoadedError{edge: "artist"}
 }
@@ -70,19 +70,17 @@ func (e AlbumEdges) TracksOrErr() ([]*Track, error) {
 // CoverOrErr returns the Cover value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e AlbumEdges) CoverOrErr() (*AlbumImage, error) {
-	if e.loadedTypes[2] {
-		if e.Cover == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: albumimage.Label}
-		}
+	if e.Cover != nil {
 		return e.Cover, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: albumimage.Label}
 	}
 	return nil, &NotLoadedError{edge: "cover"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Album) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*Album) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case album.FieldReleased:
@@ -96,7 +94,7 @@ func (*Album) scanValues(columns []string) ([]interface{}, error) {
 		case album.ForeignKeys[1]: // artist_albums
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Album", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -104,7 +102,7 @@ func (*Album) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Album fields.
-func (a *Album) assignValues(columns []string, values []interface{}) error {
+func (a *Album) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -150,31 +148,39 @@ func (a *Album) assignValues(columns []string, values []interface{}) error {
 				a.artist_albums = new(int)
 				*a.artist_albums = int(value.Int64)
 			}
+		default:
+			a.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Album.
+// This includes values selected through modifiers, order, etc.
+func (a *Album) Value(name string) (ent.Value, error) {
+	return a.selectValues.Get(name)
+}
+
 // QueryArtist queries the "artist" edge of the Album entity.
 func (a *Album) QueryArtist() *ArtistQuery {
-	return (&AlbumClient{config: a.config}).QueryArtist(a)
+	return NewAlbumClient(a.config).QueryArtist(a)
 }
 
 // QueryTracks queries the "tracks" edge of the Album entity.
 func (a *Album) QueryTracks() *TrackQuery {
-	return (&AlbumClient{config: a.config}).QueryTracks(a)
+	return NewAlbumClient(a.config).QueryTracks(a)
 }
 
 // QueryCover queries the "cover" edge of the Album entity.
 func (a *Album) QueryCover() *AlbumImageQuery {
-	return (&AlbumClient{config: a.config}).QueryCover(a)
+	return NewAlbumClient(a.config).QueryCover(a)
 }
 
 // Update returns a builder for updating this Album.
 // Note that you need to call Album.Unwrap() before calling this method if this Album
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (a *Album) Update() *AlbumUpdateOne {
-	return (&AlbumClient{config: a.config}).UpdateOne(a)
+	return NewAlbumClient(a.config).UpdateOne(a)
 }
 
 // Unwrap unwraps the Album entity that was returned from a transaction after it was closed,
@@ -207,9 +213,3 @@ func (a *Album) String() string {
 
 // Albums is a parsable slice of Album.
 type Albums []*Album
-
-func (a Albums) config(cfg config) {
-	for _i := range a {
-		a[_i].config = cfg
-	}
-}

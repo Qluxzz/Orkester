@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -28,7 +29,9 @@ func (Track) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("artists", Artist.Type).Required(),
 		edge.From("album", Album.Type).Ref("tracks").Unique().Required(),
-		edge.To("liked", LikedTrack.Type).Unique(),
+		edge.To("liked", LikedTrack.Type).Unique().Annotations(entsql.Annotation{
+			OnDelete: entsql.Cascade,
+		}),
 	}
 }
 

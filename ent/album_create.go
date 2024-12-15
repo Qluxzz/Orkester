@@ -93,49 +93,7 @@ func (ac *AlbumCreate) Mutation() *AlbumMutation {
 
 // Save creates the Album in the database.
 func (ac *AlbumCreate) Save(ctx context.Context) (*Album, error) {
-	var (
-		err  error
-		node *Album
-	)
-	if len(ac.hooks) == 0 {
-		if err = ac.check(); err != nil {
-			return nil, err
-		}
-		node, err = ac.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AlbumMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ac.check(); err != nil {
-				return nil, err
-			}
-			ac.mutation = mutation
-			if node, err = ac.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ac.hooks) - 1; i >= 0; i-- {
-			if ac.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ac.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ac.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Album)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from AlbumMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks(ctx, ac.sqlSave, ac.mutation, ac.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -178,6 +136,9 @@ func (ac *AlbumCreate) check() error {
 }
 
 func (ac *AlbumCreate) sqlSave(ctx context.Context) (*Album, error) {
+	if err := ac.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ac.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ac.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -187,42 +148,26 @@ func (ac *AlbumCreate) sqlSave(ctx context.Context) (*Album, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ac.mutation.id = &_node.ID
+	ac.mutation.done = true
 	return _node, nil
 }
 
 func (ac *AlbumCreate) createSpec() (*Album, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Album{config: ac.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: album.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: album.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(album.Table, sqlgraph.NewFieldSpec(album.FieldID, field.TypeInt))
 	)
 	if value, ok := ac.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldName,
-		})
+		_spec.SetField(album.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := ac.mutation.URLName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: album.FieldURLName,
-		})
+		_spec.SetField(album.FieldURLName, field.TypeString, value)
 		_node.URLName = value
 	}
 	if value, ok := ac.mutation.Released(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: album.FieldReleased,
-		})
+		_spec.SetField(album.FieldReleased, field.TypeJSON, value)
 		_node.Released = value
 	}
 	if nodes := ac.mutation.ArtistIDs(); len(nodes) > 0 {
@@ -233,10 +178,7 @@ func (ac *AlbumCreate) createSpec() (*Album, *sqlgraph.CreateSpec) {
 			Columns: []string{album.ArtistColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: artist.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(artist.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -253,10 +195,7 @@ func (ac *AlbumCreate) createSpec() (*Album, *sqlgraph.CreateSpec) {
 			Columns: []string{album.TracksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: track.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(track.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -272,10 +211,7 @@ func (ac *AlbumCreate) createSpec() (*Album, *sqlgraph.CreateSpec) {
 			Columns: []string{album.CoverColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: albumimage.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -290,11 +226,15 @@ func (ac *AlbumCreate) createSpec() (*Album, *sqlgraph.CreateSpec) {
 // AlbumCreateBulk is the builder for creating many Album entities in bulk.
 type AlbumCreateBulk struct {
 	config
+	err      error
 	builders []*AlbumCreate
 }
 
 // Save creates the Album entities in the database.
 func (acb *AlbumCreateBulk) Save(ctx context.Context) ([]*Album, error) {
+	if acb.err != nil {
+		return nil, acb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(acb.builders))
 	nodes := make([]*Album, len(acb.builders))
 	mutators := make([]Mutator, len(acb.builders))
@@ -310,8 +250,8 @@ func (acb *AlbumCreateBulk) Save(ctx context.Context) ([]*Album, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
 				} else {

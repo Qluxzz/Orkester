@@ -52,40 +52,7 @@ func (ltu *LikedTrackUpdate) ClearTrack() *LikedTrackUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ltu *LikedTrackUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ltu.hooks) == 0 {
-		if err = ltu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = ltu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LikedTrackMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ltu.check(); err != nil {
-				return 0, err
-			}
-			ltu.mutation = mutation
-			affected, err = ltu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ltu.hooks) - 1; i >= 0; i-- {
-			if ltu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ltu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ltu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks(ctx, ltu.sqlSave, ltu.mutation, ltu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -119,16 +86,10 @@ func (ltu *LikedTrackUpdate) check() error {
 }
 
 func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   likedtrack.Table,
-			Columns: likedtrack.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: likedtrack.FieldID,
-			},
-		},
+	if err := ltu.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(likedtrack.Table, likedtrack.Columns, sqlgraph.NewFieldSpec(likedtrack.FieldID, field.TypeInt))
 	if ps := ltu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -144,10 +105,7 @@ func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: track.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(track.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -160,10 +118,7 @@ func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: track.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(track.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -179,6 +134,7 @@ func (ltu *LikedTrackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	ltu.mutation.done = true
 	return n, nil
 }
 
@@ -212,6 +168,12 @@ func (ltuo *LikedTrackUpdateOne) ClearTrack() *LikedTrackUpdateOne {
 	return ltuo
 }
 
+// Where appends a list predicates to the LikedTrackUpdate builder.
+func (ltuo *LikedTrackUpdateOne) Where(ps ...predicate.LikedTrack) *LikedTrackUpdateOne {
+	ltuo.mutation.Where(ps...)
+	return ltuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ltuo *LikedTrackUpdateOne) Select(field string, fields ...string) *LikedTrackUpdateOne {
@@ -221,46 +183,7 @@ func (ltuo *LikedTrackUpdateOne) Select(field string, fields ...string) *LikedTr
 
 // Save executes the query and returns the updated LikedTrack entity.
 func (ltuo *LikedTrackUpdateOne) Save(ctx context.Context) (*LikedTrack, error) {
-	var (
-		err  error
-		node *LikedTrack
-	)
-	if len(ltuo.hooks) == 0 {
-		if err = ltuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = ltuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LikedTrackMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ltuo.check(); err != nil {
-				return nil, err
-			}
-			ltuo.mutation = mutation
-			node, err = ltuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ltuo.hooks) - 1; i >= 0; i-- {
-			if ltuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ltuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ltuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*LikedTrack)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from LikedTrackMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks(ctx, ltuo.sqlSave, ltuo.mutation, ltuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -294,16 +217,10 @@ func (ltuo *LikedTrackUpdateOne) check() error {
 }
 
 func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   likedtrack.Table,
-			Columns: likedtrack.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: likedtrack.FieldID,
-			},
-		},
+	if err := ltuo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(likedtrack.Table, likedtrack.Columns, sqlgraph.NewFieldSpec(likedtrack.FieldID, field.TypeInt))
 	id, ok := ltuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LikedTrack.id" for update`)}
@@ -336,10 +253,7 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: track.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(track.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -352,10 +266,7 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: track.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(track.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -374,5 +285,6 @@ func (ltuo *LikedTrackUpdateOne) sqlSave(ctx context.Context) (_node *LikedTrack
 		}
 		return nil, err
 	}
+	ltuo.mutation.done = true
 	return _node, nil
 }

@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"orkester/ent/predicate"
 	"orkester/ent/track"
 
@@ -28,34 +27,7 @@ func (td *TrackDelete) Where(ps ...predicate.Track) *TrackDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (td *TrackDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(td.hooks) == 0 {
-		affected, err = td.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TrackMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			td.mutation = mutation
-			affected, err = td.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(td.hooks) - 1; i >= 0; i-- {
-			if td.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = td.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, td.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks(ctx, td.sqlExec, td.mutation, td.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (td *TrackDelete) ExecX(ctx context.Context) int {
 }
 
 func (td *TrackDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: track.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: track.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(track.Table, sqlgraph.NewFieldSpec(track.FieldID, field.TypeInt))
 	if ps := td.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (td *TrackDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	td.mutation.done = true
 	return affected, err
 }
 
 // TrackDeleteOne is the builder for deleting a single Track entity.
 type TrackDeleteOne struct {
 	td *TrackDelete
+}
+
+// Where appends a list predicates to the TrackDelete builder.
+func (tdo *TrackDeleteOne) Where(ps ...predicate.Track) *TrackDeleteOne {
+	tdo.td.mutation.Where(ps...)
+	return tdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (tdo *TrackDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (tdo *TrackDeleteOne) ExecX(ctx context.Context) {
-	tdo.td.ExecX(ctx)
+	if err := tdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

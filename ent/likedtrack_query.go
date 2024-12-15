@@ -18,11 +18,9 @@ import (
 // LikedTrackQuery is the builder for querying LikedTrack entities.
 type LikedTrackQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []likedtrack.OrderOption
+	inters     []Interceptor
 	predicates []predicate.LikedTrack
 	withTrack  *TrackQuery
 	withFKs    bool
@@ -37,34 +35,34 @@ func (ltq *LikedTrackQuery) Where(ps ...predicate.LikedTrack) *LikedTrackQuery {
 	return ltq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (ltq *LikedTrackQuery) Limit(limit int) *LikedTrackQuery {
-	ltq.limit = &limit
+	ltq.ctx.Limit = &limit
 	return ltq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (ltq *LikedTrackQuery) Offset(offset int) *LikedTrackQuery {
-	ltq.offset = &offset
+	ltq.ctx.Offset = &offset
 	return ltq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (ltq *LikedTrackQuery) Unique(unique bool) *LikedTrackQuery {
-	ltq.unique = &unique
+	ltq.ctx.Unique = &unique
 	return ltq
 }
 
-// Order adds an order step to the query.
-func (ltq *LikedTrackQuery) Order(o ...OrderFunc) *LikedTrackQuery {
+// Order specifies how the records should be ordered.
+func (ltq *LikedTrackQuery) Order(o ...likedtrack.OrderOption) *LikedTrackQuery {
 	ltq.order = append(ltq.order, o...)
 	return ltq
 }
 
 // QueryTrack chains the current query on the "track" edge.
 func (ltq *LikedTrackQuery) QueryTrack() *TrackQuery {
-	query := &TrackQuery{config: ltq.config}
+	query := (&TrackClient{config: ltq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := ltq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -87,7 +85,7 @@ func (ltq *LikedTrackQuery) QueryTrack() *TrackQuery {
 // First returns the first LikedTrack entity from the query.
 // Returns a *NotFoundError when no LikedTrack was found.
 func (ltq *LikedTrackQuery) First(ctx context.Context) (*LikedTrack, error) {
-	nodes, err := ltq.Limit(1).All(ctx)
+	nodes, err := ltq.Limit(1).All(setContextOp(ctx, ltq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +108,7 @@ func (ltq *LikedTrackQuery) FirstX(ctx context.Context) *LikedTrack {
 // Returns a *NotFoundError when no LikedTrack ID was found.
 func (ltq *LikedTrackQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ltq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = ltq.Limit(1).IDs(setContextOp(ctx, ltq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -133,7 +131,7 @@ func (ltq *LikedTrackQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one LikedTrack entity is found.
 // Returns a *NotFoundError when no LikedTrack entities are found.
 func (ltq *LikedTrackQuery) Only(ctx context.Context) (*LikedTrack, error) {
-	nodes, err := ltq.Limit(2).All(ctx)
+	nodes, err := ltq.Limit(2).All(setContextOp(ctx, ltq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +159,7 @@ func (ltq *LikedTrackQuery) OnlyX(ctx context.Context) *LikedTrack {
 // Returns a *NotFoundError when no entities are found.
 func (ltq *LikedTrackQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ltq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = ltq.Limit(2).IDs(setContextOp(ctx, ltq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -186,10 +184,12 @@ func (ltq *LikedTrackQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of LikedTracks.
 func (ltq *LikedTrackQuery) All(ctx context.Context) ([]*LikedTrack, error) {
+	ctx = setContextOp(ctx, ltq.ctx, "All")
 	if err := ltq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return ltq.sqlAll(ctx)
+	qr := querierAll[[]*LikedTrack, *LikedTrackQuery]()
+	return withInterceptors[[]*LikedTrack](ctx, ltq, qr, ltq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -202,9 +202,12 @@ func (ltq *LikedTrackQuery) AllX(ctx context.Context) []*LikedTrack {
 }
 
 // IDs executes the query and returns a list of LikedTrack IDs.
-func (ltq *LikedTrackQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := ltq.Select(likedtrack.FieldID).Scan(ctx, &ids); err != nil {
+func (ltq *LikedTrackQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if ltq.ctx.Unique == nil && ltq.path != nil {
+		ltq.Unique(true)
+	}
+	ctx = setContextOp(ctx, ltq.ctx, "IDs")
+	if err = ltq.Select(likedtrack.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -221,10 +224,11 @@ func (ltq *LikedTrackQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (ltq *LikedTrackQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, ltq.ctx, "Count")
 	if err := ltq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return ltq.sqlCount(ctx)
+	return withInterceptors[int](ctx, ltq, querierCount[*LikedTrackQuery](), ltq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -238,10 +242,15 @@ func (ltq *LikedTrackQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ltq *LikedTrackQuery) Exist(ctx context.Context) (bool, error) {
-	if err := ltq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, ltq.ctx, "Exist")
+	switch _, err := ltq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return ltq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -261,22 +270,21 @@ func (ltq *LikedTrackQuery) Clone() *LikedTrackQuery {
 	}
 	return &LikedTrackQuery{
 		config:     ltq.config,
-		limit:      ltq.limit,
-		offset:     ltq.offset,
-		order:      append([]OrderFunc{}, ltq.order...),
+		ctx:        ltq.ctx.Clone(),
+		order:      append([]likedtrack.OrderOption{}, ltq.order...),
+		inters:     append([]Interceptor{}, ltq.inters...),
 		predicates: append([]predicate.LikedTrack{}, ltq.predicates...),
 		withTrack:  ltq.withTrack.Clone(),
 		// clone intermediate query.
-		sql:    ltq.sql.Clone(),
-		path:   ltq.path,
-		unique: ltq.unique,
+		sql:  ltq.sql.Clone(),
+		path: ltq.path,
 	}
 }
 
 // WithTrack tells the query-builder to eager-load the nodes that are connected to
 // the "track" edge. The optional arguments are used to configure the query builder of the edge.
 func (ltq *LikedTrackQuery) WithTrack(opts ...func(*TrackQuery)) *LikedTrackQuery {
-	query := &TrackQuery{config: ltq.config}
+	query := (&TrackClient{config: ltq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -298,18 +306,12 @@ func (ltq *LikedTrackQuery) WithTrack(opts ...func(*TrackQuery)) *LikedTrackQuer
 //		GroupBy(likedtrack.FieldDateAdded).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (ltq *LikedTrackQuery) GroupBy(field string, fields ...string) *LikedTrackGroupBy {
-	grbuild := &LikedTrackGroupBy{config: ltq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := ltq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return ltq.sqlQuery(ctx), nil
-	}
+	ltq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &LikedTrackGroupBy{build: ltq}
+	grbuild.flds = &ltq.ctx.Fields
 	grbuild.label = likedtrack.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -325,17 +327,31 @@ func (ltq *LikedTrackQuery) GroupBy(field string, fields ...string) *LikedTrackG
 //	client.LikedTrack.Query().
 //		Select(likedtrack.FieldDateAdded).
 //		Scan(ctx, &v)
-//
 func (ltq *LikedTrackQuery) Select(fields ...string) *LikedTrackSelect {
-	ltq.fields = append(ltq.fields, fields...)
-	selbuild := &LikedTrackSelect{LikedTrackQuery: ltq}
-	selbuild.label = likedtrack.Label
-	selbuild.flds, selbuild.scan = &ltq.fields, selbuild.Scan
-	return selbuild
+	ltq.ctx.Fields = append(ltq.ctx.Fields, fields...)
+	sbuild := &LikedTrackSelect{LikedTrackQuery: ltq}
+	sbuild.label = likedtrack.Label
+	sbuild.flds, sbuild.scan = &ltq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a LikedTrackSelect configured with the given aggregations.
+func (ltq *LikedTrackQuery) Aggregate(fns ...AggregateFunc) *LikedTrackSelect {
+	return ltq.Select().Aggregate(fns...)
 }
 
 func (ltq *LikedTrackQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range ltq.fields {
+	for _, inter := range ltq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, ltq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range ltq.ctx.Fields {
 		if !likedtrack.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -365,10 +381,10 @@ func (ltq *LikedTrackQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, likedtrack.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*LikedTrack).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &LikedTrack{config: ltq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -405,6 +421,9 @@ func (ltq *LikedTrackQuery) loadTrack(ctx context.Context, query *TrackQuery, no
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(track.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -424,38 +443,22 @@ func (ltq *LikedTrackQuery) loadTrack(ctx context.Context, query *TrackQuery, no
 
 func (ltq *LikedTrackQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := ltq.querySpec()
-	_spec.Node.Columns = ltq.fields
-	if len(ltq.fields) > 0 {
-		_spec.Unique = ltq.unique != nil && *ltq.unique
+	_spec.Node.Columns = ltq.ctx.Fields
+	if len(ltq.ctx.Fields) > 0 {
+		_spec.Unique = ltq.ctx.Unique != nil && *ltq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, ltq.driver, _spec)
 }
 
-func (ltq *LikedTrackQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := ltq.sqlCount(ctx)
-	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	}
-	return n > 0, nil
-}
-
 func (ltq *LikedTrackQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   likedtrack.Table,
-			Columns: likedtrack.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: likedtrack.FieldID,
-			},
-		},
-		From:   ltq.sql,
-		Unique: true,
-	}
-	if unique := ltq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(likedtrack.Table, likedtrack.Columns, sqlgraph.NewFieldSpec(likedtrack.FieldID, field.TypeInt))
+	_spec.From = ltq.sql
+	if unique := ltq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ltq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := ltq.fields; len(fields) > 0 {
+	if fields := ltq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, likedtrack.FieldID)
 		for i := range fields {
@@ -471,10 +474,10 @@ func (ltq *LikedTrackQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := ltq.limit; limit != nil {
+	if limit := ltq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := ltq.offset; offset != nil {
+	if offset := ltq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := ltq.order; len(ps) > 0 {
@@ -490,7 +493,7 @@ func (ltq *LikedTrackQuery) querySpec() *sqlgraph.QuerySpec {
 func (ltq *LikedTrackQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(ltq.driver.Dialect())
 	t1 := builder.Table(likedtrack.Table)
-	columns := ltq.fields
+	columns := ltq.ctx.Fields
 	if len(columns) == 0 {
 		columns = likedtrack.Columns
 	}
@@ -499,7 +502,7 @@ func (ltq *LikedTrackQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = ltq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if ltq.unique != nil && *ltq.unique {
+	if ltq.ctx.Unique != nil && *ltq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range ltq.predicates {
@@ -508,12 +511,12 @@ func (ltq *LikedTrackQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range ltq.order {
 		p(selector)
 	}
-	if offset := ltq.offset; offset != nil {
+	if offset := ltq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := ltq.limit; limit != nil {
+	if limit := ltq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -521,13 +524,8 @@ func (ltq *LikedTrackQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // LikedTrackGroupBy is the group-by builder for LikedTrack entities.
 type LikedTrackGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *LikedTrackQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -536,74 +534,77 @@ func (ltgb *LikedTrackGroupBy) Aggregate(fns ...AggregateFunc) *LikedTrackGroupB
 	return ltgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
-func (ltgb *LikedTrackGroupBy) Scan(ctx context.Context, v interface{}) error {
-	query, err := ltgb.path(ctx)
-	if err != nil {
+// Scan applies the selector query and scans the result into the given value.
+func (ltgb *LikedTrackGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, ltgb.build.ctx, "GroupBy")
+	if err := ltgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ltgb.sql = query
-	return ltgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*LikedTrackQuery, *LikedTrackGroupBy](ctx, ltgb.build, ltgb, ltgb.build.inters, v)
 }
 
-func (ltgb *LikedTrackGroupBy) sqlScan(ctx context.Context, v interface{}) error {
-	for _, f := range ltgb.fields {
-		if !likedtrack.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (ltgb *LikedTrackGroupBy) sqlScan(ctx context.Context, root *LikedTrackQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(ltgb.fns))
+	for _, fn := range ltgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := ltgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*ltgb.flds)+len(ltgb.fns))
+		for _, f := range *ltgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*ltgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := ltgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := ltgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (ltgb *LikedTrackGroupBy) sqlQuery() *sql.Selector {
-	selector := ltgb.sql.Select()
-	aggregation := make([]string, 0, len(ltgb.fns))
-	for _, fn := range ltgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(ltgb.fields)+len(ltgb.fns))
-		for _, f := range ltgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(ltgb.fields...)...)
-}
-
 // LikedTrackSelect is the builder for selecting fields of LikedTrack entities.
 type LikedTrackSelect struct {
 	*LikedTrackQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (lts *LikedTrackSelect) Aggregate(fns ...AggregateFunc) *LikedTrackSelect {
+	lts.fns = append(lts.fns, fns...)
+	return lts
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (lts *LikedTrackSelect) Scan(ctx context.Context, v interface{}) error {
+func (lts *LikedTrackSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, lts.ctx, "Select")
 	if err := lts.prepareQuery(ctx); err != nil {
 		return err
 	}
-	lts.sql = lts.LikedTrackQuery.sqlQuery(ctx)
-	return lts.sqlScan(ctx, v)
+	return scanWithInterceptors[*LikedTrackQuery, *LikedTrackSelect](ctx, lts.LikedTrackQuery, lts, lts.inters, v)
 }
 
-func (lts *LikedTrackSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (lts *LikedTrackSelect) sqlScan(ctx context.Context, root *LikedTrackQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(lts.fns))
+	for _, fn := range lts.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*lts.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := lts.sql.Query()
+	query, args := selector.Query()
 	if err := lts.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

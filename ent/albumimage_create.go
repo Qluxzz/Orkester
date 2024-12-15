@@ -38,49 +38,7 @@ func (aic *AlbumImageCreate) Mutation() *AlbumImageMutation {
 
 // Save creates the AlbumImage in the database.
 func (aic *AlbumImageCreate) Save(ctx context.Context) (*AlbumImage, error) {
-	var (
-		err  error
-		node *AlbumImage
-	)
-	if len(aic.hooks) == 0 {
-		if err = aic.check(); err != nil {
-			return nil, err
-		}
-		node, err = aic.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AlbumImageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = aic.check(); err != nil {
-				return nil, err
-			}
-			aic.mutation = mutation
-			if node, err = aic.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(aic.hooks) - 1; i >= 0; i-- {
-			if aic.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = aic.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, aic.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*AlbumImage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from AlbumImageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks(ctx, aic.sqlSave, aic.mutation, aic.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -117,6 +75,9 @@ func (aic *AlbumImageCreate) check() error {
 }
 
 func (aic *AlbumImageCreate) sqlSave(ctx context.Context) (*AlbumImage, error) {
+	if err := aic.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := aic.createSpec()
 	if err := sqlgraph.CreateNode(ctx, aic.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -126,34 +87,22 @@ func (aic *AlbumImageCreate) sqlSave(ctx context.Context) (*AlbumImage, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	aic.mutation.id = &_node.ID
+	aic.mutation.done = true
 	return _node, nil
 }
 
 func (aic *AlbumImageCreate) createSpec() (*AlbumImage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &AlbumImage{config: aic.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: albumimage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: albumimage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(albumimage.Table, sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt))
 	)
 	if value, ok := aic.mutation.Image(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: albumimage.FieldImage,
-		})
+		_spec.SetField(albumimage.FieldImage, field.TypeBytes, value)
 		_node.Image = value
 	}
 	if value, ok := aic.mutation.ImageMimeType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: albumimage.FieldImageMimeType,
-		})
+		_spec.SetField(albumimage.FieldImageMimeType, field.TypeString, value)
 		_node.ImageMimeType = value
 	}
 	return _node, _spec
@@ -162,11 +111,15 @@ func (aic *AlbumImageCreate) createSpec() (*AlbumImage, *sqlgraph.CreateSpec) {
 // AlbumImageCreateBulk is the builder for creating many AlbumImage entities in bulk.
 type AlbumImageCreateBulk struct {
 	config
+	err      error
 	builders []*AlbumImageCreate
 }
 
 // Save creates the AlbumImage entities in the database.
 func (aicb *AlbumImageCreateBulk) Save(ctx context.Context) ([]*AlbumImage, error) {
+	if aicb.err != nil {
+		return nil, aicb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(aicb.builders))
 	nodes := make([]*AlbumImage, len(aicb.builders))
 	mutators := make([]Mutator, len(aicb.builders))
@@ -182,8 +135,8 @@ func (aicb *AlbumImageCreateBulk) Save(ctx context.Context) ([]*AlbumImage, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, aicb.builders[i+1].mutation)
 				} else {

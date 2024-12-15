@@ -53,50 +53,8 @@ func (ltc *LikedTrackCreate) Mutation() *LikedTrackMutation {
 
 // Save creates the LikedTrack in the database.
 func (ltc *LikedTrackCreate) Save(ctx context.Context) (*LikedTrack, error) {
-	var (
-		err  error
-		node *LikedTrack
-	)
 	ltc.defaults()
-	if len(ltc.hooks) == 0 {
-		if err = ltc.check(); err != nil {
-			return nil, err
-		}
-		node, err = ltc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LikedTrackMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ltc.check(); err != nil {
-				return nil, err
-			}
-			ltc.mutation = mutation
-			if node, err = ltc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ltc.hooks) - 1; i >= 0; i-- {
-			if ltc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ltc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ltc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*LikedTrack)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from LikedTrackMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks(ctx, ltc.sqlSave, ltc.mutation, ltc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -141,6 +99,9 @@ func (ltc *LikedTrackCreate) check() error {
 }
 
 func (ltc *LikedTrackCreate) sqlSave(ctx context.Context) (*LikedTrack, error) {
+	if err := ltc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ltc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ltc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -150,26 +111,18 @@ func (ltc *LikedTrackCreate) sqlSave(ctx context.Context) (*LikedTrack, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ltc.mutation.id = &_node.ID
+	ltc.mutation.done = true
 	return _node, nil
 }
 
 func (ltc *LikedTrackCreate) createSpec() (*LikedTrack, *sqlgraph.CreateSpec) {
 	var (
 		_node = &LikedTrack{config: ltc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: likedtrack.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: likedtrack.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(likedtrack.Table, sqlgraph.NewFieldSpec(likedtrack.FieldID, field.TypeInt))
 	)
 	if value, ok := ltc.mutation.DateAdded(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: likedtrack.FieldDateAdded,
-		})
+		_spec.SetField(likedtrack.FieldDateAdded, field.TypeTime, value)
 		_node.DateAdded = value
 	}
 	if nodes := ltc.mutation.TrackIDs(); len(nodes) > 0 {
@@ -180,10 +133,7 @@ func (ltc *LikedTrackCreate) createSpec() (*LikedTrack, *sqlgraph.CreateSpec) {
 			Columns: []string{likedtrack.TrackColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: track.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(track.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -198,11 +148,15 @@ func (ltc *LikedTrackCreate) createSpec() (*LikedTrack, *sqlgraph.CreateSpec) {
 // LikedTrackCreateBulk is the builder for creating many LikedTrack entities in bulk.
 type LikedTrackCreateBulk struct {
 	config
+	err      error
 	builders []*LikedTrackCreate
 }
 
 // Save creates the LikedTrack entities in the database.
 func (ltcb *LikedTrackCreateBulk) Save(ctx context.Context) ([]*LikedTrack, error) {
+	if ltcb.err != nil {
+		return nil, ltcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ltcb.builders))
 	nodes := make([]*LikedTrack, len(ltcb.builders))
 	mutators := make([]Mutator, len(ltcb.builders))
@@ -219,8 +173,8 @@ func (ltcb *LikedTrackCreateBulk) Save(ctx context.Context) ([]*LikedTrack, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ltcb.builders[i+1].mutation)
 				} else {

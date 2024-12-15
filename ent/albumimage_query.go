@@ -17,11 +17,9 @@ import (
 // AlbumImageQuery is the builder for querying AlbumImage entities.
 type AlbumImageQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []albumimage.OrderOption
+	inters     []Interceptor
 	predicates []predicate.AlbumImage
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,27 +32,27 @@ func (aiq *AlbumImageQuery) Where(ps ...predicate.AlbumImage) *AlbumImageQuery {
 	return aiq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (aiq *AlbumImageQuery) Limit(limit int) *AlbumImageQuery {
-	aiq.limit = &limit
+	aiq.ctx.Limit = &limit
 	return aiq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (aiq *AlbumImageQuery) Offset(offset int) *AlbumImageQuery {
-	aiq.offset = &offset
+	aiq.ctx.Offset = &offset
 	return aiq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (aiq *AlbumImageQuery) Unique(unique bool) *AlbumImageQuery {
-	aiq.unique = &unique
+	aiq.ctx.Unique = &unique
 	return aiq
 }
 
-// Order adds an order step to the query.
-func (aiq *AlbumImageQuery) Order(o ...OrderFunc) *AlbumImageQuery {
+// Order specifies how the records should be ordered.
+func (aiq *AlbumImageQuery) Order(o ...albumimage.OrderOption) *AlbumImageQuery {
 	aiq.order = append(aiq.order, o...)
 	return aiq
 }
@@ -62,7 +60,7 @@ func (aiq *AlbumImageQuery) Order(o ...OrderFunc) *AlbumImageQuery {
 // First returns the first AlbumImage entity from the query.
 // Returns a *NotFoundError when no AlbumImage was found.
 func (aiq *AlbumImageQuery) First(ctx context.Context) (*AlbumImage, error) {
-	nodes, err := aiq.Limit(1).All(ctx)
+	nodes, err := aiq.Limit(1).All(setContextOp(ctx, aiq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (aiq *AlbumImageQuery) FirstX(ctx context.Context) *AlbumImage {
 // Returns a *NotFoundError when no AlbumImage ID was found.
 func (aiq *AlbumImageQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = aiq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = aiq.Limit(1).IDs(setContextOp(ctx, aiq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (aiq *AlbumImageQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one AlbumImage entity is found.
 // Returns a *NotFoundError when no AlbumImage entities are found.
 func (aiq *AlbumImageQuery) Only(ctx context.Context) (*AlbumImage, error) {
-	nodes, err := aiq.Limit(2).All(ctx)
+	nodes, err := aiq.Limit(2).All(setContextOp(ctx, aiq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (aiq *AlbumImageQuery) OnlyX(ctx context.Context) *AlbumImage {
 // Returns a *NotFoundError when no entities are found.
 func (aiq *AlbumImageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = aiq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = aiq.Limit(2).IDs(setContextOp(ctx, aiq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (aiq *AlbumImageQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of AlbumImages.
 func (aiq *AlbumImageQuery) All(ctx context.Context) ([]*AlbumImage, error) {
+	ctx = setContextOp(ctx, aiq.ctx, "All")
 	if err := aiq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return aiq.sqlAll(ctx)
+	qr := querierAll[[]*AlbumImage, *AlbumImageQuery]()
+	return withInterceptors[[]*AlbumImage](ctx, aiq, qr, aiq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -177,9 +177,12 @@ func (aiq *AlbumImageQuery) AllX(ctx context.Context) []*AlbumImage {
 }
 
 // IDs executes the query and returns a list of AlbumImage IDs.
-func (aiq *AlbumImageQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := aiq.Select(albumimage.FieldID).Scan(ctx, &ids); err != nil {
+func (aiq *AlbumImageQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if aiq.ctx.Unique == nil && aiq.path != nil {
+		aiq.Unique(true)
+	}
+	ctx = setContextOp(ctx, aiq.ctx, "IDs")
+	if err = aiq.Select(albumimage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -196,10 +199,11 @@ func (aiq *AlbumImageQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (aiq *AlbumImageQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, aiq.ctx, "Count")
 	if err := aiq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return aiq.sqlCount(ctx)
+	return withInterceptors[int](ctx, aiq, querierCount[*AlbumImageQuery](), aiq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +217,15 @@ func (aiq *AlbumImageQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (aiq *AlbumImageQuery) Exist(ctx context.Context) (bool, error) {
-	if err := aiq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, aiq.ctx, "Exist")
+	switch _, err := aiq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return aiq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +245,13 @@ func (aiq *AlbumImageQuery) Clone() *AlbumImageQuery {
 	}
 	return &AlbumImageQuery{
 		config:     aiq.config,
-		limit:      aiq.limit,
-		offset:     aiq.offset,
-		order:      append([]OrderFunc{}, aiq.order...),
+		ctx:        aiq.ctx.Clone(),
+		order:      append([]albumimage.OrderOption{}, aiq.order...),
+		inters:     append([]Interceptor{}, aiq.inters...),
 		predicates: append([]predicate.AlbumImage{}, aiq.predicates...),
 		// clone intermediate query.
-		sql:    aiq.sql.Clone(),
-		path:   aiq.path,
-		unique: aiq.unique,
+		sql:  aiq.sql.Clone(),
+		path: aiq.path,
 	}
 }
 
@@ -261,18 +269,12 @@ func (aiq *AlbumImageQuery) Clone() *AlbumImageQuery {
 //		GroupBy(albumimage.FieldImage).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (aiq *AlbumImageQuery) GroupBy(field string, fields ...string) *AlbumImageGroupBy {
-	grbuild := &AlbumImageGroupBy{config: aiq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := aiq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return aiq.sqlQuery(ctx), nil
-	}
+	aiq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &AlbumImageGroupBy{build: aiq}
+	grbuild.flds = &aiq.ctx.Fields
 	grbuild.label = albumimage.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,17 +290,31 @@ func (aiq *AlbumImageQuery) GroupBy(field string, fields ...string) *AlbumImageG
 //	client.AlbumImage.Query().
 //		Select(albumimage.FieldImage).
 //		Scan(ctx, &v)
-//
 func (aiq *AlbumImageQuery) Select(fields ...string) *AlbumImageSelect {
-	aiq.fields = append(aiq.fields, fields...)
-	selbuild := &AlbumImageSelect{AlbumImageQuery: aiq}
-	selbuild.label = albumimage.Label
-	selbuild.flds, selbuild.scan = &aiq.fields, selbuild.Scan
-	return selbuild
+	aiq.ctx.Fields = append(aiq.ctx.Fields, fields...)
+	sbuild := &AlbumImageSelect{AlbumImageQuery: aiq}
+	sbuild.label = albumimage.Label
+	sbuild.flds, sbuild.scan = &aiq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a AlbumImageSelect configured with the given aggregations.
+func (aiq *AlbumImageQuery) Aggregate(fns ...AggregateFunc) *AlbumImageSelect {
+	return aiq.Select().Aggregate(fns...)
 }
 
 func (aiq *AlbumImageQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range aiq.fields {
+	for _, inter := range aiq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, aiq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range aiq.ctx.Fields {
 		if !albumimage.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -318,10 +334,10 @@ func (aiq *AlbumImageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes = []*AlbumImage{}
 		_spec = aiq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*AlbumImage).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &AlbumImage{config: aiq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -340,38 +356,22 @@ func (aiq *AlbumImageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 
 func (aiq *AlbumImageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := aiq.querySpec()
-	_spec.Node.Columns = aiq.fields
-	if len(aiq.fields) > 0 {
-		_spec.Unique = aiq.unique != nil && *aiq.unique
+	_spec.Node.Columns = aiq.ctx.Fields
+	if len(aiq.ctx.Fields) > 0 {
+		_spec.Unique = aiq.ctx.Unique != nil && *aiq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, aiq.driver, _spec)
 }
 
-func (aiq *AlbumImageQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := aiq.sqlCount(ctx)
-	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	}
-	return n > 0, nil
-}
-
 func (aiq *AlbumImageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   albumimage.Table,
-			Columns: albumimage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: albumimage.FieldID,
-			},
-		},
-		From:   aiq.sql,
-		Unique: true,
-	}
-	if unique := aiq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(albumimage.Table, albumimage.Columns, sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt))
+	_spec.From = aiq.sql
+	if unique := aiq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if aiq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := aiq.fields; len(fields) > 0 {
+	if fields := aiq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, albumimage.FieldID)
 		for i := range fields {
@@ -387,10 +387,10 @@ func (aiq *AlbumImageQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := aiq.limit; limit != nil {
+	if limit := aiq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := aiq.offset; offset != nil {
+	if offset := aiq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := aiq.order; len(ps) > 0 {
@@ -406,7 +406,7 @@ func (aiq *AlbumImageQuery) querySpec() *sqlgraph.QuerySpec {
 func (aiq *AlbumImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(aiq.driver.Dialect())
 	t1 := builder.Table(albumimage.Table)
-	columns := aiq.fields
+	columns := aiq.ctx.Fields
 	if len(columns) == 0 {
 		columns = albumimage.Columns
 	}
@@ -415,7 +415,7 @@ func (aiq *AlbumImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = aiq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if aiq.unique != nil && *aiq.unique {
+	if aiq.ctx.Unique != nil && *aiq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range aiq.predicates {
@@ -424,12 +424,12 @@ func (aiq *AlbumImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range aiq.order {
 		p(selector)
 	}
-	if offset := aiq.offset; offset != nil {
+	if offset := aiq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := aiq.limit; limit != nil {
+	if limit := aiq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -437,13 +437,8 @@ func (aiq *AlbumImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // AlbumImageGroupBy is the group-by builder for AlbumImage entities.
 type AlbumImageGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *AlbumImageQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -452,74 +447,77 @@ func (aigb *AlbumImageGroupBy) Aggregate(fns ...AggregateFunc) *AlbumImageGroupB
 	return aigb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
-func (aigb *AlbumImageGroupBy) Scan(ctx context.Context, v interface{}) error {
-	query, err := aigb.path(ctx)
-	if err != nil {
+// Scan applies the selector query and scans the result into the given value.
+func (aigb *AlbumImageGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, aigb.build.ctx, "GroupBy")
+	if err := aigb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	aigb.sql = query
-	return aigb.sqlScan(ctx, v)
+	return scanWithInterceptors[*AlbumImageQuery, *AlbumImageGroupBy](ctx, aigb.build, aigb, aigb.build.inters, v)
 }
 
-func (aigb *AlbumImageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
-	for _, f := range aigb.fields {
-		if !albumimage.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (aigb *AlbumImageGroupBy) sqlScan(ctx context.Context, root *AlbumImageQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(aigb.fns))
+	for _, fn := range aigb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := aigb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*aigb.flds)+len(aigb.fns))
+		for _, f := range *aigb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*aigb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := aigb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := aigb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (aigb *AlbumImageGroupBy) sqlQuery() *sql.Selector {
-	selector := aigb.sql.Select()
-	aggregation := make([]string, 0, len(aigb.fns))
-	for _, fn := range aigb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(aigb.fields)+len(aigb.fns))
-		for _, f := range aigb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(aigb.fields...)...)
-}
-
 // AlbumImageSelect is the builder for selecting fields of AlbumImage entities.
 type AlbumImageSelect struct {
 	*AlbumImageQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (ais *AlbumImageSelect) Aggregate(fns ...AggregateFunc) *AlbumImageSelect {
+	ais.fns = append(ais.fns, fns...)
+	return ais
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ais *AlbumImageSelect) Scan(ctx context.Context, v interface{}) error {
+func (ais *AlbumImageSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, ais.ctx, "Select")
 	if err := ais.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ais.sql = ais.AlbumImageQuery.sqlQuery(ctx)
-	return ais.sqlScan(ctx, v)
+	return scanWithInterceptors[*AlbumImageQuery, *AlbumImageSelect](ctx, ais.AlbumImageQuery, ais, ais.inters, v)
 }
 
-func (ais *AlbumImageSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ais *AlbumImageSelect) sqlScan(ctx context.Context, root *AlbumImageQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(ais.fns))
+	for _, fn := range ais.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*ais.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := ais.sql.Query()
+	query, args := selector.Query()
 	if err := ais.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

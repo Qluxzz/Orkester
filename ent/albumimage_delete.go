@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"orkester/ent/albumimage"
 	"orkester/ent/predicate"
 
@@ -28,34 +27,7 @@ func (aid *AlbumImageDelete) Where(ps ...predicate.AlbumImage) *AlbumImageDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (aid *AlbumImageDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(aid.hooks) == 0 {
-		affected, err = aid.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AlbumImageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			aid.mutation = mutation
-			affected, err = aid.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(aid.hooks) - 1; i >= 0; i-- {
-			if aid.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = aid.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, aid.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks(ctx, aid.sqlExec, aid.mutation, aid.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (aid *AlbumImageDelete) ExecX(ctx context.Context) int {
 }
 
 func (aid *AlbumImageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: albumimage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: albumimage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(albumimage.Table, sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt))
 	if ps := aid.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (aid *AlbumImageDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	aid.mutation.done = true
 	return affected, err
 }
 
 // AlbumImageDeleteOne is the builder for deleting a single AlbumImage entity.
 type AlbumImageDeleteOne struct {
 	aid *AlbumImageDelete
+}
+
+// Where appends a list predicates to the AlbumImageDelete builder.
+func (aido *AlbumImageDeleteOne) Where(ps ...predicate.AlbumImage) *AlbumImageDeleteOne {
+	aido.aid.mutation.Where(ps...)
+	return aido
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (aido *AlbumImageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (aido *AlbumImageDeleteOne) ExecX(ctx context.Context) {
-	aido.aid.ExecX(ctx)
+	if err := aido.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

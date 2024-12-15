@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"orkester/ent/predicate"
 	"orkester/ent/searchpath"
 
@@ -28,34 +27,7 @@ func (spd *SearchPathDelete) Where(ps ...predicate.SearchPath) *SearchPathDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (spd *SearchPathDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(spd.hooks) == 0 {
-		affected, err = spd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SearchPathMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			spd.mutation = mutation
-			affected, err = spd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(spd.hooks) - 1; i >= 0; i-- {
-			if spd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = spd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, spd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks(ctx, spd.sqlExec, spd.mutation, spd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (spd *SearchPathDelete) ExecX(ctx context.Context) int {
 }
 
 func (spd *SearchPathDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: searchpath.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: searchpath.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(searchpath.Table, sqlgraph.NewFieldSpec(searchpath.FieldID, field.TypeInt))
 	if ps := spd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (spd *SearchPathDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	spd.mutation.done = true
 	return affected, err
 }
 
 // SearchPathDeleteOne is the builder for deleting a single SearchPath entity.
 type SearchPathDeleteOne struct {
 	spd *SearchPathDelete
+}
+
+// Where appends a list predicates to the SearchPathDelete builder.
+func (spdo *SearchPathDeleteOne) Where(ps ...predicate.SearchPath) *SearchPathDeleteOne {
+	spdo.spd.mutation.Where(ps...)
+	return spdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (spdo *SearchPathDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (spdo *SearchPathDeleteOne) ExecX(ctx context.Context) {
-	spdo.spd.ExecX(ctx)
+	if err := spdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

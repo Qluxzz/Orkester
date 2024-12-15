@@ -34,34 +34,7 @@ func (aiu *AlbumImageUpdate) Mutation() *AlbumImageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (aiu *AlbumImageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(aiu.hooks) == 0 {
-		affected, err = aiu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AlbumImageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			aiu.mutation = mutation
-			affected, err = aiu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(aiu.hooks) - 1; i >= 0; i-- {
-			if aiu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = aiu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, aiu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks(ctx, aiu.sqlSave, aiu.mutation, aiu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -87,16 +60,7 @@ func (aiu *AlbumImageUpdate) ExecX(ctx context.Context) {
 }
 
 func (aiu *AlbumImageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   albumimage.Table,
-			Columns: albumimage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: albumimage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(albumimage.Table, albumimage.Columns, sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt))
 	if ps := aiu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -112,6 +76,7 @@ func (aiu *AlbumImageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	aiu.mutation.done = true
 	return n, nil
 }
 
@@ -128,6 +93,12 @@ func (aiuo *AlbumImageUpdateOne) Mutation() *AlbumImageMutation {
 	return aiuo.mutation
 }
 
+// Where appends a list predicates to the AlbumImageUpdate builder.
+func (aiuo *AlbumImageUpdateOne) Where(ps ...predicate.AlbumImage) *AlbumImageUpdateOne {
+	aiuo.mutation.Where(ps...)
+	return aiuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (aiuo *AlbumImageUpdateOne) Select(field string, fields ...string) *AlbumImageUpdateOne {
@@ -137,40 +108,7 @@ func (aiuo *AlbumImageUpdateOne) Select(field string, fields ...string) *AlbumIm
 
 // Save executes the query and returns the updated AlbumImage entity.
 func (aiuo *AlbumImageUpdateOne) Save(ctx context.Context) (*AlbumImage, error) {
-	var (
-		err  error
-		node *AlbumImage
-	)
-	if len(aiuo.hooks) == 0 {
-		node, err = aiuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AlbumImageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			aiuo.mutation = mutation
-			node, err = aiuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(aiuo.hooks) - 1; i >= 0; i-- {
-			if aiuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = aiuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, aiuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*AlbumImage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from AlbumImageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks(ctx, aiuo.sqlSave, aiuo.mutation, aiuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,16 +134,7 @@ func (aiuo *AlbumImageUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (aiuo *AlbumImageUpdateOne) sqlSave(ctx context.Context) (_node *AlbumImage, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   albumimage.Table,
-			Columns: albumimage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: albumimage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(albumimage.Table, albumimage.Columns, sqlgraph.NewFieldSpec(albumimage.FieldID, field.TypeInt))
 	id, ok := aiuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "AlbumImage.id" for update`)}
@@ -241,5 +170,6 @@ func (aiuo *AlbumImageUpdateOne) sqlSave(ctx context.Context) (_node *AlbumImage
 		}
 		return nil, err
 	}
+	aiuo.mutation.done = true
 	return _node, nil
 }

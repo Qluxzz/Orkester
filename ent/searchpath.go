@@ -7,6 +7,7 @@ import (
 	"orkester/ent/searchpath"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,12 +17,13 @@ type SearchPath struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Path holds the value of the "path" field.
-	Path string `json:"path,omitempty"`
+	Path         string `json:"path,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*SearchPath) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*SearchPath) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case searchpath.FieldID:
@@ -29,7 +31,7 @@ func (*SearchPath) scanValues(columns []string) ([]interface{}, error) {
 		case searchpath.FieldPath:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type SearchPath", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -37,7 +39,7 @@ func (*SearchPath) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SearchPath fields.
-func (sp *SearchPath) assignValues(columns []string, values []interface{}) error {
+func (sp *SearchPath) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -55,16 +57,24 @@ func (sp *SearchPath) assignValues(columns []string, values []interface{}) error
 			} else if value.Valid {
 				sp.Path = value.String
 			}
+		default:
+			sp.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the SearchPath.
+// This includes values selected through modifiers, order, etc.
+func (sp *SearchPath) Value(name string) (ent.Value, error) {
+	return sp.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this SearchPath.
 // Note that you need to call SearchPath.Unwrap() before calling this method if this SearchPath
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (sp *SearchPath) Update() *SearchPathUpdateOne {
-	return (&SearchPathClient{config: sp.config}).UpdateOne(sp)
+	return NewSearchPathClient(sp.config).UpdateOne(sp)
 }
 
 // Unwrap unwraps the SearchPath entity that was returned from a transaction after it was closed,
@@ -91,9 +101,3 @@ func (sp *SearchPath) String() string {
 
 // SearchPaths is a parsable slice of SearchPath.
 type SearchPaths []*SearchPath
-
-func (sp SearchPaths) config(cfg config) {
-	for _i := range sp {
-		sp[_i].config = cfg
-	}
-}

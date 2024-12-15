@@ -7,6 +7,7 @@ import (
 	"orkester/ent/albumimage"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -19,11 +20,12 @@ type AlbumImage struct {
 	Image []byte `json:"image,omitempty"`
 	// ImageMimeType holds the value of the "image_mime_type" field.
 	ImageMimeType string `json:"image_mime_type,omitempty"`
+	selectValues  sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*AlbumImage) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*AlbumImage) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case albumimage.FieldImage:
@@ -33,7 +35,7 @@ func (*AlbumImage) scanValues(columns []string) ([]interface{}, error) {
 		case albumimage.FieldImageMimeType:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type AlbumImage", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -41,7 +43,7 @@ func (*AlbumImage) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the AlbumImage fields.
-func (ai *AlbumImage) assignValues(columns []string, values []interface{}) error {
+func (ai *AlbumImage) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -65,16 +67,24 @@ func (ai *AlbumImage) assignValues(columns []string, values []interface{}) error
 			} else if value.Valid {
 				ai.ImageMimeType = value.String
 			}
+		default:
+			ai.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the AlbumImage.
+// This includes values selected through modifiers, order, etc.
+func (ai *AlbumImage) Value(name string) (ent.Value, error) {
+	return ai.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this AlbumImage.
 // Note that you need to call AlbumImage.Unwrap() before calling this method if this AlbumImage
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ai *AlbumImage) Update() *AlbumImageUpdateOne {
-	return (&AlbumImageClient{config: ai.config}).UpdateOne(ai)
+	return NewAlbumImageClient(ai.config).UpdateOne(ai)
 }
 
 // Unwrap unwraps the AlbumImage entity that was returned from a transaction after it was closed,
@@ -104,9 +114,3 @@ func (ai *AlbumImage) String() string {
 
 // AlbumImages is a parsable slice of AlbumImage.
 type AlbumImages []*AlbumImage
-
-func (ai AlbumImages) config(cfg config) {
-	for _i := range ai {
-		ai[_i].config = cfg
-	}
-}

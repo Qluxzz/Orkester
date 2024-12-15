@@ -34,34 +34,7 @@ func (spu *SearchPathUpdate) Mutation() *SearchPathMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (spu *SearchPathUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(spu.hooks) == 0 {
-		affected, err = spu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SearchPathMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			spu.mutation = mutation
-			affected, err = spu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(spu.hooks) - 1; i >= 0; i-- {
-			if spu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = spu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, spu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks(ctx, spu.sqlSave, spu.mutation, spu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -87,16 +60,7 @@ func (spu *SearchPathUpdate) ExecX(ctx context.Context) {
 }
 
 func (spu *SearchPathUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   searchpath.Table,
-			Columns: searchpath.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: searchpath.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(searchpath.Table, searchpath.Columns, sqlgraph.NewFieldSpec(searchpath.FieldID, field.TypeInt))
 	if ps := spu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -112,6 +76,7 @@ func (spu *SearchPathUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	spu.mutation.done = true
 	return n, nil
 }
 
@@ -128,6 +93,12 @@ func (spuo *SearchPathUpdateOne) Mutation() *SearchPathMutation {
 	return spuo.mutation
 }
 
+// Where appends a list predicates to the SearchPathUpdate builder.
+func (spuo *SearchPathUpdateOne) Where(ps ...predicate.SearchPath) *SearchPathUpdateOne {
+	spuo.mutation.Where(ps...)
+	return spuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (spuo *SearchPathUpdateOne) Select(field string, fields ...string) *SearchPathUpdateOne {
@@ -137,40 +108,7 @@ func (spuo *SearchPathUpdateOne) Select(field string, fields ...string) *SearchP
 
 // Save executes the query and returns the updated SearchPath entity.
 func (spuo *SearchPathUpdateOne) Save(ctx context.Context) (*SearchPath, error) {
-	var (
-		err  error
-		node *SearchPath
-	)
-	if len(spuo.hooks) == 0 {
-		node, err = spuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SearchPathMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			spuo.mutation = mutation
-			node, err = spuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(spuo.hooks) - 1; i >= 0; i-- {
-			if spuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = spuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, spuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*SearchPath)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from SearchPathMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks(ctx, spuo.sqlSave, spuo.mutation, spuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,16 +134,7 @@ func (spuo *SearchPathUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (spuo *SearchPathUpdateOne) sqlSave(ctx context.Context) (_node *SearchPath, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   searchpath.Table,
-			Columns: searchpath.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: searchpath.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(searchpath.Table, searchpath.Columns, sqlgraph.NewFieldSpec(searchpath.FieldID, field.TypeInt))
 	id, ok := spuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "SearchPath.id" for update`)}
@@ -241,5 +170,6 @@ func (spuo *SearchPathUpdateOne) sqlSave(ctx context.Context) (_node *SearchPath
 		}
 		return nil, err
 	}
+	spuo.mutation.done = true
 	return _node, nil
 }

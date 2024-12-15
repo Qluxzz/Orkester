@@ -2,6 +2,11 @@
 
 package album
 
+import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+)
+
 const (
 	// Label holds the string label denoting the album type in the database.
 	Label = "album"
@@ -72,4 +77,71 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the Album queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByURLName orders the results by the url_name field.
+func ByURLName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldURLName, opts...).ToFunc()
+}
+
+// ByArtistField orders the results by artist field.
+func ByArtistField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newArtistStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByTracksCount orders the results by tracks count.
+func ByTracksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTracksStep(), opts...)
+	}
+}
+
+// ByTracks orders the results by tracks terms.
+func ByTracks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTracksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCoverField orders the results by cover field.
+func ByCoverField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCoverStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newArtistStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ArtistInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ArtistTable, ArtistColumn),
+	)
+}
+func newTracksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TracksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TracksTable, TracksColumn),
+	)
+}
+func newCoverStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CoverInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, CoverTable, CoverColumn),
+	)
 }

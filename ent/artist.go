@@ -7,6 +7,7 @@ import (
 	"orkester/ent/artist"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -21,7 +22,8 @@ type Artist struct {
 	URLName string `json:"url_name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ArtistQuery when eager-loading is set.
-	Edges ArtistEdges `json:"edges"`
+	Edges        ArtistEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // ArtistEdges holds the relations/edges for other nodes in the graph.
@@ -54,8 +56,8 @@ func (e ArtistEdges) TracksOrErr() ([]*Track, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Artist) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*Artist) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case artist.FieldID:
@@ -63,7 +65,7 @@ func (*Artist) scanValues(columns []string) ([]interface{}, error) {
 		case artist.FieldName, artist.FieldURLName:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Artist", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -71,7 +73,7 @@ func (*Artist) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Artist fields.
-func (a *Artist) assignValues(columns []string, values []interface{}) error {
+func (a *Artist) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -95,26 +97,34 @@ func (a *Artist) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				a.URLName = value.String
 			}
+		default:
+			a.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Artist.
+// This includes values selected through modifiers, order, etc.
+func (a *Artist) Value(name string) (ent.Value, error) {
+	return a.selectValues.Get(name)
+}
+
 // QueryAlbums queries the "albums" edge of the Artist entity.
 func (a *Artist) QueryAlbums() *AlbumQuery {
-	return (&ArtistClient{config: a.config}).QueryAlbums(a)
+	return NewArtistClient(a.config).QueryAlbums(a)
 }
 
 // QueryTracks queries the "tracks" edge of the Artist entity.
 func (a *Artist) QueryTracks() *TrackQuery {
-	return (&ArtistClient{config: a.config}).QueryTracks(a)
+	return NewArtistClient(a.config).QueryTracks(a)
 }
 
 // Update returns a builder for updating this Artist.
 // Note that you need to call Artist.Unwrap() before calling this method if this Artist
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (a *Artist) Update() *ArtistUpdateOne {
-	return (&ArtistClient{config: a.config}).UpdateOne(a)
+	return NewArtistClient(a.config).UpdateOne(a)
 }
 
 // Unwrap unwraps the Artist entity that was returned from a transaction after it was closed,
@@ -144,9 +154,3 @@ func (a *Artist) String() string {
 
 // Artists is a parsable slice of Artist.
 type Artists []*Artist
-
-func (a Artists) config(cfg config) {
-	for _i := range a {
-		a[_i].config = cfg
-	}
-}

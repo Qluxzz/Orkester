@@ -14,11 +14,10 @@ type AlbumFunc func(context.Context, *ent.AlbumMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f AlbumFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.AlbumMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlbumMutation", m)
+	if mv, ok := m.(*ent.AlbumMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlbumMutation", m)
 }
 
 // The AlbumImageFunc type is an adapter to allow the use of ordinary
@@ -27,11 +26,10 @@ type AlbumImageFunc func(context.Context, *ent.AlbumImageMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f AlbumImageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.AlbumImageMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlbumImageMutation", m)
+	if mv, ok := m.(*ent.AlbumImageMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlbumImageMutation", m)
 }
 
 // The ArtistFunc type is an adapter to allow the use of ordinary
@@ -40,11 +38,10 @@ type ArtistFunc func(context.Context, *ent.ArtistMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f ArtistFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.ArtistMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ArtistMutation", m)
+	if mv, ok := m.(*ent.ArtistMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ArtistMutation", m)
 }
 
 // The LikedTrackFunc type is an adapter to allow the use of ordinary
@@ -53,11 +50,10 @@ type LikedTrackFunc func(context.Context, *ent.LikedTrackMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f LikedTrackFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.LikedTrackMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LikedTrackMutation", m)
+	if mv, ok := m.(*ent.LikedTrackMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LikedTrackMutation", m)
 }
 
 // The SearchPathFunc type is an adapter to allow the use of ordinary
@@ -66,11 +62,10 @@ type SearchPathFunc func(context.Context, *ent.SearchPathMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f SearchPathFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.SearchPathMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SearchPathMutation", m)
+	if mv, ok := m.(*ent.SearchPathMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SearchPathMutation", m)
 }
 
 // The TrackFunc type is an adapter to allow the use of ordinary
@@ -79,11 +74,10 @@ type TrackFunc func(context.Context, *ent.TrackMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f TrackFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TrackMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TrackMutation", m)
+	if mv, ok := m.(*ent.TrackMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TrackMutation", m)
 }
 
 // Condition is a hook condition function.
@@ -181,7 +175,6 @@ func HasFields(field string, fields ...string) Condition {
 // If executes the given hook under condition.
 //
 //	hook.If(ComputeAverage, And(HasFields(...), HasAddedFields(...)))
-//
 func If(hk ent.Hook, cond Condition) ent.Hook {
 	return func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
@@ -196,7 +189,6 @@ func If(hk ent.Hook, cond Condition) ent.Hook {
 // On executes the given hook only for the given operation.
 //
 //	hook.On(Log, ent.Delete|ent.Create)
-//
 func On(hk ent.Hook, op ent.Op) ent.Hook {
 	return If(hk, HasOp(op))
 }
@@ -204,7 +196,6 @@ func On(hk ent.Hook, op ent.Op) ent.Hook {
 // Unless skips the given hook only for the given operation.
 //
 //	hook.Unless(Log, ent.Update|ent.UpdateOne)
-//
 func Unless(hk ent.Hook, op ent.Op) ent.Hook {
 	return If(hk, Not(HasOp(op)))
 }
@@ -225,7 +216,6 @@ func FixedError(err error) ent.Hook {
 //			Reject(ent.Delete|ent.Update),
 //		}
 //	}
-//
 func Reject(op ent.Op) ent.Hook {
 	hk := FixedError(fmt.Errorf("%s operation is not allowed", op))
 	return On(hk, op)

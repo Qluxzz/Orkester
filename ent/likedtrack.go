@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -21,8 +22,9 @@ type LikedTrack struct {
 	DateAdded time.Time `json:"date_added,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LikedTrackQuery when eager-loading is set.
-	Edges       LikedTrackEdges `json:"edges"`
-	track_liked *int
+	Edges        LikedTrackEdges `json:"edges"`
+	track_liked  *int
+	selectValues sql.SelectValues
 }
 
 // LikedTrackEdges holds the relations/edges for other nodes in the graph.
@@ -37,19 +39,17 @@ type LikedTrackEdges struct {
 // TrackOrErr returns the Track value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e LikedTrackEdges) TrackOrErr() (*Track, error) {
-	if e.loadedTypes[0] {
-		if e.Track == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: track.Label}
-		}
+	if e.Track != nil {
 		return e.Track, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: track.Label}
 	}
 	return nil, &NotLoadedError{edge: "track"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*LikedTrack) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*LikedTrack) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case likedtrack.FieldID:
@@ -59,7 +59,7 @@ func (*LikedTrack) scanValues(columns []string) ([]interface{}, error) {
 		case likedtrack.ForeignKeys[0]: // track_liked
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type LikedTrack", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -67,7 +67,7 @@ func (*LikedTrack) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the LikedTrack fields.
-func (lt *LikedTrack) assignValues(columns []string, values []interface{}) error {
+func (lt *LikedTrack) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -92,21 +92,29 @@ func (lt *LikedTrack) assignValues(columns []string, values []interface{}) error
 				lt.track_liked = new(int)
 				*lt.track_liked = int(value.Int64)
 			}
+		default:
+			lt.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the LikedTrack.
+// This includes values selected through modifiers, order, etc.
+func (lt *LikedTrack) Value(name string) (ent.Value, error) {
+	return lt.selectValues.Get(name)
+}
+
 // QueryTrack queries the "track" edge of the LikedTrack entity.
 func (lt *LikedTrack) QueryTrack() *TrackQuery {
-	return (&LikedTrackClient{config: lt.config}).QueryTrack(lt)
+	return NewLikedTrackClient(lt.config).QueryTrack(lt)
 }
 
 // Update returns a builder for updating this LikedTrack.
 // Note that you need to call LikedTrack.Unwrap() before calling this method if this LikedTrack
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (lt *LikedTrack) Update() *LikedTrackUpdateOne {
-	return (&LikedTrackClient{config: lt.config}).UpdateOne(lt)
+	return NewLikedTrackClient(lt.config).UpdateOne(lt)
 }
 
 // Unwrap unwraps the LikedTrack entity that was returned from a transaction after it was closed,
@@ -133,9 +141,3 @@ func (lt *LikedTrack) String() string {
 
 // LikedTracks is a parsable slice of LikedTrack.
 type LikedTracks []*LikedTrack
-
-func (lt LikedTracks) config(cfg config) {
-	for _i := range lt {
-		lt[_i].config = cfg
-	}
-}

@@ -32,49 +32,7 @@ func (spc *SearchPathCreate) Mutation() *SearchPathMutation {
 
 // Save creates the SearchPath in the database.
 func (spc *SearchPathCreate) Save(ctx context.Context) (*SearchPath, error) {
-	var (
-		err  error
-		node *SearchPath
-	)
-	if len(spc.hooks) == 0 {
-		if err = spc.check(); err != nil {
-			return nil, err
-		}
-		node, err = spc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SearchPathMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = spc.check(); err != nil {
-				return nil, err
-			}
-			spc.mutation = mutation
-			if node, err = spc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(spc.hooks) - 1; i >= 0; i-- {
-			if spc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = spc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, spc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*SearchPath)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from SearchPathMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks(ctx, spc.sqlSave, spc.mutation, spc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -108,6 +66,9 @@ func (spc *SearchPathCreate) check() error {
 }
 
 func (spc *SearchPathCreate) sqlSave(ctx context.Context) (*SearchPath, error) {
+	if err := spc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := spc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, spc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -117,26 +78,18 @@ func (spc *SearchPathCreate) sqlSave(ctx context.Context) (*SearchPath, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	spc.mutation.id = &_node.ID
+	spc.mutation.done = true
 	return _node, nil
 }
 
 func (spc *SearchPathCreate) createSpec() (*SearchPath, *sqlgraph.CreateSpec) {
 	var (
 		_node = &SearchPath{config: spc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: searchpath.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: searchpath.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(searchpath.Table, sqlgraph.NewFieldSpec(searchpath.FieldID, field.TypeInt))
 	)
 	if value, ok := spc.mutation.Path(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: searchpath.FieldPath,
-		})
+		_spec.SetField(searchpath.FieldPath, field.TypeString, value)
 		_node.Path = value
 	}
 	return _node, _spec
@@ -145,11 +98,15 @@ func (spc *SearchPathCreate) createSpec() (*SearchPath, *sqlgraph.CreateSpec) {
 // SearchPathCreateBulk is the builder for creating many SearchPath entities in bulk.
 type SearchPathCreateBulk struct {
 	config
+	err      error
 	builders []*SearchPathCreate
 }
 
 // Save creates the SearchPath entities in the database.
 func (spcb *SearchPathCreateBulk) Save(ctx context.Context) ([]*SearchPath, error) {
+	if spcb.err != nil {
+		return nil, spcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(spcb.builders))
 	nodes := make([]*SearchPath, len(spcb.builders))
 	mutators := make([]Mutator, len(spcb.builders))
@@ -165,8 +122,8 @@ func (spcb *SearchPathCreateBulk) Save(ctx context.Context) ([]*SearchPath, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, spcb.builders[i+1].mutation)
 				} else {

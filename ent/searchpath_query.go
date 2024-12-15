@@ -17,11 +17,9 @@ import (
 // SearchPathQuery is the builder for querying SearchPath entities.
 type SearchPathQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []searchpath.OrderOption
+	inters     []Interceptor
 	predicates []predicate.SearchPath
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,27 +32,27 @@ func (spq *SearchPathQuery) Where(ps ...predicate.SearchPath) *SearchPathQuery {
 	return spq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (spq *SearchPathQuery) Limit(limit int) *SearchPathQuery {
-	spq.limit = &limit
+	spq.ctx.Limit = &limit
 	return spq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (spq *SearchPathQuery) Offset(offset int) *SearchPathQuery {
-	spq.offset = &offset
+	spq.ctx.Offset = &offset
 	return spq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (spq *SearchPathQuery) Unique(unique bool) *SearchPathQuery {
-	spq.unique = &unique
+	spq.ctx.Unique = &unique
 	return spq
 }
 
-// Order adds an order step to the query.
-func (spq *SearchPathQuery) Order(o ...OrderFunc) *SearchPathQuery {
+// Order specifies how the records should be ordered.
+func (spq *SearchPathQuery) Order(o ...searchpath.OrderOption) *SearchPathQuery {
 	spq.order = append(spq.order, o...)
 	return spq
 }
@@ -62,7 +60,7 @@ func (spq *SearchPathQuery) Order(o ...OrderFunc) *SearchPathQuery {
 // First returns the first SearchPath entity from the query.
 // Returns a *NotFoundError when no SearchPath was found.
 func (spq *SearchPathQuery) First(ctx context.Context) (*SearchPath, error) {
-	nodes, err := spq.Limit(1).All(ctx)
+	nodes, err := spq.Limit(1).All(setContextOp(ctx, spq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (spq *SearchPathQuery) FirstX(ctx context.Context) *SearchPath {
 // Returns a *NotFoundError when no SearchPath ID was found.
 func (spq *SearchPathQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = spq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = spq.Limit(1).IDs(setContextOp(ctx, spq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (spq *SearchPathQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one SearchPath entity is found.
 // Returns a *NotFoundError when no SearchPath entities are found.
 func (spq *SearchPathQuery) Only(ctx context.Context) (*SearchPath, error) {
-	nodes, err := spq.Limit(2).All(ctx)
+	nodes, err := spq.Limit(2).All(setContextOp(ctx, spq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (spq *SearchPathQuery) OnlyX(ctx context.Context) *SearchPath {
 // Returns a *NotFoundError when no entities are found.
 func (spq *SearchPathQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = spq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = spq.Limit(2).IDs(setContextOp(ctx, spq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (spq *SearchPathQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of SearchPaths.
 func (spq *SearchPathQuery) All(ctx context.Context) ([]*SearchPath, error) {
+	ctx = setContextOp(ctx, spq.ctx, "All")
 	if err := spq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return spq.sqlAll(ctx)
+	qr := querierAll[[]*SearchPath, *SearchPathQuery]()
+	return withInterceptors[[]*SearchPath](ctx, spq, qr, spq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -177,9 +177,12 @@ func (spq *SearchPathQuery) AllX(ctx context.Context) []*SearchPath {
 }
 
 // IDs executes the query and returns a list of SearchPath IDs.
-func (spq *SearchPathQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := spq.Select(searchpath.FieldID).Scan(ctx, &ids); err != nil {
+func (spq *SearchPathQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if spq.ctx.Unique == nil && spq.path != nil {
+		spq.Unique(true)
+	}
+	ctx = setContextOp(ctx, spq.ctx, "IDs")
+	if err = spq.Select(searchpath.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -196,10 +199,11 @@ func (spq *SearchPathQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (spq *SearchPathQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, spq.ctx, "Count")
 	if err := spq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return spq.sqlCount(ctx)
+	return withInterceptors[int](ctx, spq, querierCount[*SearchPathQuery](), spq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +217,15 @@ func (spq *SearchPathQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (spq *SearchPathQuery) Exist(ctx context.Context) (bool, error) {
-	if err := spq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, spq.ctx, "Exist")
+	switch _, err := spq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return spq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +245,13 @@ func (spq *SearchPathQuery) Clone() *SearchPathQuery {
 	}
 	return &SearchPathQuery{
 		config:     spq.config,
-		limit:      spq.limit,
-		offset:     spq.offset,
-		order:      append([]OrderFunc{}, spq.order...),
+		ctx:        spq.ctx.Clone(),
+		order:      append([]searchpath.OrderOption{}, spq.order...),
+		inters:     append([]Interceptor{}, spq.inters...),
 		predicates: append([]predicate.SearchPath{}, spq.predicates...),
 		// clone intermediate query.
-		sql:    spq.sql.Clone(),
-		path:   spq.path,
-		unique: spq.unique,
+		sql:  spq.sql.Clone(),
+		path: spq.path,
 	}
 }
 
@@ -261,18 +269,12 @@ func (spq *SearchPathQuery) Clone() *SearchPathQuery {
 //		GroupBy(searchpath.FieldPath).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (spq *SearchPathQuery) GroupBy(field string, fields ...string) *SearchPathGroupBy {
-	grbuild := &SearchPathGroupBy{config: spq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := spq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return spq.sqlQuery(ctx), nil
-	}
+	spq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &SearchPathGroupBy{build: spq}
+	grbuild.flds = &spq.ctx.Fields
 	grbuild.label = searchpath.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,17 +290,31 @@ func (spq *SearchPathQuery) GroupBy(field string, fields ...string) *SearchPathG
 //	client.SearchPath.Query().
 //		Select(searchpath.FieldPath).
 //		Scan(ctx, &v)
-//
 func (spq *SearchPathQuery) Select(fields ...string) *SearchPathSelect {
-	spq.fields = append(spq.fields, fields...)
-	selbuild := &SearchPathSelect{SearchPathQuery: spq}
-	selbuild.label = searchpath.Label
-	selbuild.flds, selbuild.scan = &spq.fields, selbuild.Scan
-	return selbuild
+	spq.ctx.Fields = append(spq.ctx.Fields, fields...)
+	sbuild := &SearchPathSelect{SearchPathQuery: spq}
+	sbuild.label = searchpath.Label
+	sbuild.flds, sbuild.scan = &spq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a SearchPathSelect configured with the given aggregations.
+func (spq *SearchPathQuery) Aggregate(fns ...AggregateFunc) *SearchPathSelect {
+	return spq.Select().Aggregate(fns...)
 }
 
 func (spq *SearchPathQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range spq.fields {
+	for _, inter := range spq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, spq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range spq.ctx.Fields {
 		if !searchpath.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -318,10 +334,10 @@ func (spq *SearchPathQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes = []*SearchPath{}
 		_spec = spq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*SearchPath).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &SearchPath{config: spq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -340,38 +356,22 @@ func (spq *SearchPathQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 
 func (spq *SearchPathQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := spq.querySpec()
-	_spec.Node.Columns = spq.fields
-	if len(spq.fields) > 0 {
-		_spec.Unique = spq.unique != nil && *spq.unique
+	_spec.Node.Columns = spq.ctx.Fields
+	if len(spq.ctx.Fields) > 0 {
+		_spec.Unique = spq.ctx.Unique != nil && *spq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, spq.driver, _spec)
 }
 
-func (spq *SearchPathQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := spq.sqlCount(ctx)
-	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	}
-	return n > 0, nil
-}
-
 func (spq *SearchPathQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   searchpath.Table,
-			Columns: searchpath.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: searchpath.FieldID,
-			},
-		},
-		From:   spq.sql,
-		Unique: true,
-	}
-	if unique := spq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(searchpath.Table, searchpath.Columns, sqlgraph.NewFieldSpec(searchpath.FieldID, field.TypeInt))
+	_spec.From = spq.sql
+	if unique := spq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if spq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := spq.fields; len(fields) > 0 {
+	if fields := spq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, searchpath.FieldID)
 		for i := range fields {
@@ -387,10 +387,10 @@ func (spq *SearchPathQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := spq.limit; limit != nil {
+	if limit := spq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := spq.offset; offset != nil {
+	if offset := spq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := spq.order; len(ps) > 0 {
@@ -406,7 +406,7 @@ func (spq *SearchPathQuery) querySpec() *sqlgraph.QuerySpec {
 func (spq *SearchPathQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(spq.driver.Dialect())
 	t1 := builder.Table(searchpath.Table)
-	columns := spq.fields
+	columns := spq.ctx.Fields
 	if len(columns) == 0 {
 		columns = searchpath.Columns
 	}
@@ -415,7 +415,7 @@ func (spq *SearchPathQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = spq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if spq.unique != nil && *spq.unique {
+	if spq.ctx.Unique != nil && *spq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range spq.predicates {
@@ -424,12 +424,12 @@ func (spq *SearchPathQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range spq.order {
 		p(selector)
 	}
-	if offset := spq.offset; offset != nil {
+	if offset := spq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := spq.limit; limit != nil {
+	if limit := spq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -437,13 +437,8 @@ func (spq *SearchPathQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // SearchPathGroupBy is the group-by builder for SearchPath entities.
 type SearchPathGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *SearchPathQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -452,74 +447,77 @@ func (spgb *SearchPathGroupBy) Aggregate(fns ...AggregateFunc) *SearchPathGroupB
 	return spgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
-func (spgb *SearchPathGroupBy) Scan(ctx context.Context, v interface{}) error {
-	query, err := spgb.path(ctx)
-	if err != nil {
+// Scan applies the selector query and scans the result into the given value.
+func (spgb *SearchPathGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, spgb.build.ctx, "GroupBy")
+	if err := spgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	spgb.sql = query
-	return spgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*SearchPathQuery, *SearchPathGroupBy](ctx, spgb.build, spgb, spgb.build.inters, v)
 }
 
-func (spgb *SearchPathGroupBy) sqlScan(ctx context.Context, v interface{}) error {
-	for _, f := range spgb.fields {
-		if !searchpath.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (spgb *SearchPathGroupBy) sqlScan(ctx context.Context, root *SearchPathQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(spgb.fns))
+	for _, fn := range spgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := spgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*spgb.flds)+len(spgb.fns))
+		for _, f := range *spgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*spgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := spgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := spgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (spgb *SearchPathGroupBy) sqlQuery() *sql.Selector {
-	selector := spgb.sql.Select()
-	aggregation := make([]string, 0, len(spgb.fns))
-	for _, fn := range spgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(spgb.fields)+len(spgb.fns))
-		for _, f := range spgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(spgb.fields...)...)
-}
-
 // SearchPathSelect is the builder for selecting fields of SearchPath entities.
 type SearchPathSelect struct {
 	*SearchPathQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (sps *SearchPathSelect) Aggregate(fns ...AggregateFunc) *SearchPathSelect {
+	sps.fns = append(sps.fns, fns...)
+	return sps
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (sps *SearchPathSelect) Scan(ctx context.Context, v interface{}) error {
+func (sps *SearchPathSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, sps.ctx, "Select")
 	if err := sps.prepareQuery(ctx); err != nil {
 		return err
 	}
-	sps.sql = sps.SearchPathQuery.sqlQuery(ctx)
-	return sps.sqlScan(ctx, v)
+	return scanWithInterceptors[*SearchPathQuery, *SearchPathSelect](ctx, sps.SearchPathQuery, sps, sps.inters, v)
 }
 
-func (sps *SearchPathSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (sps *SearchPathSelect) sqlScan(ctx context.Context, root *SearchPathQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(sps.fns))
+	for _, fn := range sps.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*sps.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := sps.sql.Query()
+	query, args := selector.Query()
 	if err := sps.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
