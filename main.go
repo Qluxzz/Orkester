@@ -67,6 +67,9 @@ func main() {
 	scan.Post("", handlers.AddSearchPath(client, ctx))
 	scan.Put("", handlers.UpdateLibrary(client, ctx))
 
+	// Used for end-to-end testing
+	scan.Put("/fake", handlers.AddFakeTracks(client, ctx))
+
 	if mode == "production" {
 		app.Static("/", "client/")
 
@@ -74,9 +77,6 @@ func main() {
 			log.Print("Tried to access /")
 			return c.SendFile("client/index.html")
 		})
-	} else {
-		// Used for end-to-end testing
-		scan.Put("/fake", handlers.AddFakeTracks(client, ctx))
 	}
 
 	// Start app

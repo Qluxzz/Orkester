@@ -1,0 +1,11 @@
+services:
+  orkester:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orkester
+    ports:
+      - "80:42000"
+    restart: unless-stopped
+    environment:
+      - ENV=production
