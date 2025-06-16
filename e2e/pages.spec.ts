@@ -26,6 +26,8 @@ test("search", async ({ page }) => {
 
   await page.getByRole("search").fill("david")
 
+  await expect(page).toHaveTitle(/Search david/)
+
   await expect(
     page.getByRole("main").getByRole("heading", { name: "Tracks" })
   ).toBeVisible()
@@ -46,6 +48,8 @@ test("album page", async ({ page }) => {
 
   await page.goto("http://localhost:1234/album/1")
 
+  await expect(page).toHaveTitle("Hurry up, We're Dreaming • Ruelle")
+
   await expect(
     page
       .getByRole("main")
@@ -62,6 +66,8 @@ test("artist page", async ({ page }) => {
 
   await page.goto("http://localhost:1234/artist/1")
 
+  await expect(page).toHaveTitle("Ruelle")
+
   await expect(
     page.getByRole("main").getByRole("heading", { name: "Ruelle" })
   ).toBeVisible()
@@ -75,6 +81,8 @@ test("liked tracks", async ({ page }) => {
   })
 
   await page.goto("http://localhost:1234/liked-tracks")
+
+  await expect(page).toHaveTitle("Liked tracks")
 
   await expect(
     page.getByRole("main").getByRole("heading", { name: "Liked tracks" })

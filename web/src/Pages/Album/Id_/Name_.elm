@@ -147,7 +147,7 @@ view : Model -> View Msg
 view model =
     case model.album of
         RemoteData.Success a ->
-            { title = a.name
+            { title = a.name ++ " • " ++ a.artist.name
             , body = [ albumView a ]
             }
 
