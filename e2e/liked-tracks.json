@@ -1,0 +1,207 @@
+[
+    {
+        "id": "track-569",
+        "title": "Oblivion",
+        "trackNumber": 15,
+        "length": 38,
+        "album": {
+            "id": 143,
+            "name": "Friend Zone",
+            "urlName": "friend-zone"
+        },
+        "artists": [
+            {
+                "id": 4,
+                "name": "Massive Attack",
+                "urlName": "massive-attack"
+            },
+            {
+                "id": 5,
+                "name": "Placebo",
+                "urlName": "placebo"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:56.200277121Z"
+    },
+    {
+        "id": "track-188",
+        "title": "Until We Go Down",
+        "trackNumber": 5,
+        "length": 120,
+        "album": {
+            "id": 143,
+            "name": "Friend Zone",
+            "urlName": "friend-zone"
+        },
+        "artists": [
+            {
+                "id": 5,
+                "name": "Placebo",
+                "urlName": "placebo"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:55.688464988Z"
+    },
+    {
+        "id": "track-155",
+        "title": "La Booga Rooga",
+        "trackNumber": 15,
+        "length": 67,
+        "album": {
+            "id": 143,
+            "name": "Friend Zone",
+            "urlName": "friend-zone"
+        },
+        "artists": [
+            {
+                "id": 4,
+                "name": "Massive Attack",
+                "urlName": "massive-attack"
+            },
+            {
+                "id": 5,
+                "name": "Placebo",
+                "urlName": "placebo"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:55.21704685Z"
+    },
+    {
+        "id": "track-638",
+        "title": "Reunion",
+        "trackNumber": 15,
+        "length": 320,
+        "album": {
+            "id": 438,
+            "name": "Skifs Hits!",
+            "urlName": "skifs-hits"
+        },
+        "artists": [
+            {
+                "id": 4,
+                "name": "Massive Attack",
+                "urlName": "massive-attack"
+            },
+            {
+                "id": 5,
+                "name": "Placebo",
+                "urlName": "placebo"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:52.262680442Z"
+    },
+    {
+        "id": "track-928",
+        "title": "Shadow Song",
+        "trackNumber": 20,
+        "length": 161,
+        "album": {
+            "id": 171,
+            "name": "Sixteen Saltines",
+            "urlName": "sixteen-saltines"
+        },
+        "artists": [
+            {
+                "id": 8,
+                "name": "Ruelle",
+                "urlName": "ruelle"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:47.185633436Z"
+    },
+    {
+        "id": "track-193",
+        "title": "Afterglow",
+        "trackNumber": 14,
+        "length": 85,
+        "album": {
+            "id": 171,
+            "name": "Sixteen Saltines",
+            "urlName": "sixteen-saltines"
+        },
+        "artists": [
+            {
+                "id": 8,
+                "name": "Ruelle",
+                "urlName": "ruelle"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:46.802944708Z"
+    },
+    {
+        "id": "track-743",
+        "title": "It's Raining Somewhere Else",
+        "trackNumber": 13,
+        "length": 360,
+        "album": {
+            "id": 271,
+            "name": "Miman",
+            "urlName": "miman"
+        },
+        "artists": [
+            {
+                "id": 5,
+                "name": "Placebo",
+                "urlName": "placebo"
+            },
+            {
+                "id": 8,
+                "name": "Ruelle",
+                "urlName": "ruelle"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:41.271334387Z"
+    },
+    {
+        "id": "track-328",
+        "title": "I Could Never Leave You",
+        "trackNumber": 19,
+        "length": 316,
+        "album": {
+            "id": 271,
+            "name": "Miman",
+            "urlName": "miman"
+        },
+        "artists": [
+            {
+                "id": 8,
+                "name": "Ruelle",
+                "urlName": "ruelle"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:40.151219626Z"
+    },
+    {
+        "id": "track-759",
+        "title": "Notorious - 2010 Remaster",
+        "trackNumber": 5,
+        "length": 216,
+        "album": {
+            "id": 490,
+            "name": "You're Gonna Get it",
+            "urlName": "youre-gonna-get-it"
+        },
+        "artists": [
+            {
+                "id": 8,
+                "name": "Ruelle",
+                "urlName": "ruelle"
+            },
+            {
+                "id": 1,
+                "name": "Lemaitre",
+                "urlName": "lemaitre"
+            }
+        ],
+        "liked": true,
+        "dateAdded": "2025-06-16T20:10:37.800458306Z"
+    }
+]

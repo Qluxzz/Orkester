@@ -124,7 +124,7 @@ view model =
     { title = "Search " ++ model.search
     , body =
         [ Html.div [ Html.Attributes.class "search-results-page" ]
-            [ Html.input [ Html.Attributes.type_ "text", Html.Attributes.value model.search, Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field" ] []
+            [ Html.input [ Html.Attributes.attribute "role" "search", Html.Attributes.type_ "text", Html.Attributes.value model.search, Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field" ] []
             , case model.searchResult of
                 RemoteData.Success data ->
                     searchResultsView data

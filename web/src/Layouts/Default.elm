@@ -125,7 +125,7 @@ view shared { toContentMsg, model, content } =
         [ sidebarView currentlyPlayingTrack
         , Html.main_ [] content.body
         , Html.aside [ Html.Attributes.class "queue" ] [ queueView shared.queue ]
-        , Html.div [ Html.Attributes.class "player-bar" ] (playerBarView shared.volume model.progressSlider currentlyPlayingTrack shared.repeat)
+        , Html.div [ Html.Attributes.attribute "role" "status", Html.Attributes.class "player-bar" ] (playerBarView shared.volume model.progressSlider currentlyPlayingTrack shared.repeat)
             |> Html.map toContentMsg
         ]
     }

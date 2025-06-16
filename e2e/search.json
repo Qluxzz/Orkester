@@ -1,0 +1,299 @@
+{
+    "albums": [
+        {
+            "id": 1,
+            "name": "Mai Lan",
+            "urlName": "mai-lan"
+        },
+        {
+            "id": 2,
+            "name": "Lockjaw",
+            "urlName": "lockjaw"
+        },
+        {
+            "id": 3,
+            "name": "Up \u0026 Away",
+            "urlName": "up-and-away"
+        },
+        {
+            "id": 4,
+            "name": "What's All The Mumble About",
+            "urlName": "whats-all-the-mumble-about"
+        },
+        {
+            "id": 5,
+            "name": "Audio, Video, Disco.",
+            "urlName": "audio-video-disco"
+        },
+        {
+            "id": 6,
+            "name": "Hurry up, We're Dreaming",
+            "urlName": "hurry-up-were-dreaming"
+        },
+        {
+            "id": 7,
+            "name": "Built on Glass",
+            "urlName": "built-on-glass"
+        },
+        {
+            "id": 8,
+            "name": "Watch Out!",
+            "urlName": "watch-out"
+        },
+        {
+            "id": 9,
+            "name": "Analog Is On",
+            "urlName": "analog-is-on"
+        },
+        {
+            "id": 10,
+            "name": "East of the Sun, West of the Moon",
+            "urlName": "east-of-the-sun-west-of-the-moon"
+        }
+    ],
+    "artists": [
+        {
+            "id": 1,
+            "name": "Lemaitre",
+            "urlName": "lemaitre"
+        },
+        {
+            "id": 2,
+            "name": "Jennie A.",
+            "urlName": "jennie-a"
+        },
+        {
+            "id": 3,
+            "name": "Mike Diva",
+            "urlName": "mike-diva"
+        },
+        {
+            "id": 4,
+            "name": "Massive Attack",
+            "urlName": "massive-attack"
+        },
+        {
+            "id": 5,
+            "name": "Placebo",
+            "urlName": "placebo"
+        },
+        {
+            "id": 7,
+            "name": "Ellen McIlwaine",
+            "urlName": "ellen-mcilwaine"
+        },
+        {
+            "id": 9,
+            "name": "La Roux",
+            "urlName": "la-roux"
+        },
+        {
+            "id": 10,
+            "name": "Rihanna",
+            "urlName": "rihanna"
+        }
+    ],
+    "tracks": [
+        {
+            "id": "track-1",
+            "title": "Sunrise Andromeda",
+            "trackNumber": 5,
+            "length": 139,
+            "album": {
+                "id": 1,
+                "name": "Mai Lan",
+                "urlName": "mai-lan"
+            },
+            "artists": [
+                {
+                    "id": 1,
+                    "name": "Lemaitre",
+                    "urlName": "lemaitre"
+                },
+                {
+                    "id": 2,
+                    "name": "Jennie A.",
+                    "urlName": "jennie-a"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-2",
+            "title": "Lie Down in Darkness - 2015 Remaster",
+            "trackNumber": 13,
+            "length": 397,
+            "album": {
+                "id": 2,
+                "name": "Lockjaw",
+                "urlName": "lockjaw"
+            },
+            "artists": [
+                {
+                    "id": 1,
+                    "name": "Lemaitre",
+                    "urlName": "lemaitre"
+                },
+                {
+                    "id": 3,
+                    "name": "Mike Diva",
+                    "urlName": "mike-diva"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-3",
+            "title": "I Could Never Leave You",
+            "trackNumber": 13,
+            "length": 380,
+            "album": {
+                "id": 3,
+                "name": "Up \u0026 Away",
+                "urlName": "up-and-away"
+            },
+            "artists": [
+                {
+                    "id": 4,
+                    "name": "Massive Attack",
+                    "urlName": "massive-attack"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-4",
+            "title": "Let Me Up (I've Had Enough)",
+            "trackNumber": 13,
+            "length": 233,
+            "album": {
+                "id": 4,
+                "name": "What's All The Mumble About",
+                "urlName": "whats-all-the-mumble-about"
+            },
+            "artists": [
+                {
+                    "id": 5,
+                    "name": "Placebo",
+                    "urlName": "placebo"
+                },
+                {
+                    "id": 6,
+                    "name": "Miike Snow",
+                    "urlName": "miike-snow"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-5",
+            "title": "The Politics of Dancing",
+            "trackNumber": 4,
+            "length": 205,
+            "album": {
+                "id": 5,
+                "name": "Audio, Video, Disco.",
+                "urlName": "audio-video-disco"
+            },
+            "artists": [
+                {
+                    "id": 7,
+                    "name": "Ellen McIlwaine",
+                    "urlName": "ellen-mcilwaine"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-6",
+            "title": "The No Pants Dance",
+            "trackNumber": 6,
+            "length": 303,
+            "album": {
+                "id": 6,
+                "name": "Hurry up, We're Dreaming",
+                "urlName": "hurry-up-were-dreaming"
+            },
+            "artists": [
+                {
+                    "id": 8,
+                    "name": "Ruelle",
+                    "urlName": "ruelle"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-7",
+            "title": "Once Upon a Dream - From \"Maleficent\" / Pop Version",
+            "trackNumber": 4,
+            "length": 284,
+            "album": {
+                "id": 7,
+                "name": "Built on Glass",
+                "urlName": "built-on-glass"
+            },
+            "artists": [
+                {
+                    "id": 1,
+                    "name": "Lemaitre",
+                    "urlName": "lemaitre"
+                },
+                {
+                    "id": 6,
+                    "name": "Miike Snow",
+                    "urlName": "miike-snow"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-8",
+            "title": "Avril 14th",
+            "trackNumber": 8,
+            "length": 427,
+            "album": {
+                "id": 8,
+                "name": "Watch Out!",
+                "urlName": "watch-out"
+            },
+            "artists": [
+                {
+                    "id": 2,
+                    "name": "Jennie A.",
+                    "urlName": "jennie-a"
+                },
+                {
+                    "id": 7,
+                    "name": "Ellen McIlwaine",
+                    "urlName": "ellen-mcilwaine"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-11",
+            "title": "Let Me Up (I've Had Enough)",
+            "trackNumber": 1,
+            "length": 234,
+            "album": {
+                "id": 11,
+                "name": "Imagineering",
+                "urlName": "imagineering"
+            },
+            "artists": [
+                {
+                    "id": 1,
+                    "name": "Lemaitre",
+                    "urlName": "lemaitre"
+                },
+                {
+                    "id": 9,
+                    "name": "La Roux",
+                    "urlName": "la-roux"
+                }
+            ],
+            "liked": false
+        }
+    ]
+}

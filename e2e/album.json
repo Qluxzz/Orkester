@@ -1,0 +1,44 @@
+{
+    "artist": {
+        "id": 8,
+        "name": "Ruelle",
+        "urlName": "ruelle"
+    },
+    "id": 6,
+    "name": "Hurry up, We're Dreaming",
+    "released": {
+        "year": 1999,
+        "precision": "year"
+    },
+    "tracks": [
+        {
+            "id": "track-273",
+            "title": "The Weekend - Radio Edit",
+            "trackNumber": 3,
+            "length": 149,
+            "artists": [
+                {
+                    "id": 8,
+                    "name": "Ruelle",
+                    "urlName": "ruelle"
+                }
+            ],
+            "liked": false
+        },
+        {
+            "id": "track-6",
+            "title": "The No Pants Dance",
+            "trackNumber": 6,
+            "length": 303,
+            "artists": [
+                {
+                    "id": 8,
+                    "name": "Ruelle",
+                    "urlName": "ruelle"
+                }
+            ],
+            "liked": false
+        }
+    ],
+    "urlName": "hurry-up-were-dreaming"
+}

@@ -1,0 +1,76 @@
+{
+    "albums": [
+        {
+            "id": 490,
+            "name": "You're Gonna Get it",
+            "urlName": "youre-gonna-get-it",
+            "released": {
+                "year": 2024,
+                "month": 4,
+                "precision": "month"
+            }
+        },
+        {
+            "id": 133,
+            "name": "Seven and the Ragged Tiger (Deluxe Edition)",
+            "urlName": "seven-and-the-ragged-tiger-deluxe-edition",
+            "released": {
+                "year": 2023,
+                "precision": "year"
+            }
+        },
+        {
+            "id": 163,
+            "name": "All That I Am",
+            "urlName": "all-that-i-am",
+            "released": {
+                "year": 2022,
+                "precision": "year"
+            }
+        },
+        {
+            "id": 271,
+            "name": "Miman",
+            "urlName": "miman",
+            "released": {
+                "year": 2021,
+                "month": 6,
+                "precision": "month"
+            }
+        },
+        {
+            "id": 248,
+            "name": "Indelibly Stamped",
+            "urlName": "indelibly-stamped",
+            "released": {
+                "year": 2021,
+                "month": 6,
+                "precision": "month"
+            }
+        },
+        {
+            "id": 171,
+            "name": "Sixteen Saltines",
+            "urlName": "sixteen-saltines",
+            "released": {
+                "year": 2020,
+                "month": 1,
+                "date": 14,
+                "precision": "date"
+            }
+        },
+        {
+            "id": 152,
+            "name": "Freedom",
+            "urlName": "freedom",
+            "released": {
+                "year": 2019,
+                "month": 10,
+                "precision": "month"
+            }
+        }
+    ],
+    "id": 8,
+    "name": "Ruelle",
+    "urlName": "ruelle"
+}
