@@ -4,6 +4,13 @@ import album from "./album.json"
 import artist from "./artist.json"
 import liked from "./liked-tracks.json"
 
+test.use({
+  viewport: {
+    width: 320,
+    height: 600,
+  },
+})
+
 test("has title", async ({ page }) => {
   await page.goto("http://localhost:1234")
 
@@ -27,13 +34,13 @@ test("search", async ({ page }) => {
 
   await expect(
     page.getByRole("main").getByRole("heading", { name: "Tracks" })
-  ).toBeVisible()
+  ).toBeInViewport()
   await expect(
     page.getByRole("main").getByRole("heading", { name: "Albums" })
-  ).toBeVisible()
+  ).toBeInViewport()
   await expect(
     page.getByRole("main").getByRole("heading", { name: "Artists" })
-  ).toBeVisible()
+  ).toBeInViewport()
 })
 
 test("album page", async ({ page }) => {

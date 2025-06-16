@@ -68,6 +68,8 @@ type Msg
     | OnDragProgressSliderEnd
     | OnDragVolumeSlider Int
     | OnRepeatChange Types.TrackQueue.Repeat
+    | FocusSearch
+    | UpdateSearchPhrase String
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -104,6 +106,13 @@ update msg model =
         OnRepeatChange repeat ->
             ( model, Effect.setRepeatMode repeat )
 
+        FocusSearch ->
+            ( model, Effect.pushRoutePath Route.Path.Search )
+
+        UpdateSearchPhrase phrase ->
+            -- Go to search result page
+            ( model, Effect.pushRoutePath (Route.Path.Search_Query_ { query = phrase }) )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -123,7 +132,14 @@ view shared { toContentMsg, model, content } =
     { title = Maybe.andThen title_ currentlyPlayingTrack |> Maybe.withDefault content.title
     , body =
         [ sidebarView currentlyPlayingTrack
-        , Html.main_ [] content.body
+        , Html.main_ []
+            ((Html.aside [ Html.Attributes.class "search", Html.Attributes.attribute "role" "searchbox" ]
+                [ Html.input [ Html.Attributes.attribute "role" "search", Html.Attributes.type_ "text", Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field", Html.Events.onFocus FocusSearch ] []
+                ]
+                |> Html.map toContentMsg
+             )
+                :: content.body
+            )
         , Html.aside [ Html.Attributes.class "queue" ] [ queueView shared.queue ]
         , Html.div [ Html.Attributes.attribute "role" "status", Html.Attributes.class "player-bar" ] (playerBarView shared.volume model.progressSlider currentlyPlayingTrack shared.repeat)
             |> Html.map toContentMsg

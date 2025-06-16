@@ -77,7 +77,7 @@ view model =
     { title = "Search"
     , body =
         [ Html.div [ Html.Attributes.class "search-start-page" ]
-            [ Html.input [ Html.Attributes.attribute "role" "search", Html.Attributes.type_ "text", Html.Events.onInput UpdateSearchPhrase, Html.Attributes.id "search-field" ] []
+            [ Html.h2 [] [ Html.text "Search" ]
             ]
         ]
     }
