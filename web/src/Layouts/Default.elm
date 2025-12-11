@@ -6,10 +6,12 @@ import Html exposing (Html)
 import Html.Attributes exposing (class)
 import Html.Events
 import Layout exposing (Layout)
+import Process
 import Route exposing (Route)
 import Route.Path
 import Shared
 import Shared.Msg
+import Task
 import Types.Queue
 import Types.TrackId
 import Types.TrackInfo
@@ -45,12 +47,13 @@ type Slider
 
 type alias Model =
     { progressSlider : Slider
+    , search : String
     }
 
 
 init : () -> ( Model, Effect Msg )
 init _ =
-    ( { progressSlider = NonInteractiveSlider }
+    ( { progressSlider = NonInteractiveSlider, search = "" }
     , Effect.none
     )
 
@@ -70,6 +73,7 @@ type Msg
     | OnRepeatChange Types.TrackQueue.Repeat
     | FocusSearch
     | UpdateSearchPhrase String
+    | PerformSearch String
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -109,9 +113,16 @@ update msg model =
         FocusSearch ->
             ( model, Effect.pushRoutePath Route.Path.Search )
 
-        UpdateSearchPhrase phrase ->
+        UpdateSearchPhrase search ->
             -- Go to search result page
-            ( model, Effect.pushRoutePath (Route.Path.Search_Query_ { query = phrase }) )
+            ( { model | search = search }, Effect.sendCmd (Process.sleep 500 |> Task.perform (\_ -> PerformSearch search)) )
+
+        PerformSearch search ->
+            if model.search == search then
+                ( model, Effect.pushRoutePath (Route.Path.Search_Query_ { query = search }) )
+
+            else
+                ( model, Effect.none )
 
 
 subscriptions : Model -> Sub Msg

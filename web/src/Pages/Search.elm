@@ -47,16 +47,13 @@ init () =
 -- UPDATE
 
 
-type Msg
-    = UpdateSearchPhrase String
+type alias Msg =
+    ()
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
-    case msg of
-        UpdateSearchPhrase phrase ->
-            -- Go to search result page
-            ( model, Effect.pushRoutePath (Route.Path.Search_Query_ { query = phrase }) )
+    ( model, Effect.none )
 
 
 
